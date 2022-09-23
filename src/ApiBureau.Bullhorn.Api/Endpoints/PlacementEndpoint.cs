@@ -1,12 +1,10 @@
-using ApiBureau.Bullhorn.Api.Dtos;
-
 namespace ApiBureau.Bullhorn.Api.Endpoints
 {
-    public class PlacementApi
+    public class PlacementEndpoint
     {
         private readonly BullhornApi _bullhornApi;
 
-        public PlacementApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public PlacementEndpoint(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
 
         public async Task<List<PlacementDto>> GetFromAsync(long timestampFrom)
         {
@@ -21,5 +19,8 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 
             return await _bullhornApi.QueryAsync<PlacementDto>(query);
         }
+
+        public Task<HttpResponseMessage> ApproveAsync(int placementId)
+            => _bullhornApi.ApiPostAsync($"services/Placement/approve/{placementId}", null);
     }
 }

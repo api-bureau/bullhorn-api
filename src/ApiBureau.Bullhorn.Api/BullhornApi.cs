@@ -1,10 +1,11 @@
+using ApiBureau.Bullhorn.Api.Endpoints;
 using ApiBureau.Bullhorn.Api.Helpers;
 using CodeCapital.System.Text.Json;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints;
+namespace ApiBureau.Bullhorn.Api;
 
 // Refactor according this 11th Minute https://channel9.msdn.com/Shows/XamarinShow/Azure-Active-Directory-B2C-Authentication-For-Mobile-with-Matthew-Soucoup
 // Call it Bullhorn.Identity, AcquireTokenAsync
@@ -26,6 +27,8 @@ public class BullhornApi
     private BullhornSettings _bullhornSettings;
     private int _apiCallCounter;
 
+    public PlacementEndpoint Placement { get; }
+
     public BullhornApi(ILogger<BullhornApi> logger, HttpClient httpClient, IOptions<BullhornSettings> settings)
     {
 
@@ -34,6 +37,8 @@ public class BullhornApi
         _httpClient = httpClient;
         _bullhornSettings = settings.Value;
         _session = new ApiSession(httpClient, _bullhornSettings, logger);
+
+        Placement = new PlacementEndpoint(this);
     }
 
     public void SetAuthorizationMeta(BullhornSettings bullhornSettings) => _bullhornSettings = bullhornSettings;
@@ -174,7 +179,7 @@ public class BullhornApi
         return await _httpClient.PutAsync(restUrl, content);
     }
 
-    public async Task<HttpResponseMessage> ApiPostAsync(string query, HttpContent content)
+    public async Task<HttpResponseMessage> ApiPostAsync(string query, HttpContent? content)
     {
         await PingCheckAsync();
 
@@ -351,4 +356,4 @@ public class BullhornApi
 //search/Note?fields=id,dateAdded,action,commentingPerson&query=dateAdded:[20210101000000 TO *] AND action:'Phone Call'&sort=-dateAdded
 //[ContestType.GdprWithDrawn] = "Candidate?fields=id&query=notes.id:\"^^action:(\\\"gdpr withdrawn\\\") AND isDeleted:false\""
 //            var query = "Candidate?fields=id,status,firstName,dateAdded,owner,email,email2,email3,phone,phone2,phone3,mobile,workPhone,placements[0](id),sendouts(id,dateAdded),fileAttachments(id)&query=isDeleted:0 AND -status:\"Archive\" AND -email:[\"\" TO *] AND -email2:[\"\" TO *] AND -email3:[\"\" TO *] AND -mobile:[\"\" TO *] AND -phone:[\"\" TO *] AND -placements.id:[0 TO 99999999999] AND -interviews.id:[0 TO 99999999999] AND -fileAttachments.id:[0 TO 99999999999] AND -notes.id:\"^^action:(\\\"Parse Failed Remove\\\") AND isDeleted:false\" AND -notes.id:\"^^action:(\\\"Parse Failed Keep\\\") AND isDeleted:false\" &sort=-dateAdded";
-//            var query = "Candidate?fields=id,status,email,email2,email3,mobile,phone,notes(id,action)&query=isDeleted:0 AND notes.id:\"^^action:(\\\"No Files Remove\\\") AND isDeleted:false\" AND (email:[\"\" TO *] OR email2:[\"\" TO *] OR email3:[\"\" TO *] OR mobile:[\"\" TO *]  OR phone:[\"\" TO *] ) AND -phone:\"44 01702460010\"
+//            var query = "Candidate?fields=id,status,email,email2,email3,mobile,phone,notes(id,action)&query=isDeleted:0 AND notes.id:\"^^action:(\\\"No Files Remove\\\") AND isDeleted:false\" AND (email:[\"\" TO *] OR email2:[\"\" TO *] OR email3:[\"\" TO *] OR mobile:[\"\" TO *]  OR phone:[\"\" TO *] ) AND -phone:\"44 01700000000\"

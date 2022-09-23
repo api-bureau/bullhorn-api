@@ -1,5 +1,4 @@
 using ApiBureau.Bullhorn.Api.Dtos;
-using ApiBureau.Bullhorn.Api.Endpoints;
 using Microsoft.Extensions.Logging;
 
 namespace ApiBureau.Bullhorn.Api.Console.Services;
