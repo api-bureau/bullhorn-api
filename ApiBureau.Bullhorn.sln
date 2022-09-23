@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32901.215
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiBureau.Bullhorn.Api", "src\ApiBureau.Bullhorn.Api\ApiBureau.Bullhorn.Api.csproj", "{739ABFEE-A39C-49F5-AF8F-44AFC16D20B9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiBureau.Bullhorn.Api.Console", "src\ApiBureau.Bullhorn.Api.Console\ApiBureau.Bullhorn.Api.Console.csproj", "{A2A66347-E025-4432-AC49-236C28345594}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{739ABFEE-A39C-49F5-AF8F-44AFC16D20B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{739ABFEE-A39C-49F5-AF8F-44AFC16D20B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{739ABFEE-A39C-49F5-AF8F-44AFC16D20B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{739ABFEE-A39C-49F5-AF8F-44AFC16D20B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2A66347-E025-4432-AC49-236C28345594}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2A66347-E025-4432-AC49-236C28345594}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2A66347-E025-4432-AC49-236C28345594}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2A66347-E025-4432-AC49-236C28345594}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {317ED757-45E1-41AF-B917-B055AE0AB24C}
+	EndGlobalSection
+EndGlobal
