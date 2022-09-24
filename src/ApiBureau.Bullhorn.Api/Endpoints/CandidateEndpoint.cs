@@ -10,8 +10,14 @@ public class CandidateEndpoint : BaseEndpoint
 
     public CandidateEndpoint(ApiConnection apiConnection) : base(apiConnection) { }
 
-    public async Task AddAsync(CandidateDto dto)
+    public async Task AddOldAsync(CandidateDto dto)
         => await ApiConnection.ApiPutAsync("entity/Candidate", new StringContent(JsonSerializer.Serialize(dto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json"));
+
+    public async Task<HttpResponseMessage> AddAsync(CandidateDto dto)
+        => await ApiConnection.PutAsJsonAsync(EntityType.Candidate, dto);
+
+    public async Task<HttpResponseMessage> AddAsync(object dto)
+        => await ApiConnection.PutAsJsonAsync(EntityType.Candidate, dto);
 
     public async Task<CandidateDto> GetAsync(int id, string? fields = null)
     {

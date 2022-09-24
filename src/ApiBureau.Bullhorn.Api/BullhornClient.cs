@@ -10,7 +10,9 @@ public class BullhornClient
     public DepartmentEndpoint Department { get; }
     public JobOrderEndpoint JobOrder { get; }
     public JobSubmissionEndpoint JobSubmission { get; }
+    public NoteEndpoint Note { get; }
     public PlacementEndpoint Placement { get; }
+    public PlacementChangeRequestEndpoint PlacementChangeRequest { get; }
     public MassUpdateEndpoint MassUpdate { get; }
 
     public BullhornClient(ApiConnection client)
@@ -21,7 +23,9 @@ public class BullhornClient
         Department = new(client);
         JobOrder = new(client);
         JobSubmission = new(client);
+        Note = new(client);
         Placement = new(client);
+        PlacementChangeRequest = new(client);
         MassUpdate = new(client);
         _client = client;
     }
