@@ -20,4 +20,11 @@ public class PlacementEndpoint : BaseEndpoint
 
     public Task<HttpResponseMessage> ApproveAsync(int placementId)
         => ApiConnection.PostAsync($"services/Placement/approve/{placementId}", null);
+
+    /// <summary>
+    /// Http POST /entity/Placement/{placementId}
+    /// </summary>
+    /// <returns></returns>
+    public Task<HttpResponseMessage> UpdateAsync(int placementId, object data)
+        => ApiConnection.PostAsJsonAsync(EntityType.Placement, placementId, data);
 }

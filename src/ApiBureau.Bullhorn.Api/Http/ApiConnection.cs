@@ -63,7 +63,7 @@ public class ApiConnection
     {
         query = $"{query}&showTotalMatched=true&usev2=true";
 
-        var apiResponse = await ApiGetAsync(query);
+        var apiResponse = await GetAsync(query);
 
         var jsonString = await apiResponse.Content.ReadAsStringAsync();
 
@@ -87,7 +87,7 @@ public class ApiConnection
     {
         query = $"{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
-        var apiResponse = await ApiGetAsync(query);
+        var apiResponse = await GetAsync(query);
 
         var jsonString = await apiResponse.Content.ReadAsStringAsync();
 
@@ -106,11 +106,31 @@ public class ApiConnection
         return response;
     }
 
-    public async Task<QueryResponse<T>> ApiQueryAsync<T>(string query, int count, int start = 0)
+    public async Task<List<T>> QueryAsync<T>(string query)
+    {
+        var items = new List<T>();
+
+        var result = await ApiQueryAsync<T>(query, QueryCount);
+
+        items.AddRange(result?.Data ?? new());
+
+        if (result is null) return items;
+
+        for (var i = result.Count; i < result.Total; i += result!.Count)
+        {
+            result = await ApiQueryAsync<T>(query, QueryCount, i);
+
+            items.AddRange(result?.Data ?? new());
+        }
+
+        return items;
+    }
+
+    public async Task<QueryResponse<T>?> ApiQueryAsync<T>(string query, int count, int start = 0)
     {
         query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
-        var response = await ApiGetAsync(query);
+        var response = await GetAsync(query);
 
         return await DeserializeAsync<QueryResponse<T>>(response);
     }
@@ -119,30 +139,16 @@ public class ApiConnection
     {
         query = $"search/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
-        var response = await ApiGetAsync(query);
+        var response = await GetAsync(query);
 
         return await DeserializeAsync<SearchResponse<T>>(response);
     }
 
-    /// <summary>
-    /// Gives only total, only for search/queries
-    /// </summary>
-    /// <param name="query"></param>
-    /// <returns>total number</returns>
-    //public async Task<int> TotalAsync(string query)
-    //{
-    //    var response = await ApiSearchAsync(query, 1);
-
-    //    return response.Total;
-    //}
-
-    public async Task<HttpResponseMessage> ApiGetAsync(string query)
+    public async Task<HttpResponseMessage> GetAsync(string query)
     {
         await PingCheckAsync();
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
-
-        //_logger.LogDebug($"Request: {restUrl}");
 
         return await _client.GetAsync(restUrl);
     }
@@ -273,25 +279,11 @@ public class ApiConnection
     {
         query = $"entity/{query}";
 
-        var response = await ApiGetAsync(query);
+        var response = await GetAsync(query);
 
         var entityResponse = await DeserializeAsync<EntityResponse<T>>(response);
 
         return entityResponse.Data;
-    }
-
-    public async Task<List<T>> QueryAsync<T>(string query)
-    {
-        var result = await ApiQueryAsync<T>(query, QueryCount);
-        var data = result.Data;
-
-        for (var i = result.Count; i < result.Total; i += result.Count)
-        {
-            result = await ApiQueryAsync<T>(query, QueryCount, i);
-            data.AddRange(result.Data);
-        }
-
-        return data ?? new List<T>();
     }
 
     public async Task<List<T>> SearchAsync<T>(string query, int count = QueryCount, int total = 0)
@@ -347,6 +339,18 @@ public class ApiConnection
 
         await _session.RefreshTokenAsync();
     }
+
+    /// <summary>
+    /// Gives only total, only for search/queries
+    /// </summary>
+    /// <param name="query"></param>
+    /// <returns>total number</returns>
+    //public async Task<int> TotalAsync(string query)
+    //{
+    //    var response = await ApiSearchAsync(query, 1);
+
+    //    return response.Total;
+    //}
 
     //ToDo
     //public async Task<SearchResponse<JObject>> ApiSearchAsync(string query, int count, int start = 0) => await ApiSearchAsync<JObject>(query, count, start);
