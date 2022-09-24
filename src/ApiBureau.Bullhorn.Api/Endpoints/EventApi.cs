@@ -1,74 +1,67 @@
-using ApiBureau.Bullhorn.Api.Dtos;
 using ApiBureau.Bullhorn.Api.Helpers;
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints
+namespace ApiBureau.Bullhorn.Api.Endpoints;
+
+public class EventApi : BaseEndpoint
 {
-    public class EventApi
+    public EventApi(ApiConnection apiConnection) : base(apiConnection) { }
+
+
+    /// <summary>
+    /// Lets you subscribe to Bullhorn event types
+    /// </summary>
+    /// <param name="subscriptionId">Used to retrieve changes, remember this id.</param>
+    /// <param name="entityNames">Comma separated entities e.g. "Candidate,ClientContact"</param>
+    /// <param name="eventTypes">Comma separated events e.g. "inserted,updated,deleted"</param>
+    /// <returns></returns>
+    public async Task<EventSubscribeDto?> SubscribeAsync(string subscriptionId, string entityNames, string eventTypes)
     {
-        private readonly BullhornClient _bullhornApi;
+        if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(nameof(subscriptionId));
 
-        public EventApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
+        if (string.IsNullOrWhiteSpace(entityNames)) throw new ArgumentException(nameof(entityNames));
 
+        if (string.IsNullOrWhiteSpace(eventTypes)) throw new ArgumentException(nameof(eventTypes));
 
-        /// <summary>
-        /// Lets you subscribe to Bullhorn event types
-        /// </summary>
-        /// <param name="subscriptionId">Used to retrieve changes, remember this id.</param>
-        /// <param name="entityNames">Comma separated entities e.g. "Candidate,ClientContact"</param>
-        /// <param name="eventTypes">Comma separated events e.g. "inserted,updated,deleted"</param>
-        /// <returns></returns>
-        public async Task<EventSubscribeDto?> SubscribeAsync(string subscriptionId, string entityNames, string eventTypes)
-        {
-            if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(nameof(subscriptionId));
+        var query = $"event/subscription/{subscriptionId}?type=entity&names={entityNames}&eventTypes={eventTypes}";
 
-            if (string.IsNullOrWhiteSpace(entityNames)) throw new ArgumentException(nameof(entityNames));
+        var response = await ApiConnection.ApiPutAsync(query, new StringContent(string.Empty));
 
-            if (string.IsNullOrWhiteSpace(eventTypes)) throw new ArgumentException(nameof(eventTypes));
+        return await response.DeserializeAsync<EventSubscribeDto>();
+    }
 
-            var query = $"event/subscription/{subscriptionId}?type=entity&names={entityNames}&eventTypes={eventTypes}";
+    public async Task<EventSubscribeDto?> ReSubscribeAsync(string subscriptionId, string entityNames, string eventTypes)
+    {
+        var unsubscribed = await UnSubscribeAsync(subscriptionId);
 
-            var response = await _bullhornApi.ApiPutAsync(query, new StringContent(string.Empty));
+        if (unsubscribed != null && unsubscribed.Result) return await SubscribeAsync(subscriptionId, entityNames, eventTypes);
 
-            return await response.DeserializeAsync<EventSubscribeDto>();
-        }
+        return null;
+    }
 
-        public async Task<EventSubscribeDto?> ReSubscribeAsync(string subscriptionId, string entityNames, string eventTypes)
-        {
-            var unsubscribed = await UnSubscribeAsync(subscriptionId);
+    public async Task<EventUnSubscribeDto?> UnSubscribeAsync(string subscriptionId)
+    {
+        if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(nameof(subscriptionId));
 
-            if (unsubscribed != null && unsubscribed.Result) return await SubscribeAsync(subscriptionId, entityNames, eventTypes);
+        var query = $"event/subscription/{subscriptionId}";
 
-            return null;
-        }
+        var response = await ApiConnection.ApiDeleteAsync(query);
 
-        public async Task<EventUnSubscribeDto?> UnSubscribeAsync(string subscriptionId)
-        {
-            if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(nameof(subscriptionId));
+        return await response.DeserializeAsync<EventUnSubscribeDto>();
+    }
 
-            var query = $"event/subscription/{subscriptionId}";
+    /// <summary>
+    /// Use try catch when calling this method. The subscription returns empty string if no data which is not standard and so it crashes.
+    /// </summary>
+    /// <param name="subscriptionId"></param>
+    /// <returns></returns>
+    public async Task<EventsDto?> GetAsync(string subscriptionId)
+    {
+        var query = $"event/subscription/{subscriptionId}?maxEvents=100";
 
-            var response = await _bullhornApi.ApiDeleteAsync(query);
+        ApiConnection.LogWarning("Placement Event Subscription: This call might throw an error if expected the input to start with a no valid JSON token (empty string), meaning no data in this case.");
 
-            return await response.DeserializeAsync<EventUnSubscribeDto>();
-        }
+        var response = await ApiConnection.GetAsync(query);
 
-        /// <summary>
-        /// Use try catch when calling this method. The subscription returns empty string if no data which is not standard and so it crashes.
-        /// </summary>
-        /// <param name="subscriptionId"></param>
-        /// <returns></returns>
-        public async Task<EventsDto?> GetAsync(string subscriptionId)
-        {
-            var query = $"event/subscription/{subscriptionId}?maxEvents=100";
-
-            _bullhornApi.LogWarning("Placement Event Subscription: This call might throw an error if expected the input to start with a no valid JSON token (empty string), meaning no data in this case.");
-
-            var response = await _bullhornApi.ApiGetAsync(query);
-
-            return await response.DeserializeAsync<EventsDto>();
-        }
+        return await response.DeserializeAsync<EventsDto>();
     }
 }

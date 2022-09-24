@@ -1,19 +1,13 @@
-namespace ApiBureau.Bullhorn.Api.Endpoints
+namespace ApiBureau.Bullhorn.Api.Endpoints;
+
+public class EntityEditHistory : BaseEndpoint
 {
-    public class EntityEditHistory
+    public EntityEditHistory(ApiConnection apiConnection) : base(apiConnection) { }
+
+    public async Task<List<EditHistoryFieldChangeDto>> GetAsync(EntityType entityType, long timestampFrom)
     {
-        private readonly BullhornClient _bullhornApi;
+        var query = $"{entityType}EditHistoryFieldChange?fields=id,display,columnName,newValue,oldValue,editHistory(dateAdded,modifyingPerson,targetEntity)&where=editHistory.dateAdded>{timestampFrom}";
 
-        public EntityEditHistory(BullhornClient bullhornApi)
-        {
-            _bullhornApi = bullhornApi;
-        }
-
-        public async Task<List<EditHistoryFieldChangeDto>> GetAsync(EntityType entityType, long timestampFrom)
-        {
-            var query = $"{entityType}EditHistoryFieldChange?fields=id,display,columnName,newValue,oldValue,editHistory(dateAdded,modifyingPerson,targetEntity)&where=editHistory.dateAdded>{timestampFrom}";
-
-            return await _bullhornApi.QueryAsync<EditHistoryFieldChangeDto>(query);
-        }
+        return await ApiConnection.QueryAsync<EditHistoryFieldChangeDto>(query);
     }
 }

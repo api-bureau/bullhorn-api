@@ -1,28 +1,22 @@
-﻿using ApiBureau.Bullhorn.Api.Dtos;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints
+public class JobSubmissionHistoryApi : BaseEndpoint
 {
-    public class JobSubmissionHistoryApi
+    public static readonly string DefaultFields = "id,dateAdded,status,modifyingUser,jobSubmission";
+
+    public JobSubmissionHistoryApi(ApiConnection apiConnection) : base(apiConnection) { }
+
+    public Task<List<JobSubmissionHistoryDto>> GetByCandidateIdAsync(int id)
     {
-        private readonly BullhornClient _bullhornApi;
-        public static readonly string DefaultFields = "id,dateAdded,status,modifyingUser,jobSubmission";
+        var query = $"JobSubmissionHistory?fields=id,dateAdded,status,jobSubmission(id,status,jobOrder(id))&where=jobSubmission.candidate.id={id}";
 
-        public JobSubmissionHistoryApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
+        return ApiConnection.QueryAsync<JobSubmissionHistoryDto>(query);
+    }
 
-        public Task<List<JobSubmissionHistoryDto>> GetByCandidateIdAsync(int id)
-        {
-            var query = $"JobSubmissionHistory?fields=id,dateAdded,status,jobSubmission(id,status,jobOrder(id))&where=jobSubmission.candidate.id={id}";
+    public Task<List<JobSubmissionHistoryDto>> GetNewAndUpdatedFromAsync(long timestampFrom)
+    {
+        var query = $"JobSubmissionHistory?fields={DefaultFields}&where=dateAdded>{timestampFrom}";
 
-            return _bullhornApi.QueryAsync<JobSubmissionHistoryDto>(query);
-        }
-
-        public Task<List<JobSubmissionHistoryDto>> GetNewAndUpdatedFromAsync(long timestampFrom)
-        {
-            var query = $"JobSubmissionHistory?fields={DefaultFields}&where=dateAdded>{timestampFrom}";
-
-            return _bullhornApi.QueryAsync<JobSubmissionHistoryDto>(query);
-        }
+        return ApiConnection.QueryAsync<JobSubmissionHistoryDto>(query);
     }
 }

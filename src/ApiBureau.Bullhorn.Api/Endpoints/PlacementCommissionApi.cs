@@ -1,25 +1,20 @@
-using ApiBureau.Bullhorn.Api.Dtos;
+namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints
+public class PlacementCommissionApi : BaseEndpoint
 {
-    public class PlacementCommissionApi
+    public PlacementCommissionApi(ApiConnection apiConnection) : base(apiConnection) { }
+
+    public async Task<List<PlacementCommissionDto>> GetFromAsync(long timestampFrom)
     {
-        private readonly BullhornClient _bullhornApi;
+        var query = $"PlacementCommission?fields=id,commissionPercentage,dateAdded,dateLastModified,placement(id),user(id),status,role&where=dateAdded>{timestampFrom}";
 
-        public PlacementCommissionApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
+        return await ApiConnection.QueryAsync<PlacementCommissionDto>(query);
+    }
 
-        public async Task<List<PlacementCommissionDto>> GetFromAsync(long timestampFrom)
-        {
-            var query = $"PlacementCommission?fields=id,commissionPercentage,dateAdded,dateLastModified,placement(id),user(id),status,role&where=dateAdded>{timestampFrom}";
+    public async Task<List<PlacementCommissionDto>> GetNewAndUpdatedFromAsync(long timestampFrom)
+    {
+        var query = $"PlacementCommission?fields=id,commissionPercentage,dateAdded,dateLastModified,placement(id),user(id),status,role&where=dateAdded>{timestampFrom} OR dateLastModified>{timestampFrom}";
 
-            return await _bullhornApi.QueryAsync<PlacementCommissionDto>(query);
-        }
-
-        public async Task<List<PlacementCommissionDto>> GetNewAndUpdatedFromAsync(long timestampFrom)
-        {
-            var query = $"PlacementCommission?fields=id,commissionPercentage,dateAdded,dateLastModified,placement(id),user(id),status,role&where=dateAdded>{timestampFrom} OR dateLastModified>{timestampFrom}";
-
-            return await _bullhornApi.QueryAsync<PlacementCommissionDto>(query);
-        }
+        return await ApiConnection.QueryAsync<PlacementCommissionDto>(query);
     }
 }

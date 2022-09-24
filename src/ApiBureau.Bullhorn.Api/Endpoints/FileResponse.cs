@@ -1,9 +1,6 @@
-using ApiBureau.Bullhorn.Api.Dtos;
+namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints
+public class FileResponse
 {
-    public class FileResponse
-    {
-        public FileDto File { get; set; }
-    }
+    public FileDto? File { get; set; }
 }

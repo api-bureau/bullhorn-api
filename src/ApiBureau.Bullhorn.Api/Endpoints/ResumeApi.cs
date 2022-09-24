@@ -1,24 +1,20 @@
-using ApiBureau.Bullhorn.Api.Dtos;
 using ApiBureau.Bullhorn.Api.Helpers;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints
+namespace ApiBureau.Bullhorn.Api.Endpoints;
+
+public class ResumeApi : BaseEndpoint
 {
-    public class ResumeApi
+    public ResumeApi(ApiConnection apiConnection) : base(apiConnection) { }
+
+    public async Task<ResumeDto?> ParseAsync(FileDto fileDto)
     {
-        private readonly BullhornClient _bullhornApi;
+        var query = "resume/parseToCandidate?format=text&populateDescription=html&";
 
-        public ResumeApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
+        var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(Convert.FromBase64String(fileDto.FileContent)), "resume", string.IsNullOrWhiteSpace(fileDto.Name) ? "temp-file-name" : fileDto.Name);
 
-        public async Task<ResumeDto> ParseAsync(FileDto fileDto)
-        {
-            var query = "resume/parseToCandidate?format=text&populateDescription=html&";
+        var response = await ApiConnection.PostAsync(query, content);
 
-            var content = new MultipartFormDataContent();
-            content.Add(new ByteArrayContent(Convert.FromBase64String(fileDto.FileContent)), "resume", string.IsNullOrWhiteSpace(fileDto.Name) ? "temp-file-name" : fileDto.Name);
-
-            var response = await _bullhornApi.PostAsync(query, content);
-
-            return await response.DeserializeAsync<ResumeDto>();
-        }
+        return await response.DeserializeAsync<ResumeDto>();
     }
 }

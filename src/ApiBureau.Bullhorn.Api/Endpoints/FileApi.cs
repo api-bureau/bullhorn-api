@@ -1,24 +1,19 @@
-﻿using ApiBureau.Bullhorn.Api.Dtos;
 using ApiBureau.Bullhorn.Api.Helpers;
-using System.Threading.Tasks;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints
+namespace ApiBureau.Bullhorn.Api.Endpoints;
+
+public class FileApi : BaseEndpoint
 {
-    public class FileApi
+    public FileApi(ApiConnection apiConnection) : base(apiConnection) { }
+
+    public async Task<FileDto?> GetFileAsync(string entityType, int entityId, int fileId)
     {
-        private readonly BullhornClient _bullhornApi;
+        var query = $"file/{entityType}/{entityId}/{fileId}?";
 
-        public FileApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
+        var response = await ApiConnection.GetAsync(query);
 
-        public async Task<FileDto> GetFileAsync(string entityType, int entityId, int fileId)
-        {
-            var query = $"file/{entityType}/{entityId}/{fileId}?";
+        var fileResponse = await response.DeserializeAsync<FileResponse>();
 
-            var response = await _bullhornApi.ApiGetAsync(query);
-
-            var fileResponse = await response.DeserializeAsync<FileResponse>();
-
-            return fileResponse.File;
-        }
+        return fileResponse?.File;
     }
 }
