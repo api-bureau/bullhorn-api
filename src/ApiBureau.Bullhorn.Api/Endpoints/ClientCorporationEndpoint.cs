@@ -20,4 +20,11 @@ public class ClientCorporationEndpoint : BaseEndpoint
 
         return await ApiConnection.QueryAsync<ClientCorporationDto>(query);
     }
+
+    /// <summary>
+    /// Http POST /entity/ClientCorporation/{clientCorporationId}
+    /// </summary>
+    /// <returns></returns>
+    public Task<HttpResponseMessage> UpdateAsync(int clientCorporationId, object data)
+        => ApiConnection.PostAsJsonAsync(EntityType.ClientCorporation, clientCorporationId, data);
 }
