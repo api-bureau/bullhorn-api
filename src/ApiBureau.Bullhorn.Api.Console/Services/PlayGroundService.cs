@@ -1,4 +1,3 @@
-using ApiBureau.Bullhorn.Api.Dtos;
 using Microsoft.Extensions.Logging;
 
 namespace ApiBureau.Bullhorn.Api.Console.Services;
@@ -29,11 +28,18 @@ public class PlayGroundService
         }
     }
 
+    //private async Task QueryExampleAsync()
+    //{
+    //    var testUrl = "Department?fields=id,description,enabled,name&where=id>0";
+
+    //    var result = await _bullhornApi.QueryAsync<DepartmentDto>(testUrl);
+
+    //    _logger.LogInformation("Items: {0}", result.Count);
+    //}
+
     private async Task GetDepartmentsAsync()
     {
-        var testUrl = "Department?fields=id,description,enabled,name&where=id>0";
-
-        var result = await _bullhornApi.QueryAsync<DepartmentDto>(testUrl);
+        var result = await _bullhornApi.Department.GetAsync();
 
         _logger.LogInformation("Items: {0}", result.Count);
     }

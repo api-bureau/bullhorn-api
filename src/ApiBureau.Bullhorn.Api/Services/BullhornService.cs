@@ -16,11 +16,9 @@ public class BullhornService
     /// <returns></returns>
     public async Task<List<CandidateDto>> BullhornCheck(int hours = 2)
     {
-        await BullhornApi.CheckConnectionAsync();
+        await CheckConnectionAsync();
 
-        var candidateApi = new CandidateApi(BullhornApi);
-
-        var newCandidates = await candidateApi.GetNewFromAsync(DateTime.Now.AddHours(-hours));
+        var newCandidates = await BullhornApi.Candidate.GetNewFromAsync(DateTime.Now.AddHours(-hours));
 
         return newCandidates;
     }
