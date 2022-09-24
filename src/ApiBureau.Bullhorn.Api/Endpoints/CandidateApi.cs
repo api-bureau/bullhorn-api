@@ -1,107 +1,100 @@
-using ApiBureau.Bullhorn.Api.Dtos;
 using ApiBureau.Bullhorn.Api.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints
+namespace ApiBureau.Bullhorn.Api.Endpoints;
+
+public class CandidateApi
 {
-    public class CandidateApi
+    private readonly BullhornClient _bullhornApi;
+    public static readonly string DefaultFields = "id,status,isDeleted,firstName,lastName,email,dateAdded,dateLastModified,source,owner";
+
+    public CandidateApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
+
+    public async Task AddAsync(CandidateDto dto)
+        => await _bullhornApi.ApiPutAsync("entity/Candidate", new StringContent(JsonSerializer.Serialize(dto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json"));
+
+    public async Task<CandidateDto> GetAsync(int id, string? fields = null)
     {
-        private readonly BullhornClient _bullhornApi;
-        public static readonly string DefaultFields = "id,status,isDeleted,firstName,lastName,email,dateAdded,dateLastModified,source,owner";
+        var query = $"Candidate/{id}?fields={fields ?? DefaultFields}";
 
-        public CandidateApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
+        return await _bullhornApi.EntityAsync<CandidateDto>(query);
+    }
 
-        public async Task AddAsync(CandidateDto dto)
-            => await _bullhornApi.ApiPutAsync("entity/Candidate", new StringContent(JsonSerializer.Serialize(dto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json"));
+    public async Task<List<CandidateDto>> GetAsync(List<int> ids, string? fields = null)
+    {
+        if (ids.Count == 1)
+            return new List<CandidateDto> { await GetAsync(ids[0], fields ?? DefaultFields) };
 
-        public async Task<CandidateDto> GetAsync(int id, string? fields = null)
-        {
-            var query = $"Candidate/{id}?fields={fields ?? DefaultFields}";
+        var query = $"Candidate/{string.Join(",", ids)}?fields={fields ?? DefaultFields}";
 
-            return await _bullhornApi.EntityAsync<CandidateDto>(query);
-        }
+        return await _bullhornApi.EntityAsync<List<CandidateDto>>(query);
+    }
 
-        public async Task<List<CandidateDto>> GetAsync(List<int> ids, string? fields = null)
-        {
-            if (ids.Count == 1)
-                return new List<CandidateDto> { await GetAsync(ids[0], fields ?? DefaultFields) };
+    public async Task<int> GetFilesCount(int id)
+    {
+        var query = $"entity/Candidate/{id}/fileAttachments?fields=id";
 
-            var query = $"Candidate/{string.Join(",", ids)}?fields={fields ?? DefaultFields}";
+        var response = await _bullhornApi.ApiGetAsync(query);
 
-            return await _bullhornApi.EntityAsync<List<CandidateDto>>(query);
-        }
+        //var entityResponse = JsonConvert.DeserializeObject<QueryResponse>(await response.Content.ReadAsStringAsync(),
+        //    new JsonSerializerSettings
+        //    {
+        //        MissingMemberHandling = MissingMemberHandling.Ignore,
+        //        NullValueHandling = NullValueHandling.Ignore
+        //    });
 
-        public async Task<int> GetFilesCount(int id)
-        {
-            var query = $"entity/Candidate/{id}/fileAttachments?fields=id";
+        //return (await BullhornApi.DeserializeAsync<QueryResponse>(response)).Total;
 
-            var response = await _bullhornApi.ApiGetAsync(query);
+        //if (response == null) return 0;
 
-            //var entityResponse = JsonConvert.DeserializeObject<QueryResponse>(await response.Content.ReadAsStringAsync(),
-            //    new JsonSerializerSettings
-            //    {
-            //        MissingMemberHandling = MissingMemberHandling.Ignore,
-            //        NullValueHandling = NullValueHandling.Ignore
-            //    });
+        return (await response.DeserializeAsync<QueryResponse>()).Total;
+    }
 
-            //return (await BullhornApi.DeserializeAsync<QueryResponse>(response)).Total;
+    public async Task<List<CandidateDto>> GetNewFromAsync(DateTime dateTime)
+    {
+        var query = $"Candidate?fields=id,status,isDeleted,firstName,lastName,email,dateAdded,source,owner&query=dateAdded:[{dateTime:yyyyMMddHHmmss} TO *]";
 
-            //if (response == null) return 0;
+        return await _bullhornApi.SearchAsync<CandidateDto>(query);
+    }
 
-            return (await response.DeserializeAsync<QueryResponse>()).Total;
-        }
+    public async Task<List<CandidateDto>> GetNewAndUpdatedFromAsync(DateTime dateTime)
+    {
+        var query = $"Candidate?fields={DefaultFields}&query=dateAdded:[{dateTime:yyyyMMddHHmmss} TO *] OR dateLastModified:[{dateTime:yyyyMMddHHmmss} TO *]";
 
-        public async Task<List<CandidateDto>> GetNewFromAsync(DateTime dateTime)
-        {
-            var query = $"Candidate?fields=id,status,isDeleted,firstName,lastName,email,dateAdded,source,owner&query=dateAdded:[{dateTime:yyyyMMddHHmmss} TO *]";
+        return await _bullhornApi.SearchAsync<CandidateDto>(query);
+    }
 
-            return await _bullhornApi.SearchAsync<CandidateDto>(query);
-        }
+    public async Task<List<CandidateDto>> GetUpdatedCandidatesFromAsync(DateTime dateTime)
+    {
+        var query = $"Candidate?fields=id&query=dateLastModified:[{dateTime:yyyyMMdd} TO *]";
 
-        public async Task<List<CandidateDto>> GetNewAndUpdatedFromAsync(DateTime dateTime)
-        {
-            var query = $"Candidate?fields={DefaultFields}&query=dateAdded:[{dateTime:yyyyMMddHHmmss} TO *] OR dateLastModified:[{dateTime:yyyyMMddHHmmss} TO *]";
+        return await _bullhornApi.SearchAsync<CandidateDto>(query);
+    }
 
-            return await _bullhornApi.SearchAsync<CandidateDto>(query);
-        }
+    public async Task<CandidateDto?> FindCandidateIdByEmailAsync(string email)
+    {
+        var query = $"search/Candidate?fields=id,firstName,lastName&query=email:\"{email}\" AND isDeleted:0";
 
-        public async Task<List<CandidateDto>> GetUpdatedCandidatesFromAsync(DateTime dateTime)
-        {
-            var query = $"Candidate?fields=id&query=dateLastModified:[{dateTime:yyyyMMdd} TO *]";
+        var response = await _bullhornApi.ApiGetAsync(query);
 
-            return await _bullhornApi.SearchAsync<CandidateDto>(query);
-        }
+        //var searchResponse = JsonConvert.DeserializeObject<SearchResponse>(
+        //    await response.Content.ReadAsStringAsync());
 
-        public async Task<CandidateDto?> FindCandidateIdByEmailAsync(string email)
-        {
-            var query = $"search/Candidate?fields=id,firstName,lastName&query=email:\"{email}\" AND isDeleted:0";
+        var searchResponse = await response.DeserializeAsync<SearchResponse2<CandidateDto>>();
 
-            var response = await _bullhornApi.ApiGetAsync(query);
+        //https://stackoverflow.com/questions/58138793/system-text-json-jsonelement-toobject-workaround
+        return searchResponse?.Data?.FirstOrDefault();
+    }
 
-            //var searchResponse = JsonConvert.DeserializeObject<SearchResponse>(
-            //    await response.Content.ReadAsStringAsync());
+    public async Task<List<CandidateDto>> FindCandidateIdByEmailAsync(List<string> emails)
+    {
+        var query = $"Candidate?fields=id,firstName,lastName,email&query=email:({_bullhornApi.GetQuotedString(emails)}) AND isDeleted:0";
 
-            var searchResponse = await response.DeserializeAsync<SearchResponse2<CandidateDto>>();
+        return await _bullhornApi.SearchAsync<CandidateDto>(query);
 
-            //https://stackoverflow.com/questions/58138793/system-text-json-jsonelement-toobject-workaround
-            return searchResponse?.Data?.FirstOrDefault();
-        }
+        //var result = await _bullhornApi.ApiSearchAsync(query, BullhornApi.QueryCount);
 
-        public async Task<List<CandidateDto>> FindCandidateIdByEmailAsync(List<string> emails)
-        {
-            var query = $"Candidate?fields=id,firstName,lastName,email&query=email:({_bullhornApi.GetQuotedString(emails)}) AND isDeleted:0";
-
-            return await _bullhornApi.SearchAsync<CandidateDto>(query);
-
-            //var result = await _bullhornApi.ApiSearchAsync(query, BullhornApi.QueryCount);
-
-            //return _bullhornApi.MapResults<CandidateDto>(result.Data);
-        }
+        //return _bullhornApi.MapResults<CandidateDto>(result.Data);
     }
 }

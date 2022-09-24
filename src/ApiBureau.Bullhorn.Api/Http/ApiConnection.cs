@@ -1,4 +1,3 @@
-using ApiBureau.Bullhorn.Api.Endpoints;
 using ApiBureau.Bullhorn.Api.Helpers;
 using CodeCapital.System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -60,17 +59,6 @@ public class ApiConnection
         await _session.ConnectAsync();
     }
 
-    //public async Task<DynamicQueryResponse> ApiQueryToDynamicAsync(string query, int count, int start = 0)
-    //{
-    //    query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
-
-    //    var response = await ApiGetAsync(query);
-
-    //    ApiCallCounter();
-
-    //    return await response.Content.ReadAsAsync<DynamicQueryResponse>();
-    //}
-
     public async Task<DynamicEntityResponse> GetEntityAsync(string query)
     {
         query = $"{query}&showTotalMatched=true&usev2=true";
@@ -118,16 +106,6 @@ public class ApiConnection
         return response;
     }
 
-    //[Obsolete("Investigate if this should be removed", true)]
-    //public async Task<QueryResponse> ApiQueryAsync(string query, int count, int start = 0)
-    //{
-    //    query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
-
-    //    var response = await ApiGetAsync(query);
-
-    //    return await DeserializeAsync<QueryResponse>(response);
-    //}
-
     public async Task<QueryResponse<T>> ApiQueryAsync<T>(string query, int count, int start = 0)
     {
         query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
@@ -136,9 +114,6 @@ public class ApiConnection
 
         return await DeserializeAsync<QueryResponse<T>>(response);
     }
-
-    //ToDo
-    //public async Task<SearchResponse<JObject>> ApiSearchAsync(string query, int count, int start = 0) => await ApiSearchAsync<JObject>(query, count, start);
 
     public async Task<SearchResponse<T>> ApiSearchAsync<T>(string query, int count, int start = 0)
     {
@@ -181,6 +156,30 @@ public class ApiConnection
 
         return await _client.PutAsync(restUrl, content);
     }
+
+    public Task<HttpResponseMessage> PutAsJsonAsync(EntityType type, object content)
+        => PutAsJsonAsync($"entity/{type}", content);
+
+    public async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content)
+    {
+        await PingCheckAsync();
+
+        var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
+
+        try
+        {
+            return await _client.PutAsJsonAsync(restUrl, content);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("BullhornAPI_ApiPostAsync", e);
+        }
+
+        return new HttpResponseMessage();
+    }
+
+    public Task<HttpResponseMessage> PostAsJsonAsync(EntityType type, int entityId, object content)
+        => PostAsJsonAsync($"entity/{type}/{entityId}", content);
 
     public async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content)
     {
@@ -348,6 +347,30 @@ public class ApiConnection
 
         await _session.RefreshTokenAsync();
     }
+
+    //ToDo
+    //public async Task<SearchResponse<JObject>> ApiSearchAsync(string query, int count, int start = 0) => await ApiSearchAsync<JObject>(query, count, start);
+
+    //[Obsolete("Investigate if this should be removed", true)]
+    //public async Task<QueryResponse> ApiQueryAsync(string query, int count, int start = 0)
+    //{
+    //    query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
+
+    //    var response = await ApiGetAsync(query);
+
+    //    return await DeserializeAsync<QueryResponse>(response);
+    //}
+
+    //public async Task<DynamicQueryResponse> ApiQueryToDynamicAsync(string query, int count, int start = 0)
+    //{
+    //    query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
+
+    //    var response = await ApiGetAsync(query);
+
+    //    ApiCallCounter();
+
+    //    return await response.Content.ReadAsAsync<DynamicQueryResponse>();
+    //}
 
     //[Obsolete("Investigate if this should be removed", true)]
     //private static void LogList(List<JObject> list)

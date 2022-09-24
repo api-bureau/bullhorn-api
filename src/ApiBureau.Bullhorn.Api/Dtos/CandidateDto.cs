@@ -2,20 +2,13 @@ namespace ApiBureau.Bullhorn.Api.Dtos;
 
 public class CandidateDto : CandidateBaseDto
 {
-    public List<string> Occupation { get; set; }
-    public EntityChildrenDto Sendouts { get; set; }
-    public EntityChildrenDto Placements { get; set; }
-    public EntityChildrenDto Interviews { get; set; }
-    public EntityChildrenDto FileAttachments { get; set; }
+    public List<string>? Occupation { get; set; }
+    public EntityChildrenDto? Sendouts { get; set; }
+    public EntityChildrenDto? Placements { get; set; }
+    public EntityChildrenDto? Interviews { get; set; }
+    public EntityChildrenDto? FileAttachments { get; set; }
 
-    public CandidateDto()
-    {
-        Occupation = new List<string>();
-        Sendouts = new EntityChildrenDto();
-        Placements = new EntityChildrenDto();
-        Interviews = new EntityChildrenDto();
-        FileAttachments = new EntityChildrenDto();
-    }
+    public CandidateDto() { }
 
     public bool ShouldSerializeOccupation() => Occupation == null || Occupation.Count != 0;
     public bool ShouldSerializeSendouts() => Sendouts == null;

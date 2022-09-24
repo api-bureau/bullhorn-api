@@ -1,5 +1,3 @@
-using ApiBureau.Bullhorn.Api.Endpoints;
-
 namespace ApiBureau.Bullhorn.Api.Services;
 
 /// <summary>

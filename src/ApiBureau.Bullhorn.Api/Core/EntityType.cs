@@ -1,4 +1,4 @@
-namespace ApiBureau.Bullhorn.Api.Endpoints.Entities
+namespace ApiBureau.Bullhorn.Api.Core
 {
     public enum EntityType
     {

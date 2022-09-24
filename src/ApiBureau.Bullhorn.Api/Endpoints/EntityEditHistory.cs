@@ -1,6 +1,4 @@
-using ApiBureau.Bullhorn.Api.Dtos;
-
-namespace ApiBureau.Bullhorn.Api.Endpoints.Entities
+namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class EntityEditHistory
     {

@@ -1,8 +1,8 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class AppointmentApi : BaseEndpoint
+public class AppointmentEndpoint : BaseEndpoint
 {
-    public AppointmentApi(ApiConnection apiConnection) : base(apiConnection) { }
+    public AppointmentEndpoint(ApiConnection apiConnection) : base(apiConnection) { }
 
     public readonly string DefaultFields = "id,candidateReference,clientContactReference,dateAdded,dateBegin,dateLastModified,type,isDeleted,jobOrder,owner";
 
@@ -26,4 +26,7 @@ public class AppointmentApi : BaseEndpoint
 
         return await ApiConnection.QueryAsync<AppointmentDto>(query);
     }
+
+    public Task<HttpResponseMessage> AddAsync(AppointmentDto appointment)
+        => ApiConnection.PutAsJsonAsync(EntityType.Appointment, appointment);
 }
