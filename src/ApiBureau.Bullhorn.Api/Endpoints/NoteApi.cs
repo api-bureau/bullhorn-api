@@ -10,11 +10,11 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class NoteApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
 
         private const string AllFields = "id,action,commentingPerson,dateAdded,dateLastModified,isDeleted,comments,minutesSpent,personReference";
 
-        public NoteApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public NoteApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         //ToDo Note that this might not work because camelCase needs to be setup in Newtonsoft settings
         public async Task AddAsync(NoteDto noteDto)

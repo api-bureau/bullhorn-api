@@ -4,9 +4,9 @@ namespace ApiBureau.Bullhorn.Api.Endpoints.Entities
 {
     public class EntityEditHistory
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
 
-        public EntityEditHistory(BullhornApi bullhornApi)
+        public EntityEditHistory(BullhornClient bullhornApi)
         {
             _bullhornApi = bullhornApi;
         }

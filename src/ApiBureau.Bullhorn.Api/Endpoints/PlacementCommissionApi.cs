@@ -4,9 +4,9 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class PlacementCommissionApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
 
-        public PlacementCommissionApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public PlacementCommissionApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         public async Task<List<PlacementCommissionDto>> GetFromAsync(long timestampFrom)
         {

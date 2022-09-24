@@ -2,21 +2,24 @@ using ApiBureau.Bullhorn.Api.Endpoints;
 using ApiBureau.Bullhorn.Api.Helpers;
 using CodeCapital.System.Text.Json;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
-namespace ApiBureau.Bullhorn.Api;
+namespace ApiBureau.Bullhorn.Api.Http;
 
 // Refactor according this 11th Minute https://channel9.msdn.com/Shows/XamarinShow/Azure-Active-Directory-B2C-Authentication-For-Mobile-with-Matthew-Soucoup
 // Call it Bullhorn.Identity, AcquireTokenAsync
-public class BullhornApi
+
+public class ApiConnection
 {
     public const int QueryCount = 500; // 500 max in BullhornApiJsonSerializerSettings
-
-    private readonly HttpClient _httpClient;
+    private readonly HttpClient _client;
+    private readonly ILogger<ApiConnection> _logger;
+    private readonly BullhornSettings _settings;
     private readonly ApiSession _session;
-    private readonly ILogger<BullhornApi> _logger;
     private readonly TimeSpan _defaultTimeout = TimeSpan.FromMinutes(5);
+    private int _apiCallCounter;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         AllowTrailingCommas = true,
@@ -24,28 +27,28 @@ public class BullhornApi
         PropertyNameCaseInsensitive = true
     };
 
-    private BullhornSettings _bullhornSettings;
-    private int _apiCallCounter;
-
-    public PlacementEndpoint Placement { get; }
-
-    public BullhornApi(ILogger<BullhornApi> logger, HttpClient httpClient, IOptions<BullhornSettings> settings)
+    public ApiConnection(HttpClient client, IOptions<BullhornSettings> settings, ILogger<ApiConnection> logger)
     {
-
-        httpClient.Timeout = _defaultTimeout;
+        _client = client;
+        _client.Timeout = _defaultTimeout;
         _logger = logger;
-        _httpClient = httpClient;
-        _bullhornSettings = settings.Value;
-        _session = new ApiSession(httpClient, _bullhornSettings, logger);
+        _settings = settings.Value;
+        _session = new ApiSession(_client, _settings, logger);
 
-        Placement = new PlacementEndpoint(this);
+        CheckInitialisation();
     }
 
-    public void SetAuthorizationMeta(BullhornSettings bullhornSettings) => _bullhornSettings = bullhornSettings;
+    private void CheckInitialisation()
+    {
+        if (string.IsNullOrEmpty(_settings.Secret) || string.IsNullOrEmpty(_settings.ClientId) || _settings.TokenUrl == null)
+            _logger.LogError("BullhornSettings needs to be added and initialised Configuration.GetSection(nameof(BullhornSettings).");
+    }
+
+    //public void SetAuthorizationMeta(BullhornSettings bullhornSettings) => _settings = bullhornSettings;
 
     public async Task CheckConnectionAsync()
     {
-        if (_bullhornSettings == null)
+        if (_settings == null)
         {
             _logger.LogError("Make sure you have got BullhornSettings in your appsettings.json.");
 
@@ -166,7 +169,7 @@ public class BullhornApi
 
         //_logger.LogDebug($"Request: {restUrl}");
 
-        return await _httpClient.GetAsync(restUrl);
+        return await _client.GetAsync(restUrl);
     }
 
     // This might be wrapped to ApiCreateEntity
@@ -176,10 +179,10 @@ public class BullhornApi
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
-        return await _httpClient.PutAsync(restUrl, content);
+        return await _client.PutAsync(restUrl, content);
     }
 
-    public async Task<HttpResponseMessage> ApiPostAsync(string query, HttpContent? content)
+    public async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content)
     {
         await PingCheckAsync();
 
@@ -187,7 +190,25 @@ public class BullhornApi
 
         try
         {
-            return await _httpClient.PostAsync(restUrl, content);
+            return await _client.PostAsJsonAsync(restUrl, content);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("BullhornAPI_ApiPostAsync", e);
+        }
+
+        return new HttpResponseMessage();
+    }
+
+    public async Task<HttpResponseMessage> PostAsync(string query, HttpContent? content)
+    {
+        await PingCheckAsync();
+
+        var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
+
+        try
+        {
+            return await _client.PostAsync(restUrl, content);
         }
         catch (Exception e)
         {
@@ -203,10 +224,10 @@ public class BullhornApi
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
-        return await _httpClient.DeleteAsync(restUrl);
+        return await _client.DeleteAsync(restUrl);
     }
 
-    public async Task UpdateAsync<T>(int id, string entityName, T updateDto) => await ApiPostAsync($"entity/{entityName}/{id}",
+    public async Task UpdateAsync<T>(int id, string entityName, T updateDto) => await PostAsync($"entity/{entityName}/{id}",
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
                 AllowTrailingCommas = true,
@@ -215,7 +236,7 @@ public class BullhornApi
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             }), Encoding.UTF8, "application/json"));
 
-    public async Task MassUpdateAsync<T>(string entityName, T updateDto) => await ApiPostAsync($"massUpdate/{entityName}?",
+    public async Task MassUpdateAsync<T>(string entityName, T updateDto) => await PostAsync($"massUpdate/{entityName}?",
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
                 AllowTrailingCommas = true,
@@ -307,7 +328,7 @@ public class BullhornApi
 
         try
         {
-            using var response = await _httpClient.GetAsync($"{_session.LoginResponse!.RestUrl}/ping");
+            using var response = await _client.GetAsync($"{_session.LoginResponse!.RestUrl}/ping");
 
             _session.Ping = await DeserializeAsync<PingDto>(response);
 
@@ -350,7 +371,6 @@ public class BullhornApi
     //    _httpClient.DefaultRequestHeaders.Add("BhRestToken", _authorization.LoginResponse.BhRestToken);
     //}
 }
-
 
 // Other query examples
 //search/Note?fields=id,dateAdded,action,commentingPerson&query=dateAdded:[20210101000000 TO *] AND action:'Phone Call'&sort=-dateAdded

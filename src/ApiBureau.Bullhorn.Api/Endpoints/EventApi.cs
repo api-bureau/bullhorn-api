@@ -8,9 +8,9 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class EventApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
 
-        public EventApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public EventApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
 
         /// <summary>

@@ -5,9 +5,9 @@ namespace ApiBureau.Bullhorn.Api.Console.Services
     public class UpdateFieldService
     {
         private readonly ILogger<UpdateFieldService> _logger;
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
 
-        public UpdateFieldService(ILogger<UpdateFieldService> logger, BullhornApi bullhornApi)
+        public UpdateFieldService(ILogger<UpdateFieldService> logger, BullhornClient bullhornApi)
         {
             _logger = logger;
             _bullhornApi = bullhornApi;

@@ -8,10 +8,10 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class CandidateWorkHistoryApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
         public static readonly string DefaultFields = "id,dateAdded,isDeleted,candidate(id)";
 
-        public CandidateWorkHistoryApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public CandidateWorkHistoryApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         public async Task<List<CandidateWorkHistoryDto>> GetDeletedAsync(DateTime dateAddedFrom, string? fields = null)
         {

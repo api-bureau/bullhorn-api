@@ -5,9 +5,9 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class ResumeApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
 
-        public ResumeApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public ResumeApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         public async Task<ResumeDto> ParseAsync(FileDto fileDto)
         {
@@ -16,7 +16,7 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
             var content = new MultipartFormDataContent();
             content.Add(new ByteArrayContent(Convert.FromBase64String(fileDto.FileContent)), "resume", string.IsNullOrWhiteSpace(fileDto.Name) ? "temp-file-name" : fileDto.Name);
 
-            var response = await _bullhornApi.ApiPostAsync(query, content);
+            var response = await _bullhornApi.PostAsync(query, content);
 
             return await response.DeserializeAsync<ResumeDto>();
         }

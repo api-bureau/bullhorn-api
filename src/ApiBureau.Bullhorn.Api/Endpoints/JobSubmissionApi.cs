@@ -6,10 +6,10 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class JobSubmissionApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
         public static readonly string DefaultFields = "id,dateAdded,dateLastModified,status,isDeleted,candidate,jobOrder,sendingUser";
 
-        public JobSubmissionApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public JobSubmissionApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         public Task<JobSubmissionDto> GetAsync(int id, string? fields = null)
             => _bullhornApi.EntityAsync<JobSubmissionDto>($"JobSubmission/{id}?fields={fields ?? DefaultFields}");

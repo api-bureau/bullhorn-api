@@ -6,10 +6,10 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class CorporationDepartmentApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
         public static readonly string DefaultFields = "id,dateAdded,enabled,name";
 
-        public CorporationDepartmentApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public CorporationDepartmentApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         /// <summary>
         /// Returns all departments

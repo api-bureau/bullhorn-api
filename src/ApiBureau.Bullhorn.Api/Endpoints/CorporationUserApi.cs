@@ -6,9 +6,9 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class CorporationUserApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
 
-        public CorporationUserApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public CorporationUserApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         /// <summary>
         /// Returns all users

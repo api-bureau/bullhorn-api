@@ -6,9 +6,9 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class FileAttachmentApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
 
-        public FileAttachmentApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public FileAttachmentApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         public async Task<List<FileAttachmentDto>> GetAsync(string query)
         {

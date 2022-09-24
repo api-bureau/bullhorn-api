@@ -12,10 +12,10 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class CandidateApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
         public static readonly string DefaultFields = "id,status,isDeleted,firstName,lastName,email,dateAdded,dateLastModified,source,owner";
 
-        public CandidateApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public CandidateApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         public async Task AddAsync(CandidateDto dto)
             => await _bullhornApi.ApiPutAsync("entity/Candidate", new StringContent(JsonSerializer.Serialize(dto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json"));

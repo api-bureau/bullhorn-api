@@ -4,9 +4,9 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class SendoutApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
 
-        public SendoutApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public SendoutApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         /// <summary>
         /// Get all from a specific timestamp

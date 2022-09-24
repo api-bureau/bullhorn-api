@@ -4,10 +4,10 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class ClientContactApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
         public readonly string DefaultFields = "id,clientCorporation,isDeleted,firstName,lastName,email,dateAdded,dateLastModified,owner";
 
-        public ClientContactApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public ClientContactApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         public async Task<ClientContactDto> GetAsync(int id, string? fields = null)
         {

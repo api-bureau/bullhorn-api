@@ -6,10 +6,10 @@ namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class JobSubmissionHistoryApi
     {
-        private readonly BullhornApi _bullhornApi;
+        private readonly BullhornClient _bullhornApi;
         public static readonly string DefaultFields = "id,dateAdded,status,modifyingUser,jobSubmission";
 
-        public JobSubmissionHistoryApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+        public JobSubmissionHistoryApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
         public Task<List<JobSubmissionHistoryDto>> GetByCandidateIdAsync(int id)
         {

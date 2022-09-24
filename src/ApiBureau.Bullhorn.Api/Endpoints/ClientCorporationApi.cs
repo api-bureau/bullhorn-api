@@ -2,9 +2,9 @@ namespace ApiBureau.Bullhorn.Api.Endpoints;
 
 public class ClientCorporationApi
 {
-    private readonly BullhornApi _bullhornApi;
+    private readonly BullhornClient _bullhornApi;
 
-    public ClientCorporationApi(BullhornApi bullhornApi) => _bullhornApi = bullhornApi;
+    public ClientCorporationApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
 
     public async Task<List<ClientCorporationDto>> GetNewClientCorporationsAsync(long timestampFrom)
     {

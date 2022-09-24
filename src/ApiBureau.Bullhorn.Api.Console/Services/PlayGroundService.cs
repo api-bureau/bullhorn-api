@@ -6,9 +6,9 @@ namespace ApiBureau.Bullhorn.Api.Console.Services;
 public class PlayGroundService
 {
     private readonly ILogger<PlayGroundService> _logger;
-    private readonly BullhornApi _bullhornApi;
+    private readonly BullhornClient _bullhornApi;
 
-    public PlayGroundService(ILogger<PlayGroundService> logger, BullhornApi bullhornApi)
+    public PlayGroundService(ILogger<PlayGroundService> logger, BullhornClient bullhornApi)
     {
         _logger = logger;
         _bullhornApi = bullhornApi;
