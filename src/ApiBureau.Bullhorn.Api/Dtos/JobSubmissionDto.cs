@@ -1,21 +1,20 @@
-﻿namespace ApiBureau.Bullhorn.Api.Dtos
+namespace ApiBureau.Bullhorn.Api.Dtos;
+
+public class JobSubmissionDto
 {
-    public class JobSubmissionDto
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public CandidateDto Candidate { get; set; } = new CandidateDto();
+    public CandidateDto Candidate { get; set; } = new CandidateDto();
 
-        public long DateAdded { get; set; }
+    public long DateAdded { get; set; }
 
-        public long DateLastModified { get; set; }
+    public long DateLastModified { get; set; }
 
-        public bool IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
-        public JobOrderDto JobOrder { get; set; } = new JobOrderDto();
+    public JobOrderDto JobOrder { get; set; } = new JobOrderDto();
 
-        public string Status { get; set; } = "";
+    public string Status { get; set; } = "";
 
-        public UserDto SendingUser { get; set; } = new UserDto();
-    }
+    public UserDto SendingUser { get; set; } = new UserDto();
 }

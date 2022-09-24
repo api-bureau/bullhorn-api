@@ -1,7 +1,6 @@
-﻿namespace ApiBureau.Bullhorn.Api.Dtos
+namespace ApiBureau.Bullhorn.Api.Dtos;
+
+public class IdDto
 {
-    public class IdDto
-    {
-        public int Id { get; set; }
-    }
+    public int Id { get; set; }
 }

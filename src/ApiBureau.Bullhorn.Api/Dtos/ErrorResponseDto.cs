@@ -1,10 +1,9 @@
-﻿namespace ApiBureau.Bullhorn.Api.Dtos
+namespace ApiBureau.Bullhorn.Api.Dtos;
+
+public class ErrorResponseDto
 {
-    public class ErrorResponseDto
-    {
-        public string ErrorMessage { get; set; } = "";
-        public string ErrorMessageKey { get; set; } = "";
-        public int ErrorCode { get; set; }
-        public bool Success => string.IsNullOrWhiteSpace(ErrorMessage) && ErrorCode == 0;
-    }
+    public string ErrorMessage { get; set; } = "";
+    public string ErrorMessageKey { get; set; } = "";
+    public int ErrorCode { get; set; }
+    public bool Success => string.IsNullOrWhiteSpace(ErrorMessage) && ErrorCode == 0;
 }

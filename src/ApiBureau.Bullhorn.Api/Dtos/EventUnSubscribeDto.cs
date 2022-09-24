@@ -1,7 +1,6 @@
-﻿namespace ApiBureau.Bullhorn.Api.Dtos
+namespace ApiBureau.Bullhorn.Api.Dtos;
+
+public class EventUnSubscribeDto
 {
-    public class EventUnSubscribeDto
-    {
-        public bool Result { get; set; }
-    }
+    public bool Result { get; set; }
 }

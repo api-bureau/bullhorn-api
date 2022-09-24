@@ -1,12 +1,8 @@
-﻿using System.Collections.Generic;
+namespace ApiBureau.Bullhorn.Api.Dtos;
 
-namespace ApiBureau.Bullhorn.Api.Dtos
+public class EventsDto
 {
-    public class EventsDto
-    {
-        public List<EventDto> Events { get; set; }
-        public int RequestId { get; set; }
-
-        public EventsDto() => Events = new List<EventDto>();
-    }
+    public List<EventDto> Events { get; set; }
+    public int RequestId { get; set; }
+    public EventsDto() => Events = new List<EventDto>();
 }

@@ -1,10 +1,9 @@
-﻿namespace ApiBureau.Bullhorn.Api.Dtos
+namespace ApiBureau.Bullhorn.Api.Dtos;
+
+public class DepartmentDto
 {
-    public class DepartmentDto
-    {
-        public int Id { get; set; }
-        public string Description { get; set; } = null!;
-        public bool? Enabled { get; set; }
-        public string Name { get; set; } = null!;
-    }
+    public int Id { get; set; }
+    public string Description { get; set; } = null!;
+    public bool? Enabled { get; set; }
+    public string Name { get; set; } = null!;
 }

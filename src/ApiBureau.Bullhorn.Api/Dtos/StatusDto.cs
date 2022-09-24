@@ -1,9 +1,8 @@
-﻿namespace ApiBureau.Bullhorn.Api.Dtos
-{
-    public class StatusDto
-    {
-        public string Status { get; }
+namespace ApiBureau.Bullhorn.Api.Dtos;
 
-        public StatusDto(string status) => Status = status;
-    }
+public class StatusDto
+{
+    public string Status { get; }
+
+    public StatusDto(string status) => Status = status;
 }

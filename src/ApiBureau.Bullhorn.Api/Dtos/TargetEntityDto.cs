@@ -1,9 +1,8 @@
-﻿namespace ApiBureau.Bullhorn.Api.Dtos
-{
-    public class TargetEntityDto
-    {
-        public int Id { get; set; }
+namespace ApiBureau.Bullhorn.Api.Dtos;
 
-        public string Name { get; set; } = "";
-    }
+public class TargetEntityDto
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = "";
 }

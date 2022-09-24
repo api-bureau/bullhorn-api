@@ -1,9 +1,8 @@
-﻿namespace ApiBureau.Bullhorn.Api.Dtos
+namespace ApiBureau.Bullhorn.Api.Dtos;
+
+public class FileDto
 {
-    public class FileDto
-    {
-        public string ContentType { get; set; } = "";
-        public string FileContent { get; set; } = "";
-        public string Name { get; set; } = "";
-    }
+    public string ContentType { get; set; } = "";
+    public string FileContent { get; set; } = "";
+    public string Name { get; set; } = "";
 }

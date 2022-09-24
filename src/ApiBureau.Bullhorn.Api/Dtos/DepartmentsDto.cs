@@ -1,13 +1,13 @@
-﻿namespace ApiBureau.Bullhorn.Api.Dtos
-{
-    public class DepartmentsDto
-    {
-        public int total { get; set; }
-        public Data[] data { get; set; }
+namespace ApiBureau.Bullhorn.Api.Dtos;
 
-        public class Data
-        {
-            public int id { get; set; }
-        }
-    }
+public class DepartmentsDto
+{
+    public int Total { get; set; }
+    public DataDto[]? Data { get; set; }
+
+}
+
+public class DataDto
+{
+    public int Id { get; set; }
 }

@@ -1,13 +1,12 @@
-﻿namespace ApiBureau.Bullhorn.Api.Dtos
+namespace ApiBureau.Bullhorn.Api.Dtos;
+
+public class EditHistory
 {
-    public class EditHistory
-    {
-        public string TransactionId { get; set; } = "";
+    public string TransactionId { get; set; } = "";
 
-        public long DateAdded { get; set; }
+    public long DateAdded { get; set; }
 
-        public TargetEntityDto TargetEntity { get; set; } = new TargetEntityDto();
+    public TargetEntityDto TargetEntity { get; set; } = new TargetEntityDto();
 
-        public UserDto ModifyingPerson { get; set; } = new UserDto();
-    }
+    public UserDto ModifyingPerson { get; set; } = new UserDto();
 }
