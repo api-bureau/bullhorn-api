@@ -1,5 +1,8 @@
-# Sportmonks Api
-The purpose of this project is to help you exploring Sportmonks APIs and speed up your Sportmonks APIs C# and .NET Core implementation.
+# Bullhorn API
+The purpose of this project is to help you exploring Bullhorn APIs and speed up your Bullhorn APIs C# and .NET Core implementation.
+
+## Bullhorn Entity Updates
+ **Important!** Make sure you update only a field you want to update. Do not use Dtos with multiple fields which are not going to be updated because Bullhorn entity will be overwritten with defaults. 
 
 ## Contributors
 This project adheres following guidelines.

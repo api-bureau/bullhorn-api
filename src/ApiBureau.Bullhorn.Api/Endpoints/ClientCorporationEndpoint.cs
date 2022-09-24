@@ -1,22 +1,23 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class ClientCorporationApi
+public class ClientCorporationEndpoint : BaseEndpoint
 {
-    private readonly BullhornClient _bullhornApi;
+    public ClientCorporationEndpoint(ApiConnection apiConnection) : base(apiConnection) { }
 
-    public ClientCorporationApi(BullhornClient bullhornApi) => _bullhornApi = bullhornApi;
+    public Task<HttpResponseMessage> AddAsync(ClientCorporationDto dto)
+        => ApiConnection.PutAsJsonAsync(EntityType.ClientCorporation, dto);
 
     public async Task<List<ClientCorporationDto>> GetNewClientCorporationsAsync(long timestampFrom)
     {
         var query = $"ClientCorporation?fields=id,name&where=dateAdded>{timestampFrom}";
 
-        return await _bullhornApi.QueryAsync<ClientCorporationDto>(query);
+        return await ApiConnection.QueryAsync<ClientCorporationDto>(query);
     }
 
     public async Task<List<ClientCorporationDto>> GetUpdatedClientCorporationsAsync(long timestampFrom)
     {
         var query = $"ClientCorporation?fields=id&where=dateLastModified>{timestampFrom}";
 
-        return await _bullhornApi.QueryAsync<ClientCorporationDto>(query);
+        return await ApiConnection.QueryAsync<ClientCorporationDto>(query);
     }
 }

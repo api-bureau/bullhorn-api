@@ -12,4 +12,8 @@ public class AddressDto
 
     [JsonPropertyName("countryID")]
     public int? CountryId { get; set; }
+
+
+    public AddressDto() { }
+    public AddressDto(int? countryId) => CountryId = countryId;
 }

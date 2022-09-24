@@ -6,6 +6,8 @@ public class BullhornClient
 
     public AppointmentEndpoint Appointment { get; }
     public CandidateEndpoint Candidate { get; }
+    public ClientContactEndpoint ClientContact { get; }
+    public ClientCorporationEndpoint ClientCorporation { get; }
     public ContryEndpoint Country { get; }
     public DepartmentEndpoint Department { get; }
     public JobOrderEndpoint JobOrder { get; }
@@ -19,6 +21,8 @@ public class BullhornClient
     {
         Appointment = new(client);
         Candidate = new(client);
+        ClientContact = new(client);
+        ClientCorporation = new(client);
         Country = new(client);
         Department = new(client);
         JobOrder = new(client);
@@ -32,6 +36,4 @@ public class BullhornClient
 
     // ToDo Refactor this so the check connection is done automatically
     public Task CheckConnectionAsync() => _client.CheckConnectionAsync();
-
-    //internal Task<List<T>> QueryAsync<T>(string query) => throw new NotImplementedException();
 }
