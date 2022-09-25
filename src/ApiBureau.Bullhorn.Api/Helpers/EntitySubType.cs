@@ -1,8 +1,7 @@
-﻿namespace ApiBureau.Bullhorn.Api.Helpers
+namespace ApiBureau.Bullhorn.Api.Helpers;
+
+public enum EntitySubType
 {
-    public enum EntitySubType
-    {
-        Candidate,
-        ClientContact
-    }
+    Candidate,
+    ClientContact
 }

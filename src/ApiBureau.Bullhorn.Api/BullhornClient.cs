@@ -1,8 +1,10 @@
+using Microsoft.Extensions.Logging;
+
 namespace ApiBureau.Bullhorn.Api;
 
 public class BullhornClient
 {
-    private readonly ApiConnection _client;
+    private readonly ApiConnection _apiConnection;
 
     public AppointmentEndpoint Appointment { get; }
     public CandidateEndpoint Candidate { get; }
@@ -17,23 +19,24 @@ public class BullhornClient
     public PlacementChangeRequestEndpoint PlacementChangeRequest { get; }
     public MassUpdateEndpoint MassUpdate { get; }
 
-    public BullhornClient(ApiConnection client)
+    public BullhornClient(HttpClient client, IOptions<BullhornSettings> settings, ILogger<ApiConnection> logger)
     {
-        Appointment = new(client);
-        Candidate = new(client);
-        ClientContact = new(client);
-        ClientCorporation = new(client);
-        Country = new(client);
-        Department = new(client);
-        JobOrder = new(client);
-        JobSubmission = new(client);
-        Note = new(client);
-        Placement = new(client);
-        PlacementChangeRequest = new(client);
-        MassUpdate = new(client);
-        _client = client;
+        _apiConnection = new ApiConnection(client, settings, logger);
+
+        Appointment = new(_apiConnection);
+        Candidate = new(_apiConnection);
+        ClientContact = new(_apiConnection);
+        ClientCorporation = new(_apiConnection);
+        Country = new(_apiConnection);
+        Department = new(_apiConnection);
+        JobOrder = new(_apiConnection);
+        JobSubmission = new(_apiConnection);
+        Note = new(_apiConnection);
+        Placement = new(_apiConnection);
+        PlacementChangeRequest = new(_apiConnection);
+        MassUpdate = new(_apiConnection);
     }
 
     // ToDo Refactor this so the check connection is done automatically
-    public Task CheckConnectionAsync() => _client.CheckConnectionAsync();
+    public Task CheckConnectionAsync() => _apiConnection.CheckConnectionAsync();
 }
