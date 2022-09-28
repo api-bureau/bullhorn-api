@@ -4,7 +4,7 @@ using IdentityModel.Client;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints;
+namespace ApiBureau.Bullhorn.Api.Http;
 
 public class ApiSession
 {
