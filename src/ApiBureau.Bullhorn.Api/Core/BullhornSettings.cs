@@ -1,4 +1,4 @@
-﻿namespace ApiBureau.Bullhorn.Api.Endpoints
+namespace ApiBureau.Bullhorn.Api.Core
 {
     public class BullhornSettings
     {
