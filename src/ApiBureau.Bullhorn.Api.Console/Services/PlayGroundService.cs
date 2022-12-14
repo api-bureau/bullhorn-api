@@ -1,7 +1,8 @@
-using Microsoft.Extensions.Logging;
-
 namespace ApiBureau.Bullhorn.Api.Console.Services;
 
+/// <summary>
+/// Example of how to fetch entities from Bullhorn
+/// </summary>
 public class PlayGroundService
 {
     private readonly ILogger<PlayGroundService> _logger;
@@ -13,16 +14,18 @@ public class PlayGroundService
         _bullhornApi = bullhornApi;
     }
 
-    public async Task TestApiAsync()
+    public async Task GetEntitiesAsync()
     {
         try
         {
             await _bullhornApi.CheckConnectionAsync();
+
             await GetDepartmentsAsync();
+            await GetCountriesAsync();
         }
         catch (Exception e)
         {
-            _logger.LogError(e, nameof(TestApiAsync));
+            _logger.LogError(e, "Entities fetch failed");
 
             throw;
         }
@@ -41,6 +44,13 @@ public class PlayGroundService
     {
         var result = await _bullhornApi.Department.GetAsync();
 
-        _logger.LogInformation("Items: {0}", result.Count);
+        _logger.LogInformation("Items: {count}", result.Count);
+    }
+
+    private async Task GetCountriesAsync()
+    {
+        var result = await _bullhornApi.Country.GetAsync();
+
+        _logger.LogInformation("Items: {count}", result.Count);
     }
 }

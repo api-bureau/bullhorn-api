@@ -1,25 +1,19 @@
+using ApiBureau.Bullhorn.Api.Console;
 using ApiBureau.Bullhorn.Api.Console.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ApiBureau.Bullhorn.Api.Console
-{
-    public static class Program
-    {
-        public static async Task Main()
-        {
-            var services = new ServiceCollection();
+var services = new ServiceCollection();
 
-            var startup = new Startup();
+var startup = new Startup();
 
-            startup.ConfigureServices(services);
+startup.ConfigureServices(services);
 
-            var serviceProvider = services.BuildServiceProvider();
+var serviceProvider = services.BuildServiceProvider();
 
-            var service = serviceProvider.GetService<UpdateFieldService>();
+//var service = serviceProvider.GetService<UpdateFieldService>();
+var service = serviceProvider.GetService<PlayGroundService>();
 
-            if (service == null) return;
+if (service == null) return;
 
-            await service.UpdateAsync();
-        }
-    }
-}
+//await service.UpdateAsync();
+await service.GetEntitiesAsync();

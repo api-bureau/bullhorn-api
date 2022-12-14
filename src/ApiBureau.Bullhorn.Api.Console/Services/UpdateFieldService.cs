@@ -1,7 +1,8 @@
-using Microsoft.Extensions.Logging;
-
 namespace ApiBureau.Bullhorn.Api.Console.Services;
 
+/// <summary>
+/// Example of how to update a field in Bullhorn.
+/// </summary>
 public class UpdateFieldService
 {
     private readonly ILogger<UpdateFieldService> _logger;
@@ -19,32 +20,17 @@ public class UpdateFieldService
         {
             await _bullhornApi.CheckConnectionAsync();
 
-            await UpdatePlacmentFieldAsync();
+            await UpdatePlacmentFieldAsync(6911);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, nameof(UpdateAsync));
+            _logger.LogError(e, "Placement field udpate failed");
 
             throw;
         }
     }
 
-    private async Task UpdatePlacmentFieldAsync()
-    {
-        //var testUrl = $"Placement?fields=id,customEncryptedText10,customText8&where=id=6908";
-
-        //var result = await _bullhornApi.QueryAsync<PlacementDto>(testUrl);
-
-        // Important! Make sure you update only a field you want to update. Do not use Dtos with multiple fields which are not going to be updated because Bullhorn entity will be updated with defaults.
-        try
-        {
-            await _bullhornApi.Placement.UpdateAsync(6911, new { customText8 = "New" });
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Update UpdatePlacmentFieldAsync");
-        }
-
-        //_logger.LogInformation("Items: {0}", result.Count);
-    }
+    // Important! Make sure you update only a field you want to update. Do not use Dtos with multiple fields which are not going to be updated because Bullhorn entity will be updated with defaults.
+    private Task UpdatePlacmentFieldAsync(int placementId)
+        => _bullhornApi.Placement.UpdateAsync(placementId, new { customText8 = "New" });
 }

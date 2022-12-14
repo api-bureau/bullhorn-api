@@ -5,57 +5,52 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
 
-namespace ApiBureau.Bullhorn.Api.Console
+namespace ApiBureau.Bullhorn.Api.Console;
+
+public class Startup
 {
-    public class Startup
+    private IConfiguration Configuration { get; }
+
+    public Startup()
     {
-        private IConfiguration Configuration { get; }
+        var builder = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .AddJsonFile($"appsettings.{GetEnvironmentVariable()}.json", true, true)
+            .AddEnvironmentVariables();
 
-        public Startup()
+        if (IsDevelopment()) builder.AddUserSecrets(typeof(Program).Assembly);
+
+        Configuration = builder.Build();
+
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(Configuration)
+            .Enrich.FromLogContext()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .CreateLogger();
+
+        AppDomain.CurrentDomain.ProcessExit += (s, e) => Log.CloseAndFlush();
+
+        static bool IsDevelopment()
         {
-            var builder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{GetEnvironmentVariable()}.json", true, true)
-                .AddEnvironmentVariables();
+            var devEnvironmentVariable = GetEnvironmentVariable();
 
-            if (IsDevelopment()) builder.AddUserSecrets(typeof(Program).Assembly);
-
-            Configuration = builder.Build();
-
-            Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(Configuration)
-                .Enrich.FromLogContext()
-                // Change this to Information to see SQL Logs
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                //.WriteTo.Console(outputTemplate: "{Timestamp:dd-MM-yyyy HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-                //.WriteTo.File(path: "logs/log.log-", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 14)
-                .CreateLogger();
-
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => Log.CloseAndFlush();
-
-            static bool IsDevelopment()
-            {
-                var devEnvironmentVariable = GetEnvironmentVariable();
-
-                return string.IsNullOrEmpty(devEnvironmentVariable) || devEnvironmentVariable.ToLower() == "development";
-            }
-
-            static string? GetEnvironmentVariable() => Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            return string.IsNullOrEmpty(devEnvironmentVariable) || devEnvironmentVariable.ToLower() == "development";
         }
 
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddSingleton(Configuration);
+        static string? GetEnvironmentVariable() => Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+    }
 
-            services.AddLogging(builder => builder
-                //.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
-                .AddSerilog(dispose: true)
-            );
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton(Configuration);
 
-            services.AddBullhorn(Configuration, "BullhornSettings:RestApi");
+        services.AddLogging(builder => builder
+            .AddSerilog(dispose: true)
+        );
 
-            services.AddScoped<PlayGroundService>();
-            services.AddScoped<UpdateFieldService>();
-        }
+        services.AddBullhorn(Configuration, "BullhornSettings:RestApi");
+
+        services.AddScoped<PlayGroundService>();
+        services.AddScoped<UpdateFieldService>();
     }
 }
