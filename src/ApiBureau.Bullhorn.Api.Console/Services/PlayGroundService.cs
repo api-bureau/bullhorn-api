@@ -1,3 +1,5 @@
+using ApiBureau.Bullhorn.Api.Core;
+
 namespace ApiBureau.Bullhorn.Api.Console.Services;
 
 /// <summary>
@@ -21,7 +23,8 @@ public class PlayGroundService
             await _bullhornApi.CheckConnectionAsync();
 
             //await GetDepartmentsAsync();
-            await GetCountriesAsync();
+            await QueryExampleAsync();
+            //await GetCountriesAsync();
         }
         catch (Exception e)
         {
@@ -31,14 +34,12 @@ public class PlayGroundService
         }
     }
 
-    //private async Task QueryExampleAsync()
-    //{
-    //    var testUrl = "Department?fields=id,description,enabled,name&where=id>0";
+    private async Task QueryExampleAsync()
+    {
+        var result = await _bullhornApi.QueryAsync<DepartmentDto>($"{EntityType.Department}?fields=id,name&where=id>0");
 
-    //    var result = await _bullhornApi.QueryAsync<DepartmentDto>(testUrl);
-
-    //    _logger.LogInformation("Items: {0}", result.Count);
-    //}
+        _logger.LogInformation("Items: {count}", result.Count);
+    }
 
     private async Task GetDepartmentsAsync()
     {

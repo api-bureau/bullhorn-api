@@ -7,6 +7,7 @@ namespace ApiBureau.Bullhorn.Api.Core
         ClientContact,
         ClientCorporation,
         Country,
+        Department,
         JobOrder,
         JobSubmission,
         Note,

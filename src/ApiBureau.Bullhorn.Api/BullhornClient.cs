@@ -39,4 +39,6 @@ public class BullhornClient
 
     // ToDo Refactor this so the check connection is done automatically
     public Task CheckConnectionAsync() => _apiConnection.CheckConnectionAsync();
+
+    public Task<List<T>> QueryAsync<T>(string query) => _apiConnection.QueryAsync<T>(query);
 }
