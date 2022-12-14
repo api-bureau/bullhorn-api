@@ -10,7 +10,7 @@ public class BullhornClient
     public CandidateEndpoint Candidate { get; }
     public ClientContactEndpoint ClientContact { get; }
     public ClientCorporationEndpoint ClientCorporation { get; }
-    public ContryEndpoint Country { get; }
+    public CountryEndpoint Country { get; }
     public DepartmentEndpoint Department { get; }
     public JobOrderEndpoint JobOrder { get; }
     public JobSubmissionEndpoint JobSubmission { get; }
