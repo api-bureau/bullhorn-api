@@ -11,8 +11,8 @@
         <Company>Api Bureau</Company>
         <PackageIcon>icon-512x512.png</PackageIcon>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <RepositoryUrl>https://github.com/codecapital/CodeCapital.Bullhorn</RepositoryUrl>
-        <PackageProjectUrl>https://github.com/codecapital/CodeCapital.Bullhorn</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/api-bureau/bullhorn-api</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/api-bureau/bullhorn-api</PackageProjectUrl>
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
         <!--<AssemblyName>ApiBureau.Bullhorn.Api</AssemblyName>
