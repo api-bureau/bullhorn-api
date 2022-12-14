@@ -20,7 +20,7 @@ public class PlayGroundService
         {
             await _bullhornApi.CheckConnectionAsync();
 
-            await GetDepartmentsAsync();
+            //await GetDepartmentsAsync();
             await GetCountriesAsync();
         }
         catch (Exception e)

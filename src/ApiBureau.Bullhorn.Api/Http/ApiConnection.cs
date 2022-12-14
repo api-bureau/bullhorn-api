@@ -106,6 +106,12 @@ public class ApiConnection
         return response;
     }
 
+    /// <summary>
+    /// Where condion must be included
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="query"></param>
+    /// <returns></returns>
     public async Task<List<T>> QueryAsync<T>(string query)
     {
         var items = new List<T>();
