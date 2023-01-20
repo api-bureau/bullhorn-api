@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text.Json;
 
 namespace ApiBureau.Bullhorn.Api.Endpoints

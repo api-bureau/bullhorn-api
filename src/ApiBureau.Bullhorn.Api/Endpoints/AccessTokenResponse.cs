@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     class AccessTokenResponse

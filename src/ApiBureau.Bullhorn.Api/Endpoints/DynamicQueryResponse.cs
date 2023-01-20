@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class DynamicQueryResponse : DynamicResponse

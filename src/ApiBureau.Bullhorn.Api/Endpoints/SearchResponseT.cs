@@ -1,6 +1,3 @@
-using ApiBureau.Bullhorn.Api.Dtos;
-using System.Collections.Generic;
-
 namespace ApiBureau.Bullhorn.Api.Endpoints
 {
     public class SearchResponse<T> : ErrorResponseDto
