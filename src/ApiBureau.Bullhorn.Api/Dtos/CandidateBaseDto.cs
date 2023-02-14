@@ -17,13 +17,12 @@ public class CandidateBaseDto : EntityBaseDto
     public bool IsDeleted { get; set; }
     public string Status { get; set; } = null!;
     public long CustomDate2 { get; set; }
-    public List<string> Source { get; set; }
+    public string Source { get; set; }
     public UserDto Owner { get; set; }
     public AddressDto Address { get; set; }
 
     public CandidateBaseDto()
     {
-        Source = new List<string>();
         Owner = new UserDto();
         Address = new AddressDto();
     }
