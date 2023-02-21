@@ -30,4 +30,3 @@ public static class ServiceExtensions
             .AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(3) }));
     }
 }
-
