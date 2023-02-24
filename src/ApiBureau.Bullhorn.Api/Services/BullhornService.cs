@@ -18,7 +18,7 @@ public class BullhornService
     {
         await CheckConnectionAsync();
 
-        var newCandidates = await BullhornApi.Candidate.GetNewFromAsync(DateTime.Now.AddHours(-hours));
+        var newCandidates = await BullhornApi.Candidate.SearchFromAsync(DateTime.Now.AddHours(-hours));
 
         return newCandidates;
     }
