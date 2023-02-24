@@ -1,8 +1,10 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class SendoutApi : BaseEndpoint
+public class SendoutEndpoint : QueryBaseEndpoint<SendoutDto>
 {
-    public SendoutApi(ApiConnection apiConnection) : base(apiConnection) { }
+    private const string EntityDefaultFields = "id,candidate,user,dateAdded,jobOrder,clientContact,clientCorporation";
+
+    public SendoutEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
     /// <summary>
     /// Get all from a specific timestamp

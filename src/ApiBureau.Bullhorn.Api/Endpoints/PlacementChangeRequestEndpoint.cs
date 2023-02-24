@@ -1,15 +1,10 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class PlacementChangeRequestEndpoint : BaseEndpoint
+public class PlacementChangeRequestEndpoint : QueryBaseEndpoint<PlacementChangeRequestDto>
 {
-    public PlacementChangeRequestEndpoint(ApiConnection apiConnection) : base(apiConnection) { }
+    private const string EntityDefaultFields = "id,dateAdded,dateLastModified,status,title,requestStatus,requestType,placement(id),customText12";
 
-    public async Task<List<PlacementChangeRequestDto>> GetNewAndUpdatedFromAsync(long timestampFrom)
-    {
-        var query = $"PlacementChangeRequest?fields=id,dateAdded,dateLastModified,requestStatus,requestType,placement(id),customText12&where=dateAdded>{timestampFrom} OR dateLastModified>{timestampFrom}";
-
-        return await ApiConnection.QueryAsync<PlacementChangeRequestDto>(query);
-    }
+    public PlacementChangeRequestEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
     public Task<HttpResponseMessage> AddAsync(object content)
         => ApiConnection.PutAsJsonAsync(EntityType.PlacementChangeRequest, content);

@@ -1,13 +1,14 @@
-﻿namespace ApiBureau.Bullhorn.Api.Endpoints;
+namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class DepartmentEndpoint : BaseEndpoint
+public class DepartmentEndpoint : QueryBaseEndpoint<DepartmentDto>
 {
-    public DepartmentEndpoint(ApiConnection apiConnection) : base(apiConnection) { }
+    private const string EntityDefaultFields = "id,description,enabled,name";
+
+    public DepartmentEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
     /// <summary>
     /// Returns all departments
     /// </summary>
     /// <returns></returns>
-    public Task<List<DepartmentDto>> GetAsync()
-        => ApiConnection.QueryAsync<DepartmentDto>("Department?fields=id,description,enabled,name&where=id>0");
+    public async Task<List<DepartmentDto>> GetAllDepertmentsAsync() => await QueryWhereAsync();
 }

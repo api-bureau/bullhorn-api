@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ApiBureau.Bullhorn.Api;
 
-public class BullhornClient
+public class BullhornClient //: BaseClient
 {
     private readonly ApiConnection _apiConnection;
 
@@ -10,6 +10,8 @@ public class BullhornClient
     public CandidateEndpoint Candidate { get; }
     public ClientContactEndpoint ClientContact { get; }
     public ClientCorporationEndpoint ClientCorporation { get; }
+    public CorporationDepartmentEndpoint CorporationDepartment { get; }
+    public CorporateUserEndpoint CorporateUser { get; }
     public CountryEndpoint Country { get; }
     public DepartmentEndpoint Department { get; }
     public JobOrderEndpoint JobOrder { get; }
@@ -18,23 +20,27 @@ public class BullhornClient
     public PlacementEndpoint Placement { get; }
     public PlacementChangeRequestEndpoint PlacementChangeRequest { get; }
     public MassUpdateEndpoint MassUpdate { get; }
+    public SendoutEndpoint Sendout { get; }
 
     public BullhornClient(HttpClient client, IOptions<BullhornSettings> settings, ILogger<ApiConnection> logger)
     {
         _apiConnection = new ApiConnection(client, settings, logger);
 
-        Appointment = new(_apiConnection);
-        Candidate = new(_apiConnection);
-        ClientContact = new(_apiConnection);
-        ClientCorporation = new(_apiConnection);
-        Country = new(_apiConnection);
-        Department = new(_apiConnection);
-        JobOrder = new(_apiConnection);
-        JobSubmission = new(_apiConnection);
-        Note = new(_apiConnection);
-        Placement = new(_apiConnection);
-        PlacementChangeRequest = new(_apiConnection);
-        MassUpdate = new(_apiConnection);
+        Appointment = new(_apiConnection, "Appointment");
+        Candidate = new(_apiConnection, "Candidate");
+        ClientContact = new(_apiConnection, "ClientContact");
+        ClientCorporation = new(_apiConnection, "ClientCorporation");
+        CorporationDepartment = new(_apiConnection, "CorporationDepartment");
+        CorporateUser = new(_apiConnection, "CorporateUser");
+        Country = new(_apiConnection, "Country");
+        Department = new(_apiConnection, "Department");
+        JobOrder = new(_apiConnection, "JobOrder");
+        JobSubmission = new(_apiConnection, "JobSubmission");
+        Note = new(_apiConnection, "Note");
+        Placement = new(_apiConnection, "Placement");
+        PlacementChangeRequest = new(_apiConnection, "PlacementChangeRequest");
+        MassUpdate = new(_apiConnection, "massUpdate");
+        Sendout = new(_apiConnection, "Sendout");
     }
 
     // ToDo Refactor this so the check connection is done automatically
