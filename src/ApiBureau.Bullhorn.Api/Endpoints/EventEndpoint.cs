@@ -2,10 +2,9 @@ using ApiBureau.Bullhorn.Api.Helpers;
 
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class EventApi : BaseEndpoint
+public class EventEndpoint : BaseEndpoint
 {
-    public EventApi(ApiConnection apiConnection) : base(apiConnection) { }
-
+    public EventEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl) { }
 
     /// <summary>
     /// Lets you subscribe to Bullhorn event types
@@ -16,13 +15,13 @@ public class EventApi : BaseEndpoint
     /// <returns></returns>
     public async Task<EventSubscribeDto?> SubscribeAsync(string subscriptionId, string entityNames, string eventTypes)
     {
-        if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(nameof(subscriptionId));
+        if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(null, nameof(subscriptionId));
 
-        if (string.IsNullOrWhiteSpace(entityNames)) throw new ArgumentException(nameof(entityNames));
+        if (string.IsNullOrWhiteSpace(entityNames)) throw new ArgumentException(null, nameof(entityNames));
 
-        if (string.IsNullOrWhiteSpace(eventTypes)) throw new ArgumentException(nameof(eventTypes));
+        if (string.IsNullOrWhiteSpace(eventTypes)) throw new ArgumentException(null, nameof(eventTypes));
 
-        var query = $"event/subscription/{subscriptionId}?type=entity&names={entityNames}&eventTypes={eventTypes}";
+        var query = $"{RequestUrl}/subscription/{subscriptionId}?type=entity&names={entityNames}&eventTypes={eventTypes}";
 
         var response = await ApiConnection.ApiPutAsync(query, new StringContent(string.Empty));
 
@@ -40,9 +39,9 @@ public class EventApi : BaseEndpoint
 
     public async Task<EventUnSubscribeDto?> UnSubscribeAsync(string subscriptionId)
     {
-        if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(nameof(subscriptionId));
+        if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(null, nameof(subscriptionId));
 
-        var query = $"event/subscription/{subscriptionId}";
+        var query = $"{RequestUrl}/subscription/{subscriptionId}";
 
         var response = await ApiConnection.ApiDeleteAsync(query);
 
@@ -56,7 +55,7 @@ public class EventApi : BaseEndpoint
     /// <returns></returns>
     public async Task<EventsDto?> GetAsync(string subscriptionId)
     {
-        var query = $"event/subscription/{subscriptionId}?maxEvents=100";
+        var query = $"{RequestUrl}/subscription/{subscriptionId}?maxEvents=100";
 
         ApiConnection.LogWarning("Placement Event Subscription: This call might throw an error if expected the input to start with a no valid JSON token (empty string), meaning no data in this case.");
 

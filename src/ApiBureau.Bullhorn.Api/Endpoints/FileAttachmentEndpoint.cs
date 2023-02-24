@@ -1,8 +1,8 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class FileAttachmentApi : BaseEndpoint
+public class FileAttachmentEndpoint : BaseEndpoint
 {
-    public FileAttachmentApi(ApiConnection apiConnection) : base(apiConnection) { }
+    public FileAttachmentEndpoint(ApiConnection apiConnection) : base(apiConnection, "") { }
 
     public async Task<List<FileAttachmentDto>> GetAsync(string query)
     {

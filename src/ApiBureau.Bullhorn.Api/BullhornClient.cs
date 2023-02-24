@@ -11,20 +11,23 @@ public class BullhornClient //: BaseClient
     public CandidateWorkHistoryEndpoint CandidateWorkHistory { get; }
     public ClientContactEndpoint ClientContact { get; }
     public ClientCorporationEndpoint ClientCorporation { get; }
-    public CorporationDepartmentEndpoint CorporationDepartment { get; }
     public CorporateUserEndpoint CorporateUser { get; }
+    public CorporationDepartmentEndpoint CorporationDepartment { get; }
     public CountryEndpoint Country { get; }
     public DepartmentEndpoint Department { get; }
     public EntityEditHistoryEndpoint EntityEditHistory { get; }
+    public EventEndpoint Event { get; }
+    public FileAttachmentEndpoint FileAttachment { get; }
+    public FileEndpoint File { get; }
     public JobOrderEndpoint JobOrder { get; }
     public JobSubmissionEndpoint JobSubmission { get; }
     public JobSubmissionHistoryEndpoint JobSubmissionHistory { get; }
-    public NoteEndpoint Note { get; }
-    public PlacementEndpoint Placement { get; }
-    public PlacementCommissionEndpoint PlacementCommission { get; }
-    public PlacementChangeRequestEndpoint PlacementChangeRequest { get; }
-    public ResumeEndpoint Resume { get; }
     public MassUpdateEndpoint MassUpdate { get; }
+    public NoteEndpoint Note { get; }
+    public PlacementChangeRequestEndpoint PlacementChangeRequest { get; }
+    public PlacementCommissionEndpoint PlacementCommission { get; }
+    public PlacementEndpoint Placement { get; }
+    public ResumeEndpoint Resume { get; }
     public SendoutEndpoint Sendout { get; }
 
     public BullhornClient(HttpClient client, IOptions<BullhornSettings> settings, ILogger<ApiConnection> logger)
@@ -36,20 +39,23 @@ public class BullhornClient //: BaseClient
         CandidateWorkHistory = new(_apiConnection, "CandidateWorkHistory");
         ClientContact = new(_apiConnection, "ClientContact");
         ClientCorporation = new(_apiConnection, "ClientCorporation");
-        CorporationDepartment = new(_apiConnection, "CorporationDepartment");
         CorporateUser = new(_apiConnection, "CorporateUser");
+        CorporationDepartment = new(_apiConnection, "CorporationDepartment");
         Country = new(_apiConnection, "Country");
         Department = new(_apiConnection, "Department");
         EntityEditHistory = new(_apiConnection);
+        Event = new(_apiConnection, "event");
+        FileAttachment = new(_apiConnection);
+        File = new(_apiConnection, "file");
         JobOrder = new(_apiConnection, "JobOrder");
         JobSubmission = new(_apiConnection, "JobSubmission");
         JobSubmissionHistory = new(_apiConnection, "JobSubmissionHistory");
+        MassUpdate = new(_apiConnection, "massUpdate");
         Note = new(_apiConnection, "Note");
         Placement = new(_apiConnection, "Placement");
-        PlacementCommission = new(_apiConnection, "PlacementCommission");
         PlacementChangeRequest = new(_apiConnection, "PlacementChangeRequest");
+        PlacementCommission = new(_apiConnection, "PlacementCommission");
         Resume = new(_apiConnection, "resume");
-        MassUpdate = new(_apiConnection, "massUpdate");
         Sendout = new(_apiConnection, "Sendout");
     }
 
