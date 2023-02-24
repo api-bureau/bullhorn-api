@@ -14,5 +14,4 @@ public class ResumeDto
         CandidateWorkHistory = new List<CandidateResumeWorkHistoryDto>();
         Candidate = new ParsedCandidateDto();
     }
-
 }
