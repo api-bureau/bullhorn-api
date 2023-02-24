@@ -1,5 +1,3 @@
-using ApiBureau.Bullhorn.Api.Helpers;
-
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
 public class FileEndpoint : BaseEndpoint
@@ -13,7 +11,7 @@ public class FileEndpoint : BaseEndpoint
 
         var response = await ApiConnection.GetAsync(query);
 
-        var fileResponse = await response.DeserializeAsync<FileResponse>();
+        var fileResponse = await response.DeserializeAsync<FileResponse<FileDto>>();
 
         return fileResponse?.File;
     }

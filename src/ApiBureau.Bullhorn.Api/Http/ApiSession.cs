@@ -1,5 +1,3 @@
-using ApiBureau.Bullhorn.Api.Extensions;
-using ApiBureau.Bullhorn.Api.Helpers;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;

@@ -1,4 +1,3 @@
-using ApiBureau.Bullhorn.Api.Helpers;
 using CodeCapital.System.Text.Json;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;

@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints
+namespace ApiBureau.Bullhorn.Api.Http
 {
     public class SearchResponse
     {

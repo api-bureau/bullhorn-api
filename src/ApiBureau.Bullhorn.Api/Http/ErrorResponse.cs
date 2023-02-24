@@ -1,6 +1,6 @@
-namespace ApiBureau.Bullhorn.Api.Dtos;
+namespace ApiBureau.Bullhorn.Api.Http;
 
-public class ErrorResponseDto
+public class ErrorResponse
 {
     public string ErrorMessage { get; set; } = "";
     public string ErrorMessageKey { get; set; } = "";

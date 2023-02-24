@@ -1,5 +1,3 @@
-using ApiBureau.Bullhorn.Api.Extensions;
-
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
 public class CandidateWorkHistoryEndpoint : QueryBaseEndpoint<CandidateWorkHistoryDto>

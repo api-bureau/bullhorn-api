@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-namespace ApiBureau.Bullhorn.Api.Endpoints;
+namespace ApiBureau.Bullhorn.Api.Http;
 
-public class QueryResponse : ErrorResponseDto
+public class QueryResponse : ErrorResponse
 {
     public int Total { get; set; }
     public int Start { get; set; }

@@ -1,5 +1,3 @@
-using ApiBureau.Bullhorn.Api.Helpers;
-
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
 public class EventEndpoint : BaseEndpoint

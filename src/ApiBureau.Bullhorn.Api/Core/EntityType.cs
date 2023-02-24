@@ -1,18 +1,17 @@
-namespace ApiBureau.Bullhorn.Api.Core
+namespace ApiBureau.Bullhorn.Api.Core;
+
+public enum EntityType
 {
-    public enum EntityType
-    {
-        Appointment,
-        Candidate,
-        ClientContact,
-        ClientCorporation,
-        Country,
-        Department,
-        JobOrder,
-        JobSubmission,
-        Note,
-        Placement,
-        PlacementChangeRequest,
-        Tearsheet
-    }
+    Appointment,
+    Candidate,
+    ClientContact,
+    ClientCorporation,
+    Country,
+    Department,
+    JobOrder,
+    JobSubmission,
+    Note,
+    Placement,
+    PlacementChangeRequest,
+    Tearsheet
 }

@@ -1,6 +1,6 @@
-namespace ApiBureau.Bullhorn.Api.Endpoints
+namespace ApiBureau.Bullhorn.Api.Http
 {
-    public class DynamicResponse : ErrorResponseDto
+    public class DynamicResponse : ErrorResponse
     {
         public int Total { get; set; }
         public string Json { get; set; } = "";
