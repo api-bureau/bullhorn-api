@@ -10,5 +10,5 @@ public class CountryEndpoint : QueryBaseEndpoint<CountryDto>
     /// Returns all coutries
     /// </summary>
     /// <returns></returns>
-    public async Task<List<CountryDto>> GetAllCountriesAsync() => await QueryWhereAsync();
+    public async Task<List<CountryDto>> GetAllAsync() => await QueryWhereAsync();
 }

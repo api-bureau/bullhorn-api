@@ -43,14 +43,14 @@ public class PlayGroundService
 
     private async Task GetDepartmentsAsync()
     {
-        var result = await _bullhornApi.Department.GetAsync();
+        var result = await _bullhornApi.Department.GetAllAsync();
 
         _logger.LogInformation("Items: {count}", result.Count);
     }
 
     private async Task GetCountriesAsync()
     {
-        var result = await _bullhornApi.Country.GetAsync();
+        var result = await _bullhornApi.Country.GetAllAsync();
 
         _logger.LogInformation("Items: {count}", result.Count);
     }
