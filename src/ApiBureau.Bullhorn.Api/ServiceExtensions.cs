@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Polly;
 
-namespace ApiBureau.Bullhorn.Api.Extensions;
+namespace ApiBureau.Bullhorn.Api;
 
 public static class ServiceExtensions
 {

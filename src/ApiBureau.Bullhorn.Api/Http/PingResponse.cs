@@ -1,6 +1,6 @@
-namespace ApiBureau.Bullhorn.Api.Dtos;
+namespace ApiBureau.Bullhorn.Api.Http;
 
-public class PingDto
+public class PingResponse
 {
     public long SessionExpires { get; set; }
 

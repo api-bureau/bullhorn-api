@@ -15,7 +15,7 @@ public class ApiSession
     private string? _refreshToken;
 
     public LoginResponse? LoginResponse { get; private set; }
-    public PingDto Ping { get; set; } = new PingDto();
+    public PingResponse Ping { get; set; } = new PingResponse();
     public bool IsValid => LoginResponse != null && LoginResponse.IsValid;
 
     public ApiSession(HttpClient client, BullhornSettings settings, ILogger logger)

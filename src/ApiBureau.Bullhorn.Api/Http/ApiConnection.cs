@@ -267,16 +267,6 @@ public class ApiConnection
 
     public string GetQuotedString(IEnumerable<string> list) => string.Join(" OR ", list.Select(s => $"\"{s}\""));
 
-    //[Obsolete("Use JobOrderApi instead", true)]
-    //public async Task<List<JobOrderDto>> GetJobOrdersAsync(long timestampFrom)
-    //{
-    //    var query = $"JobOrder?fields=id,dateAdded,status,title,source,owner,isOpen,isDeleted,clientContact,clientCorporation&where=dateAdded>={timestampFrom}";
-
-    //    var data = await QueryAsync<JobOrderDto>(query);
-
-    //    return data;
-    //}
-
     public Task<T?> DeserializeAsync<T>(HttpResponseMessage response)
         => response.DeserializeAsync<T>(_logger);
 
@@ -326,7 +316,7 @@ public class ApiConnection
         {
             using var response = await _client.GetAsync($"{_session.LoginResponse!.RestUrl}/ping");
 
-            _session.Ping = await DeserializeAsync<PingDto>(response);
+            _session.Ping = await DeserializeAsync<PingResponse>(response);
 
         }
         catch (Exception e)

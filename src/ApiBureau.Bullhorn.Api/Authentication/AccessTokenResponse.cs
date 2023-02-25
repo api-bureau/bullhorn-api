@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Authentication;
 
-class AccessTokenResponse
+public class AccessTokenResponse
 {
     [JsonPropertyName("access_token")]
     public string AccessToken { get; set; }
