@@ -30,6 +30,7 @@ public class BullhornClient //: BaseClient
     public ResumeEndpoint Resume { get; }
     public SendoutEndpoint Sendout { get; }
 
+    // ToDo: Shall we move the below to the setter above?
     public BullhornClient(HttpClient client, IOptions<BullhornSettings> settings, ILogger<ApiConnection> logger)
     {
         _apiConnection = new ApiConnection(client, settings, logger);
