@@ -13,6 +13,6 @@ public class PlacementEndpoint : QueryBaseEndpoint<PlacementDto>
     /// Http POST /entity/Placement/{placementId}
     /// </summary>
     /// <returns></returns>
-    public Task<HttpResponseMessage> UpdateAsync(int placementId, object data)
+    public Task<Result<ChangeResponse>> UpdateAsync(int placementId, object data)
         => ApiConnection.PostAsJsonAsync(EntityType.Placement, placementId, data);
 }

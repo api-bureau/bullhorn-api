@@ -6,7 +6,7 @@ public class ClientContactEndpoint : SearchBaseEndpoint<ClientContactDto>
 
     public ClientContactEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
-    public Task<HttpResponseMessage> AddAsync(ClientContactDto dto)
+    public Task<Result<ChangeResponse>> AddAsync(ClientContactDto dto)
         => ApiConnection.PutAsJsonAsync(EntityType.ClientContact, dto);
 
     //public async Task<ClientContactDto> FindClientContactIdByEmail2Async(string emailQuery)

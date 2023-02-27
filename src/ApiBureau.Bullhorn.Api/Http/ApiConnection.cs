@@ -21,8 +21,8 @@ public class ApiConnection
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         AllowTrailingCommas = true,
-        IgnoreNullValues = true,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     public ApiConnection(HttpClient client, IOptions<BullhornSettings> settings, ILogger<ApiConnection> logger)
@@ -168,8 +168,12 @@ public class ApiConnection
         return await _client.PutAsync(restUrl, content);
     }
 
-    public Task<HttpResponseMessage> PutAsJsonAsync(EntityType type, object content)
-        => PutAsJsonAsync($"entity/{type}", content);
+    public async Task<Result<ChangeResponse>> PutAsJsonAsync(EntityType type, object content)
+    {
+        var response = await PutAsJsonAsync($"entity/{type}", content);
+
+        return await GetChangeResponseAsync(response).ConfigureAwait(false);
+    }
 
     public async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content)
     {
@@ -183,14 +187,19 @@ public class ApiConnection
         }
         catch (Exception e)
         {
-            _logger.LogError("BullhornAPI_ApiPostAsync", e);
+            _logger.LogError(e, "PutAsJsonAsync");
         }
 
         return new HttpResponseMessage();
     }
 
-    public Task<HttpResponseMessage> PostAsJsonAsync(EntityType type, int entityId, object content)
-        => PostAsJsonAsync($"entity/{type}/{entityId}", content);
+    // Probably this pattern should be used across
+    public async Task<Result<ChangeResponse>> PostAsJsonAsync(EntityType type, int entityId, object content)
+    {
+        var response = await PostAsJsonAsync($"entity/{type}/{entityId}", content);
+
+        return await GetChangeResponseAsync(response).ConfigureAwait(false);
+    }
 
     public async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content)
     {
@@ -204,7 +213,7 @@ public class ApiConnection
         }
         catch (Exception e)
         {
-            _logger.LogError("BullhornAPI_ApiPostAsync", e);
+            _logger.LogError(e, "PostAsJsonAsync");
         }
 
         return new HttpResponseMessage();
@@ -222,7 +231,7 @@ public class ApiConnection
         }
         catch (Exception e)
         {
-            _logger.LogError("BullhornAPI_ApiPostAsync", e);
+            _logger.LogError(e, "PostAsync");
         }
 
         return new HttpResponseMessage();
@@ -241,8 +250,6 @@ public class ApiConnection
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
                 AllowTrailingCommas = true,
-                //IgnoreNullValues = true
-                //ContractResolver = new EmptyStringResolver()
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             }), Encoding.UTF8, "application/json"));
 
@@ -250,8 +257,6 @@ public class ApiConnection
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
                 AllowTrailingCommas = true,
-                //IgnoreNullValues = true,
-                //ContractResolver = new EmptyStringResolver()
                 DefaultIgnoreCondition = JsonIgnoreCondition.Always
             }), Encoding.UTF8, "application/json"));
 
@@ -333,6 +338,30 @@ public class ApiConnection
         _logger.LogInformation($"Token refresh on {_apiCallCounter} API call.");
 
         await _session.RefreshTokenAsync();
+    }
+
+    private static async Task<Result<ChangeResponse>> GetChangeResponseAsync(HttpResponseMessage response)
+    {
+        if (!response.IsSuccessStatusCode)
+        {
+            return Result.Failure<ChangeResponse>(response.ReasonPhrase);
+        }
+
+        try
+        {
+            var changeResponse = await response.Content.ReadFromJsonAsync<ChangeResponse>();
+
+            if (changeResponse is null)
+            {
+                return Result.Failure<ChangeResponse>("Response deserialisaion failed.");
+            }
+
+            return Result.Success(changeResponse);
+        }
+        catch (Exception e)
+        {
+            return Result.Failure<ChangeResponse>(e.Message);
+        }
     }
 
     /// <summary>

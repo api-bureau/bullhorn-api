@@ -10,6 +10,6 @@ public class JobSubmissionEndpoint : QueryBaseEndpoint<JobSubmissionDto>
     /// Http POST /entity/JobSubmission/{jobSubmissionId}
     /// </summary>
     /// <returns></returns>
-    public Task<HttpResponseMessage> UpdateAsync(int jobSubmissionId, object data)
+    public Task<Result<ChangeResponse>> UpdateAsync(int jobSubmissionId, object data)
         => ApiConnection.PostAsJsonAsync(EntityType.JobSubmission, jobSubmissionId, data);
 }

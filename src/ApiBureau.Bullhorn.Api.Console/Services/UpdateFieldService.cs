@@ -1,3 +1,5 @@
+using ApiBureau.Bullhorn.Api.Http;
+
 namespace ApiBureau.Bullhorn.Api.Console.Services;
 
 /// <summary>
@@ -31,6 +33,6 @@ public class UpdateFieldService
     }
 
     // Important! Make sure you update only a field you want to update. Do not use Dtos with multiple fields which are not going to be updated because Bullhorn entity will be updated with defaults.
-    private Task UpdatePlacmentFieldAsync(int placementId)
+    private Task<Result<ChangeResponse>> UpdatePlacmentFieldAsync(int placementId)
         => _bullhornApi.Placement.UpdateAsync(placementId, new { customText8 = "New" });
 }

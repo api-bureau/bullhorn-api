@@ -30,6 +30,6 @@ public class AppointmentEndpoint : QueryBaseEndpoint<AppointmentDto>
         return await ApiConnection.QueryAsync<AppointmentDto>(query);
     }
 
-    public Task<HttpResponseMessage> AddAsync(AppointmentDto appointment)
+    public Task<Result<ChangeResponse>> AddAsync(AppointmentDto appointment)
         => ApiConnection.PutAsJsonAsync(EntityType.Appointment, appointment);
 }
