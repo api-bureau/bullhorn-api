@@ -5,5 +5,6 @@ global using ApiBureau.Bullhorn.Api.Endpoints;
 global using ApiBureau.Bullhorn.Api.Extensions;
 global using ApiBureau.Bullhorn.Api.Helpers;
 global using ApiBureau.Bullhorn.Api.Http;
+global using CSharpFunctionalExtensions;
 global using Microsoft.Extensions.Options;
 global using System.Text.Json.Serialization;
