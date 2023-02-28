@@ -84,8 +84,7 @@ public class ApiSession
 
     private async Task<TokenResponse> GetTokenResponseAsync(string authorisationCode)
     {
-        if (string.IsNullOrWhiteSpace(authorisationCode))
-            throw new ArgumentNullException(nameof(authorisationCode));
+        ArgumentException.ThrowIfNullOrEmpty(authorisationCode);
 
         return await _client.RequestTokenAsync(new AuthorizationCodeTokenRequest
         {
@@ -99,7 +98,7 @@ public class ApiSession
 
     private async Task LoginAsync(TokenResponse token)
     {
-        if (token == null) throw new ArgumentNullException(nameof(token));
+        ArgumentNullException.ThrowIfNull(token);
 
         var loginUrl = _settings.LoginUrl + $"?version=2.0&access_token={token.AccessToken}&ttl={SessionLength}";
 
@@ -124,7 +123,7 @@ public class ApiSession
 
     public async Task RefreshTokenAsync()
     {
-        if (string.IsNullOrWhiteSpace(_refreshToken)) throw new ArgumentNullException(nameof(_refreshToken));
+        ArgumentException.ThrowIfNullOrEmpty(_refreshToken);
 
         var tokenResponse = await GetRefreshTokenAsync();
 

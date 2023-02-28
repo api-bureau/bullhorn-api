@@ -15,11 +15,14 @@ public static class ServiceExtensions
     /// <param name="key"></param>
     public static void AddBullhorn(this IServiceCollection services, IConfiguration configuration, string key = "BullhornSettings")
     {
-        if (services == null) throw new ArgumentNullException(nameof(services));
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
 
-        if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+        var settings = configuration.GetSection(key).Get<BullhornSettings>();
 
-        services.AddBullhorn(configuration.GetSection(key).Get<BullhornSettings>());
+        ArgumentNullException.ThrowIfNull(settings);
+
+        services.AddBullhorn(settings);
     }
 
     public static void AddBullhorn(this IServiceCollection services, BullhornSettings configureSettings)
