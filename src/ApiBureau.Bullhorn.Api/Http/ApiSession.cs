@@ -104,9 +104,12 @@ public class ApiSession
 
         using var response = await _client.GetAsync(loginUrl);
 
+        // temp variable to log the response in case of failure
+        var temp = await response.Content.ReadAsStringAsync();
+
         LoginResponse = await response.DeserializeAsync<LoginResponse>(_logger);
 
-        if (LoginResponse == null || !LoginResponse.IsValid) throw new Exception("Login failed, LoginResponse is null.");
+        if (LoginResponse == null || !LoginResponse.IsValid) throw new Exception($"Login failed, LoginResponse is null ({temp}).");
 
         UpdateBhRestTokenHeader(LoginResponse.BhRestToken!);
 
