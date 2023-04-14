@@ -8,6 +8,8 @@ public class NoteDto : EntityBaseDto
     public string Comments { get; set; } = "";
     public bool IsDeleted { get; set; }
 
+    public List<IdDto>? Placements { get; set; }
+
     public NoteDto()
     {
         CommentingPerson = new UserDto();
