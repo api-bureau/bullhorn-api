@@ -103,6 +103,7 @@ public class ApiSession
     }
 
     // This API call is failing in some cases, so we retry it a few times
+    //{"errorMessage":"Invalid or expired OAuth access token.","errorMessageKey":"errors.authentication.invalidOAuthToken","errorCode":400}
     private async Task LoginAsync(TokenResponse token)
     {
         ArgumentNullException.ThrowIfNull(token);
@@ -112,11 +113,15 @@ public class ApiSession
         using var response = await _client.GetAsync(loginUrl);
 
         // temp variable to log the response in case of failure
-        var temp = await response.Content.ReadAsStringAsync();
+        //var temp = await response.Content.ReadAsStringAsync();
 
         LoginResponse = await response.DeserializeAsync<LoginResponse>(_logger);
 
-        if (LoginResponse == null || !LoginResponse.IsValid) throw new Exception($"Login failed, LoginResponse is null ({temp}).");
+        if (LoginResponse == null) throw new Exception($"Login failed, LoginResponse is null");
+
+        if (!LoginResponse.Success) throw new Exception($"Login failed, error received: {LoginResponse.ErrorMessageKey}, {LoginResponse.ErrorMessage}");
+
+        if (!LoginResponse.IsValid) throw new Exception($"Login failed, Invalid BhRestToken.");
 
         UpdateBhRestTokenHeader(LoginResponse.BhRestToken!);
 
@@ -138,6 +143,7 @@ public class ApiSession
         var tokenResponse = await GetRefreshTokenAsync();
 
         for (var tryCount = 1; tryCount <= SessionRetry; tryCount++)
+        {
             try
             {
                 await LoginAsync(tokenResponse);
@@ -156,6 +162,7 @@ public class ApiSession
 
                 throw;
             }
+        }
     }
 
     private async Task<TokenResponse> GetRefreshTokenAsync() =>

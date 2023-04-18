@@ -1,6 +1,6 @@
-namespace ApiBureau.Bullhorn.Api.Authentication;
+namespace ApiBureau.Bullhorn.Api.Http;
 
-public class LoginResponse
+public class LoginResponse : ErrorResponse
 {
     public string? BhRestToken { get; set; }
 
