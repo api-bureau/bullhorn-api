@@ -10,7 +10,8 @@ public class ApiSession
     private readonly ILogger _logger;
     private readonly BullhornSettings _settings;
     private const int SessionLength = 240; // max 240;
-    private const int SessionRetry = 3;
+    private const int SessionRetry = 5;
+    private const int DelayBetweenRetriesInMs = 200;
     private const string NoAuthorizationCodeRetrieved = "No authorization code retrieved.";
     private string? _refreshToken;
 
@@ -28,6 +29,7 @@ public class ApiSession
     public async Task ConnectAsync()
     {
         for (var tryCount = 1; tryCount <= SessionRetry; tryCount++)
+        {
             try
             {
                 var authorisationCode = await GetAuthorizationCodeAsync();
@@ -43,6 +45,9 @@ public class ApiSession
                 if (tryCount < SessionRetry)
                 {
                     _logger.LogError(e, $"Session creation attempt {tryCount}/{SessionRetry}");
+
+                    await Task.Delay(DelayBetweenRetriesInMs * tryCount);
+
                     continue;
                 }
 
@@ -50,6 +55,7 @@ public class ApiSession
 
                 throw;
             }
+        }
     }
 
     private async Task<string> GetAuthorizationCodeAsync()
@@ -96,6 +102,7 @@ public class ApiSession
         });
     }
 
+    // This API call is failing in some cases, so we retry it a few times
     private async Task LoginAsync(TokenResponse token)
     {
         ArgumentNullException.ThrowIfNull(token);
