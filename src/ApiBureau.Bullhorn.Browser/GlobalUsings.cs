@@ -1,3 +1,4 @@
-global using ApiBureau.Bullhorn.Api.Dtos;
+global using ApiBureau.Bullhorn.Api;
+global using ApiBureau.Bullhorn.Browser.Data;
+global using ApiBureau.Bullhorn.Browser.Services;
 global using CSharpFunctionalExtensions;
-global using Microsoft.Extensions.Logging;

@@ -16,21 +16,36 @@
                 }
             </InputRadioGroup>
             <InputTextArea @bind-Value="_query" rows="5" class="form-control mt-3" id="exampleFormControlTextarea1" />
-            <button class="btn btn-primary mt-3" @onclick="SubmitAsync">Submit</button>
+            <button class="btn btn-primary mt-3" @onclick="SubmitAsync">
+                @if (_isLoading)
+                {
+                    <i class="fa-solid fa-spinner fa-spin-pulse me-2"></i>
+                }
+                Submit
+            </button>
         </div>
     </div>
-    <div class="col-md-12 col-lg-6">
+    <div class="col-md-12 col-lg-6" style="overflow-wrap: anywhere">
         <p>Response:</p>
         @_response
+    </div>
+    <div class="col">
+        @_resultDynanmic
+        @_resultJson
     </div>
 </div>
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
 @code {
+    [Inject] protected DataService DataService { get; set; } = default!;
+
+    private bool _isLoading = false;
     private string _query = "CorporationDepartment?fields=id,dateAdded,name,enabled&where=id>0&orderBy=enabled,dateAdded";
     private string _selectedType = "query";
     private string _response = "";
+    private string _resultJson = "";
+    private string _resultDynanmic = "";
     private List<string> _types = new List<string> { "query", "search", "entity", "any" };
 
     private void SetType(string value)
@@ -40,6 +55,17 @@
 
     private async Task SubmitAsync()
     {
+        _isLoading = true;
+
         _response += _query;
+
+        var response = await DataService.ApiCallToDynamicAsync($"{_selectedType}/{_query}", 100, 0);
+
+        _response = response.RequestUri + _response;
+
+        _resultJson = response.Json;
+        _resultDynanmic = response.DynamicData.ToString();
+
+        _isLoading = false;
     }
 }
