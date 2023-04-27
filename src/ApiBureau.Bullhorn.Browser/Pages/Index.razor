@@ -1,0 +1,45 @@
+@page "/"
+
+<PageTitle>Bullhorn API Browser</PageTitle>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="exampleFormControlTextarea1" class="form-label"></label>
+            <InputRadioGroup Value="_selectedType" Name="filter" TValue="string" ValueExpression="() => _selectedType" ValueChanged="(e) => SetType(e)">
+                @foreach (var item in _types)
+                {
+                    <div class="form-check form-check-inline">
+                        <InputRadio Name="filter" Value="@item" id="@($"radio-{item}")" class="form-check-input action" />
+                        <label class="form-check-label action" for="@($"radio-{item}")">@item</label>
+                    </div>
+                }
+            </InputRadioGroup>
+            <InputTextArea @bind-Value="_query" rows="5" class="form-control" id="exampleFormControlTextarea1" />
+            <button class="btn btn-primary mt-3" @onclick="SubmitAsync">Submit</button>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <p>Response:</p>
+        @_response
+    </div>
+</div>
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+@code {
+    private string _query = "CorporationDepartment?fields=id,dateAdded,name,enabled&where=id>0&orderBy=enabled,dateAdded";
+    private string _selectedType = "query";
+    private string _response = "";
+    private List<string> _types = new List<string> { "query", "search", "entity", "any" };
+
+    private void SetType(string value)
+    {
+        _selectedType = value;
+    }
+
+    private async Task SubmitAsync()
+    {
+        _response += _query;
+    }
+}
