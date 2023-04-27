@@ -1,3 +1,4 @@
+using ApiBureau.Bullhorn.Api;
 using ApiBureau.Bullhorn.Browser.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddBullhorn(builder.Configuration, "BullhornSettings:RestApi");
 
 var app = builder.Build();
 
