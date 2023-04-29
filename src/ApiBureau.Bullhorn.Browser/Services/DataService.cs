@@ -1,5 +1,3 @@
-using ApiBureau.Bullhorn.Api.Http;
-
 namespace ApiBureau.Bullhorn.Browser.Services;
 
 public class DataService
@@ -11,11 +9,11 @@ public class DataService
         _client = client;
     }
 
-    public async Task<DynamicQueryResponse> ApiCallToDynamicAsync(string query, int count, int start = 0)
+    public async Task<HttpResponseMessage> GetAsync(string query, int count, int start = 0)
     {
         await _client.CheckConnectionAsync();
 
-        var response = await _client.ApiCallToDynamicAsync(query, count, start);
+        var response = await _client.ApiGetAsync(query, count, start);
 
         return response;
     }
