@@ -1,4 +1,3 @@
-using ApiBureau.Bullhorn.Api;
 using ApiBureau.Bullhorn.Api.Http;
 
 namespace ApiBureau.Bullhorn.Browser.Services;
