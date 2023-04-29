@@ -58,6 +58,8 @@ public class ApiConnection
         await _session.ConnectAsync();
     }
 
+    // ToDo remove all logic DynamicEntityResponse and so on
+    [Obsolete("Use ApiGetAsync")]
     public async Task<DynamicEntityResponse> GetEntityAsync(string query)
     {
         query = $"{query}&showTotalMatched=true&usev2=true";
@@ -81,32 +83,15 @@ public class ApiConnection
         return response;
     }
 
-    //ToDo Test this
-    public async Task<DynamicQueryResponse> ApiCallToDynamicAsync(string query, int count, int start = 0)
+    public async Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0)
     {
         query = $"{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
-        var apiResponse = await GetAsync(query);
-
-        var jsonString = await apiResponse.Content.ReadAsStringAsync();
-
-        var response = JsonSerializer.Deserialize<DynamicQueryResponse>(jsonString);
-
-        response.Json = jsonString;
-        response.RequestUri = apiResponse.RequestMessage.RequestUri.ToString();
-
-        if (string.IsNullOrWhiteSpace(response.ErrorMessage))
-        {
-            var flattener = new JsonFlattener();
-
-            response.DynamicData = flattener.Flatten(jsonString, new JsonSerializerFlattenOptions { KeyDelimiter = " " });
-        }
-
-        return response;
+        return await GetAsync(query);
     }
 
     /// <summary>
-    /// Where condion must be included
+    /// Where condition must be included
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="query"></param>

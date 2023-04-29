@@ -66,6 +66,6 @@ public class BullhornClient //: BaseClient
     public Task<List<T>> QueryAsync<T>(string query) => _apiConnection.QueryAsync<T>(query);
 
     // ToDo Temporary Location
-    public Task<DynamicQueryResponse> ApiCallToDynamicAsync(string query, int count, int start = 0)
-        => _apiConnection.ApiCallToDynamicAsync(query, count, start);
+    public Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0)
+        => _apiConnection.ApiGetAsync(query, count, start);
 }
