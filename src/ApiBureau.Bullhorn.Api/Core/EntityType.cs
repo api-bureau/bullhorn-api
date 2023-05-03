@@ -2,7 +2,7 @@ namespace ApiBureau.Bullhorn.Api.Core;
 
 /// <summary>
 /// Represents different types of entities.
-/// Possible values: Appointment, Candidate, ClientContact, ClientCorporation, Country, Department, JobOrder, JobSubmission, Note, Placement, PlacementChangeRequest, Tearsheet
+/// Possible values: Appointment, Candidate, ClientContact, ClientCorporation, Country, Department, JobOrder, JobSubmission, Lead, Note, Placement, PlacementChangeRequest, Tearsheet
 /// </summary>
 public enum EntityType
 {
@@ -14,6 +14,7 @@ public enum EntityType
     Department,
     JobOrder,
     JobSubmission,
+    Lead,
     Note,
     Placement,
     PlacementChangeRequest,
