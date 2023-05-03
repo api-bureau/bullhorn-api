@@ -1,0 +1,42 @@
+@inject IJSRuntime JSRuntime
+
+<div class="card mb-2">
+    <div class="card-body">
+        <h5 class="card-title">
+            <span class="badge bg-@GetBadgeType() me-2">@Type</span>
+            @Description
+        </h5>
+        <div class="d-flex align-items-center">
+            <code class="me-2">@CodeUri</code>
+            <button class="btn btn-secondary btn-sm" @onclick="() => CopyToClipboard()">
+                📋 Copy
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Type { get; set; } = "query";
+
+    [Parameter]
+    public RenderFragment? Description { get; set; }
+
+    [Parameter]
+    public string? CodeUri { get; set; }
+
+    public string GetBadgeType() => Type switch
+    {
+        "query" => "primary",
+        "search" => "success",
+        "entity" => "warning",
+        _ => "secondary"
+    };
+
+    private async Task CopyToClipboard()
+    {
+        if (CodeUri is null) return;
+
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", CodeUri.ToString());
+    }
+}

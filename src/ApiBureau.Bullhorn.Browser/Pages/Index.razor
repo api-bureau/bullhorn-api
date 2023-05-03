@@ -30,17 +30,20 @@
             </div>
             @if (_showExamples)
             {
-                <p><a href="https://bullhorn.github.io/rest-api-docs/" target="_blank" rel="noopener">REST API Documentation</a></p>
+                <p class="mt-3"><a href="https://bullhorn.github.io/rest-api-docs/" target="_blank" rel="noopener">REST API Documentation</a></p>
 
-                <p>
-                    1) Get all Corporation Departments:
-                    <pre>query/CorporationDepartment?fields=id,dateAdded,name,enabled&where=id>0&orderBy=enabled,dateAdded</pre>
-                </p>
-                <p>
-                    2) Get selected columns from Corporation Departments:
-                    orderby +/- for ascending or descending
-                    <pre>query/CorporationDepartment?fields=id,dateAdded&where=id>0&orderBy=-dateAdded</pre>
-                </p>
+                <Example Type="query" CodeUri="@_examples["CorporationDepartment1"]">
+                    <Description>Get selected columns from <span class="text-info">Corporation Departments</span>, order by enabled and then dateAdded</Description>
+                </Example>
+
+                <Example Type="query" CodeUri="@_examples["CorporationDepartment2"]">
+                    <Description>Get selected columns from <span class="text-info">Corporation Departments</span>, order by dateAdded descending</Description>
+                </Example>
+
+                <Example Type="search" CodeUri="@_examples["Candidate1"]">
+                    <Description>Get selected columns from <span class="text-info">Candidates</span> from date to current date, date format: <i>yyyymmddhhmmss</i></Description>
+                </Example>
+
                 <p>
                     3) Get all columns from Sendout with more conditions:
                     date format: 'dd/mm/yyyy hh:mm:ss'
@@ -53,7 +56,6 @@
                 <p>
                     5) Get selected columns from Candidates from date to current date:
                     date format: yyyymmdd hh:mm:ss'
-                    <pre>search/Candidate?fields=id,firstName,dateAdded,owner&query=dateAdded:[20170711000000 TO *]&sort=dateAdded</pre>
                     <pre>search/Candidate?fields=id,firstName,dateAdded,owner,source&query=dateAdded:[20170711000000 TO *] AND -source:["" TO *]&sort=dateAdded</pre>
                 </p>
                 <p>
@@ -138,6 +140,17 @@
     private JsonFlattener _flattener = new();
     private JsonSerializerFlattenOptions _options = new() { StartToken = "data", MaxDepth = 2 };
     private string _displayType = "table";
+    private Dictionary<string, string> _examples = new()
+        {
+            ["CorporationDepartment1"] = "CorporationDepartment?fields=id,dateAdded,name,enabled&where=id>0&orderBy=enabled,dateAdded",
+            ["CorporationDepartment2"] = "CorporationDepartment?fields=id,dateAdded,name&where=id>0&orderBy=-dateAdded",
+            ["Candidate1"] = "Candidate?fields=id,firstName,dateAdded,owner&query=dateAdded:[20170711000000 TO *]&sort=dateAdded",
+        };
+
+    protected override void OnInitialized()
+    {
+        WriteLog($"Initialized with {BullhornSettings.Value.UserName} Bullhorn user account.");
+    }
 
     private void SetType(string value)
     {
