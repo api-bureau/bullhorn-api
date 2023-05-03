@@ -1,4 +1,3 @@
-using CodeCapital.System.Text.Json;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text;
@@ -56,31 +55,6 @@ public class ApiConnection
         if (_session.IsValid) return;
 
         await _session.ConnectAsync();
-    }
-
-    // ToDo remove all logic DynamicEntityResponse and so on
-    [Obsolete("Use ApiGetAsync")]
-    public async Task<DynamicEntityResponse> GetEntityAsync(string query)
-    {
-        query = $"{query}&showTotalMatched=true&usev2=true";
-
-        var apiResponse = await GetAsync(query);
-
-        var jsonString = await apiResponse.Content.ReadAsStringAsync();
-
-        var response = JsonSerializer.Deserialize<DynamicEntityResponse>(jsonString);
-
-        response.Json = jsonString;
-        response.RequestUri = apiResponse.RequestMessage.RequestUri.ToString();
-
-        if (string.IsNullOrWhiteSpace(response.ErrorMessage))
-        {
-            var flattener = new JsonFlattener();
-
-            response.DynamicData = flattener.Flatten(jsonString, new JsonSerializerFlattenOptions { KeyDelimiter = " " });
-        }
-
-        return response;
     }
 
     public async Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0)
