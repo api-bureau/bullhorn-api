@@ -32,4 +32,11 @@ public class AppointmentEndpoint : QueryBaseEndpoint<AppointmentDto>
 
     public Task<Result<ChangeResponse>> AddAsync(AppointmentDto appointment)
         => ApiConnection.PutAsJsonAsync(EntityType.Appointment, appointment);
+
+    /// <summary>
+    /// Http POST /entity/Appointment/{appointmentId}
+    /// </summary>
+    /// <returns></returns>
+    public Task<Result<ChangeResponse>> UpdateAsync(int appointmentId, object data)
+        => ApiConnection.PostAsJsonAsync(EntityType.Appointment, appointmentId, data);
 }
