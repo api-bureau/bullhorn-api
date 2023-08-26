@@ -16,6 +16,7 @@ public enum EntityType
     JobSubmission,
     Lead,
     Note,
+    Opportunity,
     Placement,
     PlacementChangeRequest,
     Tearsheet
