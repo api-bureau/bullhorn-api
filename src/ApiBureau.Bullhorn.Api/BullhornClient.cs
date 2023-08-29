@@ -24,6 +24,7 @@ public class BullhornClient //: BaseClient
     public JobSubmissionHistoryEndpoint JobSubmissionHistory { get; }
     public MassUpdateEndpoint MassUpdate { get; }
     public NoteEndpoint Note { get; }
+    public OpportunityEndpoint Opportunity { get; }
     public PlacementChangeRequestEndpoint PlacementChangeRequest { get; }
     public PlacementCommissionEndpoint PlacementCommission { get; }
     public PlacementEndpoint Placement { get; }
@@ -53,6 +54,7 @@ public class BullhornClient //: BaseClient
         JobSubmissionHistory = new(_apiConnection, "JobSubmissionHistory");
         MassUpdate = new(_apiConnection, "massUpdate");
         Note = new(_apiConnection, "Note");
+        Opportunity = new(_apiConnection, "Opportunity");
         Placement = new(_apiConnection, "Placement");
         PlacementChangeRequest = new(_apiConnection, "PlacementChangeRequest");
         PlacementCommission = new(_apiConnection, "PlacementCommission");
