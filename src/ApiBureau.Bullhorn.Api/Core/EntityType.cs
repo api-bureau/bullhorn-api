@@ -10,6 +10,7 @@ public enum EntityType
     Candidate,
     ClientContact,
     ClientCorporation,
+    CorporateUser,
     Country,
     Department,
     JobOrder,
