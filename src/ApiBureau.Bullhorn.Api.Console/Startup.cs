@@ -33,7 +33,7 @@ public class Startup
         {
             var devEnvironmentVariable = GetEnvironmentVariable();
 
-            return string.IsNullOrEmpty(devEnvironmentVariable) || devEnvironmentVariable.ToLower() == "development";
+            return string.IsNullOrEmpty(devEnvironmentVariable) || string.Equals(devEnvironmentVariable, "development", StringComparison.OrdinalIgnoreCase);
         }
 
         static string? GetEnvironmentVariable() => Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");

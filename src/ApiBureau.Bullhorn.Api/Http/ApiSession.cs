@@ -67,10 +67,11 @@ public class ApiSession
             ClientSecret = _settings.Secret,
             UserName = _settings.UserName,
             Password = _settings.Password,
+            ClientCredentialStyle = ClientCredentialStyle.PostBody,
             Parameters = {
                 {"response_type", "code" },
                 {"action", "Login" },
-                {"state", "ips" }
+                {"state", "ips" },
             }
         });
 
@@ -98,7 +99,8 @@ public class ApiSession
             ClientId = _settings.ClientId,
             ClientSecret = _settings.Secret,
             GrantType = "authorization_code",
-            Parameters = { { "code", authorisationCode } }
+            Parameters = { { "code", authorisationCode } },
+            ClientCredentialStyle = ClientCredentialStyle.PostBody
         });
     }
 
@@ -171,7 +173,8 @@ public class ApiSession
             Address = _settings.TokenUrl,
             ClientId = _settings.ClientId,
             ClientSecret = _settings.Secret,
-            RefreshToken = _refreshToken
+            RefreshToken = _refreshToken!,
+            ClientCredentialStyle = ClientCredentialStyle.PostBody
         });
 
     private static string GetQuery(HttpResponseMessage response) =>
