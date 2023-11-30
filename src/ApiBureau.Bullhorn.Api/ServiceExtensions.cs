@@ -18,9 +18,7 @@ public static class ServiceExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        var settings = configuration.GetSection(key).Get<BullhornSettings>();
-
-        ArgumentNullException.ThrowIfNull(settings);
+        var settings = configuration.GetSection(key).Get<BullhornSettings>() ?? throw new InvalidOperationException($"The configuration section '{key}' was not found or could not be deserialized.");
 
         services.AddBullhorn(settings);
     }
