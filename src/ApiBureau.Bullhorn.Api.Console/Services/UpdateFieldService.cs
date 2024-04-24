@@ -22,17 +22,17 @@ public class UpdateFieldService
         {
             await _bullhornApi.CheckConnectionAsync();
 
-            await UpdatePlacmentFieldAsync(6911);
+            await UpdatePlacementFieldAsync(6911);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Placement field udpate failed");
+            _logger.LogError(e, "Placement field update failed");
 
             throw;
         }
     }
 
     // Important! Make sure you update only a field you want to update. Do not use Dtos with multiple fields which are not going to be updated because Bullhorn entity will be updated with defaults.
-    private Task<Result<ChangeResponse>> UpdatePlacmentFieldAsync(int placementId)
+    private Task<Result<ChangeResponse>> UpdatePlacementFieldAsync(int placementId)
         => _bullhornApi.Placement.UpdateAsync(placementId, new { customText8 = "New" });
 }

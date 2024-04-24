@@ -17,7 +17,7 @@ public class Startup
             .AddJsonFile($"appsettings.{GetEnvironmentVariable()}.json", true, true)
             .AddEnvironmentVariables();
 
-        if (IsDevelopment()) builder.AddUserSecrets(typeof(Program).Assembly);
+        if (IsDevelopment()) builder.AddUserSecrets(typeof(Startup).Assembly);
 
         Configuration = builder.Build();
 
