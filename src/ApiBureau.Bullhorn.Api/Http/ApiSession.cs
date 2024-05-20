@@ -83,7 +83,7 @@ public class ApiSession
         {
             _logger.LogError(NoAuthorizationCodeRetrieved);
 
-            throw new Exception(NoAuthorizationCodeRetrieved);
+            throw new InvalidOperationException(NoAuthorizationCodeRetrieved);
         }
 
         return code;
@@ -119,11 +119,20 @@ public class ApiSession
 
         LoginResponse = await response.DeserializeAsync<LoginResponse>(_logger);
 
-        if (LoginResponse == null) throw new Exception($"Login failed, LoginResponse is null");
+        if (LoginResponse is null)
+        {
+            throw new InvalidOperationException($"Login failed, LoginResponse is null");
+        }
 
-        if (!LoginResponse.Success) throw new Exception($"Login failed, error received: {LoginResponse.ErrorMessageKey}, {LoginResponse.ErrorMessage}");
+        if (!LoginResponse.Success)
+        {
+            throw new InvalidOperationException($"Login failed, error received: {LoginResponse.ErrorMessageKey}, {LoginResponse.ErrorMessage}");
+        }
 
-        if (!LoginResponse.IsValid) throw new Exception($"Login failed, Invalid BhRestToken.");
+        if (!LoginResponse.IsValid)
+        {
+            throw new InvalidOperationException($"Login failed, Invalid BhRestToken.");
+        }
 
         UpdateBhRestTokenHeader(LoginResponse.BhRestToken!);
 

@@ -10,7 +10,7 @@ namespace ApiBureau.Bullhorn.Api.Http;
 
 public class ApiConnection
 {
-    public const int QueryCount = 500; // 500 max in BullhornApiJsonSerializerSettings
+    private const int QueryCount = 500; // 500 max in BullhornApiJsonSerializerSettings
     private readonly HttpClient _client;
     private readonly ILogger<ApiConnection> _logger;
     private readonly BullhornSettings _settings;
@@ -45,11 +45,11 @@ public class ApiConnection
 
     public async Task CheckConnectionAsync()
     {
-        if (_settings == null)
+        if (_settings is null)
         {
             _logger.LogError("Make sure you have got BullhornSettings in your appsettings.json.");
 
-            throw new NullReferenceException($"{nameof(BullhornSettings)}, Set the {nameof(BullhornSettings)} parameter before connecting!");
+            throw new InvalidOperationException($"{nameof(BullhornSettings)}, Set the {nameof(BullhornSettings)} parameter before connecting!");
         }
 
         if (_session.IsValid) return;
@@ -229,7 +229,7 @@ public class ApiConnection
     //    return objects;
     //}
 
-    public string GetQuotedString(IEnumerable<string> list) => string.Join(" OR ", list.Select(s => $"\"{s}\""));
+    public static string GetQuotedString(IEnumerable<string> list) => string.Join(" OR ", list.Select(s => $"\"{s}\""));
 
     public Task<T?> DeserializeAsync<T>(HttpResponseMessage response)
         => response.DeserializeAsync<T>(_logger);
