@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ApiBureau.Bullhorn.Api;
 
-public class BullhornClient //: BaseClient
+public class BullhornClient : IBullhornClient //: BaseClient
 {
     private readonly ApiConnection _apiConnection;
 

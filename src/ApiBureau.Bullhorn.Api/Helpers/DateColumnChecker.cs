@@ -2,10 +2,10 @@ namespace ApiBureau.Bullhorn.Api.Helpers;
 
 public static class DateColumnChecker
 {
-    private static readonly List<string> _predefinedColumns = new List<string>
-    {
+    private static readonly List<string> _predefinedColumns =
+    [
         "dateAdded", "dateAvailable", "dateBegin", "dateClosed", "dateEnd", "dateLastModified", "dateLastComment", "dateLastVisit", "customDate1", "customDate2", "customDate3", "userDateAdded", "dateLastPublished"
-    };
+    ];
 
     public static bool ContainsDateColumn(string columnName)
     {

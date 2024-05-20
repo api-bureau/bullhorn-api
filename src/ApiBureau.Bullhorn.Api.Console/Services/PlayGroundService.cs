@@ -1,4 +1,5 @@
 using ApiBureau.Bullhorn.Api.Core;
+using ApiBureau.Bullhorn.Api.Interfaces;
 
 namespace ApiBureau.Bullhorn.Api.Console.Services;
 
@@ -8,9 +9,9 @@ namespace ApiBureau.Bullhorn.Api.Console.Services;
 public class PlayGroundService
 {
     private readonly ILogger<PlayGroundService> _logger;
-    private readonly BullhornClient _bullhornApi;
+    private readonly IBullhornClient _bullhornApi;
 
-    public PlayGroundService(ILogger<PlayGroundService> logger, BullhornClient bullhornApi)
+    public PlayGroundService(ILogger<PlayGroundService> logger, IBullhornClient bullhornApi)
     {
         _logger = logger;
         _bullhornApi = bullhornApi;
