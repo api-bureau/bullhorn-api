@@ -5,9 +5,9 @@ namespace ApiBureau.Bullhorn.Api.Services;
 /// </summary>
 public class BullhornService
 {
-    public BullhornClient BullhornApi { get; }
+    public IBullhornClient BullhornApi { get; }
 
-    public BullhornService(BullhornClient bullhornApi) => BullhornApi = bullhornApi;
+    public BullhornService(IBullhornClient bullhornApi) => BullhornApi = bullhornApi;
 
     /// <summary>
     /// Checks Bullhorn data connection is working. Get latest Candidates added in last X hours.
