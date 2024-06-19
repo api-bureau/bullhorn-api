@@ -84,4 +84,11 @@ public class CandidateEndpoint : SearchBaseEndpoint<CandidateDto>
 
         //return ApiConnection.MapResults<CandidateDto>(result.Data);
     }
+
+    /// <summary>
+    /// Http POST /entity/Candidate/{candidateId}
+    /// </summary>
+    /// <returns></returns>
+    public Task<Result<ChangeResponse>> UpdateAsync(int candidateId, object data)
+        => ApiConnection.PostAsJsonAsync(EntityType.Candidate, candidateId, data);
 }
