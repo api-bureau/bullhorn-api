@@ -28,6 +28,10 @@ public interface IBullhornClient
     SendoutEndpoint Sendout { get; }
 
     Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0);
+
+    /// <summary>
+    /// Check the Bullhorn client connection.
+    /// </summary>
     Task CheckConnectionAsync();
     Task<List<T>> QueryAsync<T>(string query);
 }
