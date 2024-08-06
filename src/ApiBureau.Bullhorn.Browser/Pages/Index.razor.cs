@@ -191,8 +191,14 @@ public partial class Index
         new()
         {
             Type = ApiType.Query,
-            Query = "Placement?fields=status,dateAdded,candidate&where=dateAdded > '26/06/2024 00:00:00' ",
+            Query = "Placement?fields=status,dateAdded,candidate&where=dateAdded > '26/06/2024 00:00:00'",
             Description = new("Get selected columns from <span class=\"text-info\">Placement</span> from selected date.")
+        },
+        new()
+        {
+            Type = ApiType.Entity,
+            Query = "Candidate/380920?fields=id,dateAdded,name",
+            Description = new("Get selected columns from <span class=\"text-info\">Candidate</span> by selected id.")
         }
     ];
 }
