@@ -199,6 +199,12 @@ public partial class Index
             Type = ApiType.Entity,
             Query = "Candidate/380920?fields=id,dateAdded,name",
             Description = new("Get selected columns from <span class=\"text-info\">Candidate</span> by selected id.")
+        },
+        new()
+        {
+            Type = ApiType.Entity,
+            Query = "Candidate/380920,100545?fields=id,dateAdded,name",
+            Description = new("Get selected columns from <span class=\"text-info\">Candidate</span> by multiple selected ids.")
         }
     ];
 }
