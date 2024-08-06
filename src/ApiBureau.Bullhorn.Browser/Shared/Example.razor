@@ -3,13 +3,16 @@
 <div class="card mb-2">
     <div class="card-body">
         <h5 class="card-title">
-            <span class="badge bg-@GetBadgeType() me-2">@Type</span>
-            @Description
+            <span class="badge bg-@GetBadgeType() me-2">@Temp.Type.ToString().ToLower()</span>
+            @Temp.Description
         </h5>
         <div class="d-flex align-items-center">
-            <code class="me-2">@CodeUri</code>
-            <button class="btn btn-secondary btn-sm" @onclick="() => CopyToClipboard()">
+            <code class="me-2">@Temp.Query</code>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="() => CopyToClipboard()">
                 📋 Copy
+            </button>
+            <button class="btn btn-outline-success btn-sm ms-2" @onclick="() => Callback.InvokeAsync(Temp)">
+                ➡️ Use
             </button>
         </div>
     </div>
@@ -17,26 +20,23 @@
 
 @code {
     [Parameter]
-    public string Type { get; set; } = "query";
+    public ExampleDto Temp { get; set; } = default!;
 
     [Parameter]
-    public RenderFragment? Description { get; set; }
+    public EventCallback<ExampleDto> Callback { get; set; }
 
-    [Parameter]
-    public string? CodeUri { get; set; }
-
-    public string GetBadgeType() => Type switch
+    public string GetBadgeType() => Temp.Type switch
     {
-        "query" => "primary",
-        "search" => "success",
-        "entity" => "warning",
+        ApiType.Query => "primary",
+        ApiType.Search => "success",
+        ApiType.Entity => "warning",
         _ => "secondary"
     };
 
     private async Task CopyToClipboard()
     {
-        if (CodeUri is null) return;
+        if (Temp.Query is null) return;
 
-        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", CodeUri.ToString());
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", Temp.Query);
     }
 }

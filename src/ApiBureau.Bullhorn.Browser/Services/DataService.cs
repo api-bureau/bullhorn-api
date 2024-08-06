@@ -1,10 +1,12 @@
+using ApiBureau.Bullhorn.Api.Interfaces;
+
 namespace ApiBureau.Bullhorn.Browser.Services;
 
 public class DataService
 {
-    private readonly BullhornClient _client;
+    private readonly IBullhornClient _client;
 
-    public DataService(BullhornClient client)
+    public DataService(IBullhornClient client)
     {
         _client = client;
     }
