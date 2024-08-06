@@ -289,6 +289,12 @@
                 Type = ApiType.Search,
                 Query = $"Candidate?fields=id,firstName,dateAdded,owner&query=dateAdded:[{DateTime.Now.Year}{DateTime.Now.AddDays(-5).Month:D2}{DateTime.Now.AddDays(-5).Day:D2}000000 TO *]&sort=dateAdded",
                 Description = new("Get selected columns from <span class=\"text-info\">Candidates</span> from date to current date, date format: <i>yyyymmddhhmmss</i>")
+            },
+            new ExampleDto
+            {
+                Type = ApiType.Search,
+                Query = "JobOrder?fields=id,title,status,isOpen,dateAdded,owner&query=dateAdded:[20240601000000 TO *] AND isOpen:0&sort=-dateAdded",
+                Description = new("Get selected columns from closed <span class=\"text-info\">Job Orders</span> from date to current date, date format: <i>yyyymmddhhmmss</i>")
             }
         };
     }
