@@ -81,7 +81,7 @@
         </div>
         @if (_displayType == "table")
         {
-            <table class="table table-sm">
+            <table class="table table-sm small">
                 <thead>
                     <tr>
                         @foreach (var item in _columnNames)
@@ -245,7 +245,7 @@
     private string GetJsonSample2()
     {
         return
-                                                                         """"
+                                                                             """"
 {"total":17,"start":0,"count":17,"data":[{"id":12647,"dateAdded":1322826368183,"name":"FS Tech","enabled":true},{"id":12648,"dateAdded":1322826368213,"name":"FS Finance","enabled":true},{"id":12649,"dateAdded":1322826368213,"name":"C & I Tech","enabled":true},{"id":12650,"dateAdded":1322826368230,"name":"C & I Finance","enabled":true},{"id":12651,"dateAdded":1322826368230,"name":"Prof Serv","enabled":true},{"id":12652,"dateAdded":1322826368260,"name":"Lothbury","enabled":true},{"id":12653,"dateAdded":1322826368277,"name":"US FS","enabled":true},{"id":12654,"dateAdded":1322826368290,"name":"US C & I","enabled":true},{"id":12655,"dateAdded":1322826368307,"name":"Mission Control","enabled":true},{"id":13504,"dateAdded":1332243903857,"name":"Twenty Recruitment","enabled":true},{"id":13566,"dateAdded":1333361273607,"name":"IT","enabled":true},{"id":15424,"dateAdded":1349771399330,"name":"Twenty Smoke Test","enabled":true},{"id":17252,"dateAdded":1364234627347,"name":"FS Operations","enabled":true},{"id":19663,"dateAdded":1386841255297,"name":"Energy","enabled":true},{"id":19664,"dateAdded":1386841255330,"name":"Health","enabled":true},{"id":19665,"dateAdded":1386841255343,"name":"Digital","enabled":true},{"id":21565,"dateAdded":1400507193687,"name":"FS Compliance","enabled":true}]}
 """";
     }
@@ -266,35 +266,48 @@
     {
         _query = example.Query;
         _selectedType = example.Type;
+        _showExamples = false;
     }
 
     private void LoadExamples()
     {
         _examples2 = new List<ExampleDto>
         {
-            new ExampleDto
+            new()
             {
                 Type = ApiType.Query,
                 Query = "CorporationDepartment?fields=id,dateAdded,name,enabled&where=id>0&orderBy=enabled,dateAdded",
                 Description = new("Get selected columns from <span class=\"text-info\">Corporation Departments</span>, order by enabled and then dateAdded")
             },
-            new ExampleDto
+            new()
             {
                 Type = ApiType.Query,
                 Query = "CorporationDepartment?fields=id,dateAdded,name&where=id>0&orderBy=-dateAdded",
                 Description = new("Get selected columns from <span class=\"text-info\">Corporation Departments</span>, order by dateAdded descending")
             },
-            new ExampleDto
+            new()
             {
                 Type = ApiType.Search,
                 Query = $"Candidate?fields=id,firstName,dateAdded,owner&query=dateAdded:[{DateTime.Now.Year}{DateTime.Now.AddDays(-5).Month:D2}{DateTime.Now.AddDays(-5).Day:D2}000000 TO *]&sort=dateAdded",
                 Description = new("Get selected columns from <span class=\"text-info\">Candidates</span> from date to current date, date format: <i>yyyymmddhhmmss</i>")
             },
-            new ExampleDto
+            new()
             {
                 Type = ApiType.Search,
                 Query = "JobOrder?fields=id,title,status,isOpen,dateAdded,owner&query=dateAdded:[20240601000000 TO *] AND isOpen:0&sort=-dateAdded",
                 Description = new("Get selected columns from closed <span class=\"text-info\">Job Orders</span> from date to current date, date format: <i>yyyymmddhhmmss</i>")
+            },
+            new()
+            {
+                Type = ApiType.Query,
+                Query = "Sendout?fields=id,candidate,dateAdded,jobOrder&where=(jobOrder.id>0) AND dateAdded > '06/08/2024 00:00:00'",
+                Description = new("Get selected columns from <span class=\"text-info\">Sendout</span> from selected date and which are not spec CVs.")
+            },
+            new()
+            {
+                Type = ApiType.Query,
+                Query = "Sendout?fields=id,candidate,dateAdded,jobOrder&where=jobOrder.id IN (36404,36302)",
+                Description = new("Get selected columns from <span class=\"text-info\">Sendout</span> by specified JobOrder IDs")
             }
         };
     }
