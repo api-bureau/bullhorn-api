@@ -7,6 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiBureau.Bullhorn.Browser"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiBureau.Bullhorn.Api", "..\ApiBureau.Bullhorn.Api\ApiBureau.Bullhorn.Api.csproj", "{4BD6EEDC-B563-41B8-89DD-B3891537CDFB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{86DD38A9-D1FF-4C93-B4AA-670FA342D4F5}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\README.md = ..\..\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
