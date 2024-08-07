@@ -10,6 +10,8 @@ When updating Bullhorn entities, **make sure to update only the fields you want 
 
 This Blazor application assists you in exploring the Bullhorn APIs. It uses the Bullhorn API client to interact with the Bullhorn APIs, allowing you to test the APIs through a user-friendly interface.
 
+<img width="753" alt="image" src="https://github.com/user-attachments/assets/e9507df2-eb87-4871-9682-e40071fc2079">
+
 ### 🔐 Setting Up secret.json
 
 To get started, fill in the `secret.json` file with the Bullhorn credentials provided by Bullhorn. The following is a template of the `secret.json` file:
