@@ -153,6 +153,7 @@ public partial class Index
     {
         _defaultQuery = example.Query;
         _selectedType = example.Type;
+        _displayType = example.DisplayType;
         _showExamples = false;
     }
 
@@ -217,11 +218,13 @@ public partial class Index
             Type = ApiType.Entity,
             Query = "Candidate/380920,89989/fileAttachments?fields=id,fileExtension,name,type,dateAdded",
             Description = new("Get selected file attachments columns from <span class=\"text-info\">Candidate</span> by multiple selected ids.")
+        },
+        new()
+        {
+            Type = ApiType.File,
+            Query = "Candidate/380920/421118?test=0",
+            Description = new("Get selected file from <span class=\"text-info\">File</span>. Returns content type, file content (base64-encoded text) and file name."),
+            DisplayType = DisplayType.Json
         }
     ];
-
-    private enum DisplayType
-    {
-        Table, Json, JsonFormatted
-    }
 }

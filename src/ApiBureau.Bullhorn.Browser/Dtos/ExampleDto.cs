@@ -8,4 +8,5 @@ public class ExampleDto
     public ApiType Type { get; set; }
     public string Query { get; set; } = string.Empty;
     public MarkupString Description { get; set; }
+    public DisplayType DisplayType { get; set; } = DisplayType.Table;
 }
