@@ -4,8 +4,10 @@ using ApiBureau.Bullhorn.Browser.Core;
 using ApiBureau.Bullhorn.Browser.Dtos;
 using CodeCapital.System.Text.Json;
 using Microsoft.AspNetCore.Components;
+using System.Dynamic;
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace ApiBureau.Bullhorn.Browser.Pages;
@@ -17,18 +19,21 @@ public partial class Index
     private bool _isLoading = false;
     private bool _isResponse = false;
     private bool _showExamples = false;
-    private string _query = "CorporationDepartment?fields=id,dateAdded,name,enabled&where=id>0&orderBy=enabled,dateAdded";
+
     private ApiType _selectedType = ApiType.Query;
+    private string _defaultQuery = "CorporationDepartment?fields=id,dateAdded,name,enabled&where=id>0&orderBy=enabled,dateAdded";
     private MarkupString _response = new();
+    private string _resultDynamic = "";
+    private List<IDictionary<string, object>> _data = [];
+    private HashSet<string> _columnNames = [];
+    private DisplayType _displayType = DisplayType.Table;
+    private List<ExampleDto> _examples = [];
+
     private string _jsonResult = "";
-    private string _resultDynanmic = "";
-    //private List<string> _types = new List<string> { "query", "search", "entity", "any" };
-    private List<IDictionary<string, object>> _data = new();
-    private HashSet<string> _columnNames = new();
+    private MarkupString _jsonResultFormatted = new();
     private JsonFlattener _flattener = new();
     private JsonSerializerFlattenOptions _options = new() { StartToken = "data", MaxDepth = 2 };
-    private string _displayType = "table";
-    private List<ExampleDto> _examples2 = [];
+    private JsonSerializerOptions _formattedOptions = new() { WriteIndented = true };
 
     protected override void OnInitialized()
     {
@@ -46,13 +51,13 @@ public partial class Index
     {
         _isLoading = true;
 
-        WriteLog(_query);
+        WriteLog(_defaultQuery);
 
         try
         {
-            var queryType = GetType();
+            var queryType = _selectedType.ToString().ToLower();
 
-            var response = await DataService.GetAsync($"{queryType}/{ConvertDateToTimeStamp(_selectedType, _query)}", 100, 0);
+            var response = await DataService.GetAsync($"{queryType}/{ConvertDateToTimeStamp(_selectedType, _defaultQuery)}", 100, 0);
 
             WriteLog($"Response status code: {response.StatusCode}");
             WriteLog($"Uri: {response.RequestMessage.RequestUri}");
@@ -71,8 +76,6 @@ public partial class Index
         }
 
         _isLoading = false;
-
-        string GetType() => _selectedType == ApiType.Any ? "" : _selectedType.ToString().ToLower();
     }
 
     private void SetJsonResult(string json)
@@ -83,6 +86,9 @@ public partial class Index
         {
             WriteError(json);
         }
+
+        var parsedJson = JsonSerializer.Deserialize<ExpandoObject>(json);
+        _jsonResultFormatted = new(JsonSerializer.Serialize(parsedJson, _formattedOptions));
     }
 
     private void WriteLog(string message)
@@ -116,7 +122,7 @@ public partial class Index
     {
         //_data = await Task.Run(() => flattener.Flatten(GetJsonSample(), options));
 
-        var response = await DataService.GetAsync($"{_selectedType}/{_query}", 100, 0);
+        var response = await DataService.GetAsync($"{_selectedType}/{_defaultQuery}", 100, 0);
 
         var json = await response.Content.ReadAsStringAsync();
 
@@ -145,12 +151,12 @@ public partial class Index
 
     private void OnSelection(ExampleDto example)
     {
-        _query = example.Query;
+        _defaultQuery = example.Query;
         _selectedType = example.Type;
         _showExamples = false;
     }
 
-    private void LoadExamples() => _examples2 =
+    private void LoadExamples() => _examples =
     [
         new()
         {
@@ -205,6 +211,17 @@ public partial class Index
             Type = ApiType.Entity,
             Query = "Candidate/380920,100545?fields=id,dateAdded,name",
             Description = new("Get selected columns from <span class=\"text-info\">Candidate</span> by multiple selected ids.")
+        },
+        new()
+        {
+            Type = ApiType.Entity,
+            Query = "Candidate/380920,89989/fileAttachments?fields=id,fileExtension,name,type,dateAdded",
+            Description = new("Get selected file attachments columns from <span class=\"text-info\">Candidate</span> by multiple selected ids.")
         }
     ];
+
+    private enum DisplayType
+    {
+        Table, Json, JsonFormatted
+    }
 }

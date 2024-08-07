@@ -19,7 +19,7 @@
                     </div>
                 }
             </InputRadioGroup>
-            <InputTextArea @bind-Value="_query" rows="5" class="form-control mt-3" id="exampleFormControlTextarea1" />
+            <InputTextArea @bind-Value="_defaultQuery" rows="5" class="form-control mt-3" id="exampleFormControlTextarea1" />
             <div class="mt-3 d-flex justify-content-between">
                 <button class="btn btn-primary btn-sm" @onclick="SubmitAsync">
                     @if (_isLoading)
@@ -35,7 +35,7 @@
             {
                 <p class="mt-3"><a href="https://bullhorn.github.io/rest-api-docs/" target="_blank" rel="noopener">REST API Documentation</a></p>
 
-                @foreach (var example in _examples2)
+                @foreach (var example in _examples)
                 {
                     <Example Temp="example" Callback="OnSelection" />
                 }
@@ -76,10 +76,11 @@
     <div class="col-lg-12 col-xl-6">
         <h5>Result</h5>
         <div class="col-12 mb-3">
-            <button class="btn btn-success btn-sm" @onclick="@(() => _displayType = "table")">Table</button>
-            <button class="btn btn-success btn-sm" @onclick="@(() => _displayType = "json")">JSON</button>
+            <button class="btn btn-success btn-sm" @onclick="@(() => _displayType = DisplayType.Table)">Table</button>
+            <button class="btn btn-success btn-sm" @onclick="@(() => _displayType = DisplayType.Json)">JSON</button>
+            <button class="btn btn-success btn-sm" @onclick="@(() => _displayType = DisplayType.JsonFormatted)">JSON Formatted</button>
         </div>
-        @if (_displayType == "table")
+        @if (_displayType == DisplayType.Table)
         {
             <table class="table table-sm small">
                 <thead>
@@ -103,9 +104,13 @@
                 </tbody>
             </table>
         }
-        else if (_displayType == "json")
+        else if (_displayType == DisplayType.Json)
         {
             <pre style="white-space: pre-wrap;">@_jsonResult</pre>
+        }
+        else if (_displayType == DisplayType.JsonFormatted)
+        {
+            <pre style="white-space: pre-wrap;">@_jsonResultFormatted</pre>
         }
     </div>
     <div class="col-lg-12 col-xl-6" style="overflow-wrap: anywhere">
