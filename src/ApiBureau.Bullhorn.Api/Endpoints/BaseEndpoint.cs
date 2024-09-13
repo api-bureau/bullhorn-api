@@ -65,7 +65,7 @@ public class BaseEntityEndpoint<T> : BaseEndpoint
     /// <param name="id"></param>
     /// <param name="fields"></param>
     /// <returns></returns>
-    public async Task<T> GetAsync(int id, string? fields = null)
+    public async Task<T?> GetAsync(int id, string? fields = null)
     {
         var query = $"{RequestUrl}/{id}?fields={fields ?? DefaultFields}";
 
@@ -82,12 +82,14 @@ public class BaseEntityEndpoint<T> : BaseEndpoint
     {
         if (ids.Count() == 1)
         {
-            return new List<T> { await GetAsync(ids.First(), fields).ConfigureAwait(false) };
+            var entity = await GetAsync(ids.First(), fields).ConfigureAwait(false);
+
+            return entity is null ? [] : [entity];
         }
 
         var query = $"{RequestUrl}/{string.Join(",", ids)}?fields={fields ?? DefaultFields}";
 
-        return await ApiConnection.EntityAsync<List<T>>(query).ConfigureAwait(false);
+        return await ApiConnection.EntityAsync<List<T>>(query).ConfigureAwait(false) ?? [];
     }
 }
 
