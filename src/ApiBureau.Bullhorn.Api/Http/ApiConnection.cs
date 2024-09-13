@@ -99,9 +99,17 @@ public class ApiConnection
         return await DeserializeAsync<QueryResponse<T>>(response);
     }
 
-    public async Task<SearchResponse<T>> ApiSearchAsync<T>(string query, int count, int start = 0)
+    /// <summary>
+    /// Performs an asynchronous search query against the API and deserializes the response into a strongly-typed object.
+    /// </summary>
+    /// <typeparam name="T">The type of the expected result in the search response.</typeparam>
+    /// <param name="searchTerm">The term or keyword to search for.</param>
+    /// <param name="count">The number of results to return.</param>
+    /// <param name="start">The starting index for paginated results (default is 0).</param>
+    /// <returns>A task representing the asynchronous operation, containing the search response or <c>null</c> if the response couldn't be deserialized.</returns>
+    public async Task<SearchResponse<T>?> SearchApiAsync<T>(string searchTerm, int count, int start = 0)
     {
-        query = $"search/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
+        var query = $"search/{searchTerm}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
         var response = await GetAsync(query);
 
@@ -234,7 +242,7 @@ public class ApiConnection
     public Task<T?> DeserializeAsync<T>(HttpResponseMessage response)
         => response.DeserializeAsync<T>(_logger);
 
-    public async Task<T> EntityAsync<T>(string query)
+    public async Task<T?> EntityAsync<T>(string query)
     {
         query = $"entity/{query}";
 
@@ -242,35 +250,69 @@ public class ApiConnection
 
         var entityResponse = await DeserializeAsync<EntityResponse<T>>(response);
 
+        if (entityResponse is null)
+        {
+            _logger.LogError("EntityAsync, Entity deserialization failed.");
+
+            return default;
+        }
+
         return entityResponse.Data;
     }
 
-    public async Task<List<T>> SearchAsync<T>(string query, int count = QueryCount, int total = 0)
+    /// <summary>
+    /// Performs an asynchronous search query with pagination, returning a list of results.
+    /// Supports a maximum result count through the <paramref name="total"/> parameter.
+    /// </summary>
+    /// <typeparam name="T">The type of items in the search result.</typeparam>
+    /// <param name="searchTerm">The search term or query string.</param>
+    /// <param name="queryCount">The number of results to fetch per request (defaults to a constant QueryCount).</param>
+    /// <param name="total">The maximum number of results to return (optional).</param>
+    /// <returns>A task that represents the asynchronous operation, containing a list of results.</returns>
+    public async Task<List<T>> SearchAsync<T>(string searchTerm, int queryCount = QueryCount, int total = 0)
     {
-        var result = await ApiSearchAsync<T>(query, count);
-        var data = result.Data;
+        var result = await SearchApiAsync<T>(searchTerm, queryCount);
 
-        if (total != 0 && result.Count >= total) return data;
+        if (result == null || result.Data == null) return [];
 
-        for (var i = result.Count; i < result.Total; i += result.Count)
+        var data = new List<T>(result.Data);
+
+        var fetchedCount = result.Count;
+
+        // If total is provided and we've already fetched enough data, return
+        if (total != 0 && fetchedCount >= total)
         {
-            result = await ApiSearchAsync<T>(query, count, start: i);
+            return data;
+        }
+
+        // Fetch more data if necessary
+        for (var i = fetchedCount; i < result.Total; i += result.Count)
+        {
+            result = await SearchApiAsync<T>(searchTerm, queryCount, start: i);
+
+            if (result == null || result.Data == null)
+            {
+                break;
+            }
+
             data.AddRange(result.Data);
 
             if (total != 0 && total <= i) break;
         }
 
-        return data ?? new List<T>();
+        return data ?? [];
     }
 
     public void LogWarning(string text) => _logger.LogWarning(text);
 
     private async Task PingCheckAsync()
     {
-        _logger.LogDebug("Next token refresh at {0}", _session.Ping.SessionExpiryDate);
+        _logger.LogDebug("Next token refresh at {expiryDate}", _session.Ping.SessionExpiryDate);
 
         if (!_session.IsValid)
+        {
             _logger.LogError("{0}, Not logged in yet.", nameof(PingCheckAsync));
+        }
 
         if (_session.Ping?.Valid ?? false) return;
 
@@ -280,14 +322,29 @@ public class ApiConnection
         {
             using var response = await _client.GetAsync($"{_session.LoginResponse!.RestUrl}/ping");
 
-            _session.Ping = await DeserializeAsync<PingResponse>(response);
+            var result = await DeserializeAsync<PingResponse>(response);
 
+            if (result is null)
+            {
+                _logger.LogError("PingCheckAsync, Response deserialization failed.");
+
+                return;
+            }
+
+            _session.Ping = result;
         }
         catch (Exception e)
         {
             _logger.LogError(e, "PingCheckAsync");
 
             await _session.ConnectAsync();
+        }
+
+        if (_session.Ping is null)
+        {
+            _logger.LogError("PingCheckAsync, Ping is null.");
+
+            return;
         }
 
         _logger.LogDebug("Next token refresh at {0}", _session.Ping.SessionExpiryDate);
@@ -312,7 +369,7 @@ public class ApiConnection
 
             if (changeResponse is null)
             {
-                return Result.Failure<ChangeResponse>("Response deserialisaion failed.");
+                return Result.Failure<ChangeResponse>("Response deserialization failed.");
             }
 
             return Result.Success(changeResponse);
@@ -323,11 +380,11 @@ public class ApiConnection
         }
     }
 
-    /// <summary>
-    /// Gives only total, only for search/queries
-    /// </summary>
-    /// <param name="query"></param>
-    /// <returns>total number</returns>
+    ///// <summary>
+    ///// Gives only total, only for search/queries
+    ///// </summary>
+    ///// <param name="query"></param>
+    ///// <returns>total number</returns>
     //public async Task<int> TotalAsync(string query)
     //{
     //    var response = await ApiSearchAsync(query, 1);
