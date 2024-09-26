@@ -161,14 +161,14 @@ public class ApiConnection
     }
 
     // Probably this pattern should be used across
-    public async Task<Result<ChangeResponse>> PostAsJsonAsync(EntityType type, int entityId, object content)
+    public async Task<Result<ChangeResponse>> PostAsJsonAsync(EntityType type, int entityId, object content, CancellationToken token = default)
     {
-        var response = await PostAsJsonAsync($"entity/{type}/{entityId}", content);
+        var response = await PostAsJsonAsync($"entity/{type}/{entityId}", content, token);
 
         return await GetChangeResponseAsync(response).ConfigureAwait(false);
     }
 
-    public async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content)
+    public async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content, CancellationToken token = default)
     {
         await PingCheckAsync();
 
@@ -176,7 +176,7 @@ public class ApiConnection
 
         try
         {
-            return await _client.PostAsJsonAsync(restUrl, content);
+            return await _client.PostAsJsonAsync(restUrl, content, token);
         }
         catch (Exception e)
         {

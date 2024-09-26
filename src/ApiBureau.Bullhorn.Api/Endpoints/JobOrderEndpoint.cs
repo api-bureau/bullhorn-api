@@ -21,6 +21,6 @@ public class JobOrderEndpoint : QueryBaseEndpoint<JobOrderDto>
     /// Http POST /entity/JobOrder/{jobOrderId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int jobOrderId, object data)
-        => ApiConnection.PostAsJsonAsync(EntityType.JobOrder, jobOrderId, data);
+    public Task<Result<ChangeResponse>> UpdateAsync(int jobOrderId, object data, CancellationToken token = default)
+        => ApiConnection.PostAsJsonAsync(EntityType.JobOrder, jobOrderId, data, token);
 }
