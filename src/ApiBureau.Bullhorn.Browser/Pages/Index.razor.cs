@@ -56,8 +56,15 @@ public partial class Index
         try
         {
             var queryType = _selectedType.ToString().ToLower();
+            var query = $"{queryType}/{ConvertDateToTimeStamp(_selectedType, _defaultQuery)}";
 
-            var response = await DataService.GetAsync($"{queryType}/{ConvertDateToTimeStamp(_selectedType, _defaultQuery)}", 100, 0);
+            if (_selectedType == ApiType.massUpdate)
+            {
+                queryType = nameof(ApiType.massUpdate);
+                query = $"{queryType}{_defaultQuery}";
+            }
+
+            var response = await DataService.GetAsync(query, 100, 0);
 
             WriteLog($"Response status code: {response.StatusCode}");
             WriteLog($"Uri: {response.RequestMessage.RequestUri}");
@@ -156,6 +163,12 @@ public partial class Index
         _displayType = example.DisplayType;
         _showExamples = false;
     }
+
+    private string GetApiTypeString(ApiType type) => type switch
+    {
+        ApiType.massUpdate => nameof(ApiType.massUpdate),
+        _ => type.ToString().ToLower()
+    };
 
     private void LoadExamples() => _examples =
     [

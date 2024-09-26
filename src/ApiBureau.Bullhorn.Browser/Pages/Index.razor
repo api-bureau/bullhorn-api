@@ -15,7 +15,7 @@
                 {
                     <div class="form-check form-check-inline">
                         <InputRadio Name="filter" Value="item" id="@($"radio-{item}")" class="form-check-input action" />
-                        <label class="form-check-label action" for="@($"radio-{item}")">@item.ToString().ToLower()</label>
+                        <label class="form-check-label action" for="@($"radio-{item}")">@GetApiTypeString(item)</label>
                     </div>
                 }
             </InputRadioGroup>
