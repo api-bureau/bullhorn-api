@@ -26,17 +26,31 @@ public class ApiSession
         _settings = settings;
     }
 
-    public async Task ConnectAsync()
+    public async Task ConnectAsync(IProgress<string>? progress = null)
     {
         for (var tryCount = 1; tryCount <= SessionRetry; tryCount++)
         {
             try
             {
+                progress?.Report($"Attempt {tryCount}/{SessionRetry}: Trying to connect...");
+
                 var authorisationCode = await GetAuthorizationCodeAsync();
+
+                if (authorisationCode != null)
+                {
+                    progress?.Report("Authorisation was successful");
+                }
 
                 var tokenResponse = await GetTokenResponseAsync(authorisationCode);
 
+                if (!tokenResponse.IsError)
+                {
+                    progress?.Report("Token retrieval was successful");
+                }
+
                 await LoginAsync(tokenResponse);
+
+                progress?.Report("Connection successful!");
 
                 break;
             }
@@ -44,12 +58,16 @@ public class ApiSession
             {
                 if (tryCount < SessionRetry)
                 {
+                    progress?.Report($"Attempt {tryCount}/{SessionRetry} failed. Retrying...");
+
                     _logger.LogError(e, $"Session creation attempt {tryCount}/{SessionRetry}");
 
                     await Task.Delay(DelayBetweenRetriesInMs * tryCount);
 
                     continue;
                 }
+
+                progress?.Report($"Attempt {tryCount}/{SessionRetry} failed. No more retries.");
 
                 _logger.LogError(e, $"Session creation failed {tryCount}/{SessionRetry}");
 
@@ -58,7 +76,7 @@ public class ApiSession
         }
     }
 
-    private async Task<string> GetAuthorizationCodeAsync()
+    private async Task<string?> GetAuthorizationCodeAsync()
     {
         var response = await _client.RequestPasswordTokenAsync(new PasswordTokenRequest
         {
@@ -89,7 +107,7 @@ public class ApiSession
         return code;
     }
 
-    private async Task<TokenResponse> GetTokenResponseAsync(string authorisationCode)
+    private async Task<TokenResponse> GetTokenResponseAsync(string? authorisationCode)
     {
         ArgumentException.ThrowIfNullOrEmpty(authorisationCode);
 

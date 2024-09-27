@@ -43,7 +43,7 @@ public class ApiConnection
 
     //public void SetAuthorizationMeta(BullhornSettings bullhornSettings) => _settings = bullhornSettings;
 
-    public async Task CheckConnectionAsync()
+    public async Task CheckConnectionAsync(IProgress<string>? progress = null)
     {
         if (_settings is null)
         {
@@ -52,9 +52,14 @@ public class ApiConnection
             throw new InvalidOperationException($"{nameof(BullhornSettings)}, Set the {nameof(BullhornSettings)} parameter before connecting!");
         }
 
-        if (_session.IsValid) return;
+        if (_session.IsValid)
+        {
+            progress?.Report("Bullhorn connection is established.");
 
-        await _session.ConnectAsync();
+            return;
+        }
+
+        await _session.ConnectAsync(progress);
     }
 
     public async Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0)
