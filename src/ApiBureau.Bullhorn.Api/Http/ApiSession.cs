@@ -1,6 +1,7 @@
 using IdentityModel.Client;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ApiBureau.Bullhorn.Api.Http;
 
@@ -32,51 +33,45 @@ public class ApiSession
         {
             try
             {
-                progress?.Report($"Attempt {tryCount}/{SessionRetry}: Trying to connect...");
+                ReportProgress(progress, $"Attempt {tryCount}/{SessionRetry}: Trying to connect...");
 
-                var authorisationCode = await GetAuthorizationCodeAsync();
+                var authorisationCode = await GetAuthorizationCodeAsync(progress);
 
-                if (authorisationCode != null)
-                {
-                    progress?.Report("Authorisation was successful");
-                }
+                var tokenResponse = await GetTokenResponseAsync(authorisationCode, progress);
 
-                var tokenResponse = await GetTokenResponseAsync(authorisationCode);
+                await LoginAsync(tokenResponse, progress);
 
-                if (!tokenResponse.IsError)
-                {
-                    progress?.Report("Token retrieval was successful");
-                }
-
-                await LoginAsync(tokenResponse);
-
-                progress?.Report("Connection successful!");
+                ReportProgress(progress, "Connection successful");
 
                 break;
             }
             catch (Exception e)
             {
+                var errorMessage = $"Attempt {tryCount}/{SessionRetry} failed. Reason: {e.Message}";
+
                 if (tryCount < SessionRetry)
                 {
-                    progress?.Report($"Attempt {tryCount}/{SessionRetry} failed. Retrying...");
+                    ReportProgress(progress, $"{errorMessage}. Retrying...");
 
-                    _logger.LogError(e, $"Session creation attempt {tryCount}/{SessionRetry}");
+                    _logger.LogError(e, "{errorMessage}. Retrying...", errorMessage);
 
                     await Task.Delay(DelayBetweenRetriesInMs * tryCount);
 
                     continue;
                 }
+                else
+                {
+                    ReportProgress(progress, $"{errorMessage}. No more retries.");
 
-                progress?.Report($"Attempt {tryCount}/{SessionRetry} failed. No more retries.");
-
-                _logger.LogError(e, $"Session creation failed {tryCount}/{SessionRetry}");
+                    _logger.LogError(e, "{errorMessage}. No more retries.", errorMessage);
+                }
 
                 throw;
             }
         }
     }
 
-    private async Task<string?> GetAuthorizationCodeAsync()
+    private async Task<string> GetAuthorizationCodeAsync(IProgress<string>? progress = null)
     {
         var response = await _client.RequestPasswordTokenAsync(new PasswordTokenRequest
         {
@@ -93,25 +88,37 @@ public class ApiSession
             }
         });
 
+        // response.IsError might be true (Moved temporarily) even if response is not null
+        // with correct authorization code
+        if (response is null)
+        {
+            ThrowInvalidOperation("Error retrieving authorization code", response?.Error);
+        }
+
+        if (response?.HttpResponse == null)
+        {
+            ThrowInvalidOperation("No response received", response?.Error);
+        }
+
         var collection = QueryHelpers.ParseQuery(GetQuery(response.HttpResponse));
 
         collection.TryGetValue(_settings.AuthorizationParameter, out var code);
 
         if (string.IsNullOrWhiteSpace(code))
         {
-            _logger.LogError(NoAuthorizationCodeRetrieved);
-
-            throw new InvalidOperationException(NoAuthorizationCodeRetrieved);
+            ThrowInvalidOperation(NoAuthorizationCodeRetrieved);
         }
 
-        return code;
+        ReportProgress(progress, "Authorization was successful");
+
+        return code!;
     }
 
-    private async Task<TokenResponse> GetTokenResponseAsync(string? authorisationCode)
+    private async Task<TokenResponse> GetTokenResponseAsync(string authorisationCode, IProgress<string>? progress = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(authorisationCode);
 
-        return await _client.RequestTokenAsync(new AuthorizationCodeTokenRequest
+        var response = await _client.RequestTokenAsync(new AuthorizationCodeTokenRequest
         {
             Address = _settings.TokenUrl,
             ClientId = _settings.ClientId,
@@ -120,11 +127,20 @@ public class ApiSession
             Parameters = { { "code", authorisationCode } },
             ClientCredentialStyle = ClientCredentialStyle.PostBody
         });
+
+        if (response is null || response.IsError)
+        {
+            ThrowInvalidOperation("Error retrieving token", response?.Error);
+        }
+
+        ReportProgress(progress, "Token retrieval was successful");
+
+        return response;
     }
 
     // This API call is failing in some cases, so we retry it a few times
     //{"errorMessage":"Invalid or expired OAuth access token.","errorMessageKey":"errors.authentication.invalidOAuthToken","errorCode":400}
-    private async Task LoginAsync(TokenResponse token)
+    private async Task LoginAsync(TokenResponse token, IProgress<string>? progress = null)
     {
         ArgumentNullException.ThrowIfNull(token);
 
@@ -139,17 +155,17 @@ public class ApiSession
 
         if (LoginResponse is null)
         {
-            throw new InvalidOperationException($"Login failed, LoginResponse is null");
+            ThrowInvalidOperation("Login failed, LoginResponse is null");
         }
 
         if (!LoginResponse.Success)
         {
-            throw new InvalidOperationException($"Login failed, error received: {LoginResponse.ErrorMessageKey}, {LoginResponse.ErrorMessage}");
+            ThrowInvalidOperation("Login failed, error received: {LoginResponse.ErrorMessageKey}, {LoginResponse.ErrorMessage}");
         }
 
         if (!LoginResponse.IsValid)
         {
-            throw new InvalidOperationException($"Login failed, Invalid BhRestToken.");
+            ThrowInvalidOperation($"Login failed, Invalid BhRestToken.");
         }
 
         UpdateBhRestTokenHeader(LoginResponse.BhRestToken!);
@@ -157,6 +173,8 @@ public class ApiSession
         _refreshToken = token.RefreshToken;
 
         Ping.SetExpiryDate(DateTime.Now.AddMinutes(SessionLength).Timestamp());
+
+        ReportProgress(progress, "Login was successful");
     }
 
     private void UpdateBhRestTokenHeader(string token)
@@ -205,5 +223,21 @@ public class ApiSession
         });
 
     private static string GetQuery(HttpResponseMessage response) =>
-        response.Headers?.Location?.Query ?? response.RequestMessage.RequestUri.Query;
+        response.Headers?.Location?.Query ?? response.RequestMessage?.RequestUri?.Query ?? "";
+
+    private static void ReportProgress(IProgress<string>? progress, string message)
+        => progress?.Report(message);
+
+    [DoesNotReturn]
+    private void ThrowInvalidOperation(string customMessage, string? responseMessage = null)
+    {
+        if (string.IsNullOrWhiteSpace(responseMessage))
+        {
+            throw new InvalidOperationException($"An error occurred: {customMessage}");
+        }
+        else
+        {
+            throw new InvalidOperationException($"An error occurred: {responseMessage}, {customMessage}");
+        }
+    }
 }
