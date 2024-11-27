@@ -8,4 +8,7 @@ public class PlacementChangeRequestEndpoint : QueryBaseEndpoint<PlacementChangeR
 
     public Task<Result<ChangeResponse>> AddAsync(object content)
         => ApiConnection.PutAsJsonAsync(EntityType.PlacementChangeRequest, content);
+
+    public Task<Result<ChangeResponse>> UpdateAsync(int placementChangeRequestId, object data, CancellationToken token)
+        => ApiConnection.PostAsJsonAsync(EntityType.PlacementChangeRequest, placementChangeRequestId, data, token);
 }
