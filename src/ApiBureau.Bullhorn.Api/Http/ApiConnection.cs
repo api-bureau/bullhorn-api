@@ -365,7 +365,16 @@ public class ApiConnection
     {
         if (!response.IsSuccessStatusCode)
         {
-            return Result.Failure<ChangeResponse>(response.ReasonPhrase);
+            //var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+            var errorResponse = await response.Content.ReadFromJsonAsync<ChangeResponse>();
+
+            if (errorResponse is null)
+            {
+                return Result.Failure<ChangeResponse>(response.ReasonPhrase);
+            }
+
+            return errorResponse;
         }
 
         try
