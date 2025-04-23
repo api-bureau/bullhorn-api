@@ -15,4 +15,7 @@ public class PlacementEndpoint : QueryBaseEndpoint<PlacementDto>
     /// <returns></returns>
     public Task<Result<ChangeResponse>> UpdateAsync(int placementId, object data, CancellationToken token = default)
         => ApiConnection.PostAsJsonAsync(EntityType.Placement, placementId, data, token);
+
+    public Task<Result<ChangeResponse>> AddAsync(object content)
+        => ApiConnection.PutAsJsonAsync(EntityType.Placement, content);
 }
