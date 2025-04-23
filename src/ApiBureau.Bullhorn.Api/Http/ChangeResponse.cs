@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Http;
 
-public class ChangeResponse
+public class ChangeResponse : ErrorResponse
 {
     public string? ChangedEntityType { get; set; }
     public int ChangedEntityId { get; set; }
