@@ -63,7 +63,7 @@ public class ApiSession
                 {
                     ReportProgress(progress, $"{errorMessage}. No more retries.");
 
-                    _logger.LogError(e, "{errorMessage}. No more retries.", errorMessage);
+                    _logger.LogError(e, "Error: {errorMessage}. No more retries.", errorMessage);
                 }
 
                 throw;
