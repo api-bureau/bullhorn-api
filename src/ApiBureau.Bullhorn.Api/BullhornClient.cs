@@ -63,7 +63,7 @@ public class BullhornClient : IBullhornClient //: BaseClient
     }
 
     // ToDo Refactor this so the check connection is done automatically
-    public Task CheckConnectionAsync(IProgress<string>? progress = null) => _apiConnection.CheckConnectionAsync(progress);
+    public Task<bool> CheckConnectionAsync(IProgress<string>? progress = null) => _apiConnection.CheckConnectionAsync(progress);
 
     public Task<List<T>> QueryAsync<T>(string query) => _apiConnection.QueryAsync<T>(query);
 

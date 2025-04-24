@@ -43,7 +43,7 @@ public class ApiConnection
 
     //public void SetAuthorizationMeta(BullhornSettings bullhornSettings) => _settings = bullhornSettings;
 
-    public async Task CheckConnectionAsync(IProgress<string>? progress = null)
+    public async Task<bool> CheckConnectionAsync(IProgress<string>? progress = null)
     {
         if (_settings is null)
         {
@@ -56,10 +56,23 @@ public class ApiConnection
         {
             progress?.Report("Bullhorn connection is established.");
 
-            return;
+            return true;
         }
 
-        await _session.ConnectAsync(progress);
+        try
+        {
+            await _session.ConnectAsync(progress);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            progress?.Report($"Bullhorn connection failed: {ex.Message}");
+
+            _logger.LogError(ex, "Connection failed after all retry attempts.");
+
+            return false;
+        }
     }
 
     public async Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0)

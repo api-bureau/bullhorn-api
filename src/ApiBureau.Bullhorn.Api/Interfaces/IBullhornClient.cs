@@ -32,6 +32,6 @@ public interface IBullhornClient
     /// <summary>
     /// Check the Bullhorn client connection.
     /// </summary>
-    Task CheckConnectionAsync(IProgress<string>? progress = null);
+    Task<bool> CheckConnectionAsync(IProgress<string>? progress = null);
     Task<List<T>> QueryAsync<T>(string query);
 }
