@@ -5,4 +5,7 @@ public class PlacementCommissionEndpoint : QueryBaseEndpoint<PlacementCommission
     private const string EntityDefaultFields = "id,commissionPercentage,dateAdded,dateLastModified,placement(id),user(id),status,role";
 
     public PlacementCommissionEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
+
+    public Task<Result<ChangeResponse>> AddAsync(object content)
+        => ApiConnection.PutAsJsonAsync(EntityType.PlacementCommision, content);
 }
