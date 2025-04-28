@@ -27,11 +27,11 @@ public interface IBullhornClient
     ResumeEndpoint Resume { get; }
     SendoutEndpoint Sendout { get; }
 
-    Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0);
+    Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0, CancellationToken token = default);
 
     /// <summary>
     /// Check the Bullhorn client connection.
     /// </summary>
     Task<bool> CheckConnectionAsync(IProgress<string>? progress = null);
-    Task<List<T>> QueryAsync<T>(string query);
+    Task<List<T>> QueryAsync<T>(string query, CancellationToken token);
 }
