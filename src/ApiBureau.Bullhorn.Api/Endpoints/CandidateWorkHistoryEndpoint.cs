@@ -6,10 +6,10 @@ public class CandidateWorkHistoryEndpoint : QueryBaseEndpoint<CandidateWorkHisto
 
     public CandidateWorkHistoryEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
-    public async Task<List<CandidateWorkHistoryDto>> GetDeletedFromAsync(DateTime dateAddedFrom, string? fields = null)
+    public async Task<List<CandidateWorkHistoryDto>> GetDeletedFromAsync(DateTime dateAddedFrom, string? fields = null, CancellationToken token = default)
     {
         var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where=isDeleted=true AND dateAdded>={dateAddedFrom.Timestamp()}";
 
-        return await ApiConnection.QueryAsync<CandidateWorkHistoryDto>(query);
+        return await ApiConnection.QueryAsync<CandidateWorkHistoryDto>(query, token);
     }
 }

@@ -24,7 +24,7 @@ public class PlayGroundService
             await _bullhornApi.CheckConnectionAsync();
 
             //await GetDepartmentsAsync();
-            await QueryExampleAsync();
+            await QueryExampleAsync(default);
             //await GetCountriesAsync();
         }
         catch (Exception e)
@@ -35,9 +35,9 @@ public class PlayGroundService
         }
     }
 
-    private async Task QueryExampleAsync()
+    private async Task QueryExampleAsync(CancellationToken token)
     {
-        var result = await _bullhornApi.QueryAsync<DepartmentDto>($"{EntityType.Department}?fields=id,name&where=id>0");
+        var result = await _bullhornApi.QueryAsync<DepartmentDto>($"{EntityType.Department}?fields=id,name&where=id>0", token);
 
         _logger.LogInformation("Items: {count}", result.Count);
     }

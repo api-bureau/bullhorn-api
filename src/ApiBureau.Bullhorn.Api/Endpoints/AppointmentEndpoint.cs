@@ -7,27 +7,27 @@ public class AppointmentEndpoint : QueryBaseEndpoint<AppointmentDto>
     public AppointmentEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
     [Obsolete("Use QueryFromAsync", true)]
-    public async Task<List<AppointmentDto>> GetAsync(long timestampFrom)
+    public async Task<List<AppointmentDto>> GetAsync(long timestampFrom, CancellationToken token)
     {
         var query = $"{RequestUrl}?fields={DefaultFields}&where=dateAdded>{timestampFrom} AND candidateReference IS NOT NULL";
 
-        return await ApiConnection.QueryAsync<AppointmentDto>(query);
+        return await ApiConnection.QueryAsync<AppointmentDto>(query, token);
     }
 
     [Obsolete("Use QueryFromToAsync", true)]
-    public async Task<List<AppointmentDto>> GetAsync(long timestampFrom, long timestampTo)
+    public async Task<List<AppointmentDto>> GetAsync(long timestampFrom, long timestampTo, CancellationToken token)
     {
         var query = $"{RequestUrl}?fields={DefaultFields}&where=dateAdded>{timestampFrom} AND dateAdded<{timestampTo} AND candidateReference IS NOT NULL";
 
-        return await ApiConnection.QueryAsync<AppointmentDto>(query);
+        return await ApiConnection.QueryAsync<AppointmentDto>(query, token);
     }
 
     [Obsolete("Use QueryNewAndUpdatedFromAsync", true)]
-    public async Task<List<AppointmentDto>> GetNewAndUpdatedFromAsync(long timestampFrom)
+    public async Task<List<AppointmentDto>> GetNewAndUpdatedFromAsync(long timestampFrom, CancellationToken token)
     {
         var query = $"{RequestUrl}?fields={DefaultFields}&where=(dateAdded>{timestampFrom} OR dateLastModified>{timestampFrom}) AND candidateReference IS NOT NULL";
 
-        return await ApiConnection.QueryAsync<AppointmentDto>(query);
+        return await ApiConnection.QueryAsync<AppointmentDto>(query, token);
     }
 
     public Task<Result<ChangeResponse>> AddAsync(NewAppointmentDto appointment)

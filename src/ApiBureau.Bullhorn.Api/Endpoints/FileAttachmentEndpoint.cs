@@ -4,9 +4,9 @@ public class FileAttachmentEndpoint : BaseEndpoint
 {
     public FileAttachmentEndpoint(ApiConnection apiConnection) : base(apiConnection, "") { }
 
-    public async Task<List<FileAttachmentDto>> GetAsync(string query)
+    public async Task<List<FileAttachmentDto>> GetAsync(string query, CancellationToken token)
     {
-        var data = await ApiConnection.QueryAsync<FileAttachmentDto>(query);
+        var data = await ApiConnection.QueryAsync<FileAttachmentDto>(query, token);
 
         return data;
 

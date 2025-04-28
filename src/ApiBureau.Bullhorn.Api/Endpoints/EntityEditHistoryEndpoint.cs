@@ -6,10 +6,10 @@ public class EntityEditHistoryEndpoint : BaseEndpoint
 
     private const string EntityDefaultFields = "id,display,columnName,newValue,oldValue,editHistory(dateAdded,modifyingPerson,targetEntity)";
 
-    public async Task<List<EditHistoryFieldChangeDto>> GetFromAsync(EntityType entityType, long timestampFrom)
+    public async Task<List<EditHistoryFieldChangeDto>> GetFromAsync(EntityType entityType, long timestampFrom, CancellationToken token)
     {
         var query = $"{entityType}EditHistoryFieldChange?fields={EntityDefaultFields}&where=editHistory.dateAdded>={timestampFrom}";
 
-        return await ApiConnection.QueryAsync<EditHistoryFieldChangeDto>(query);
+        return await ApiConnection.QueryAsync<EditHistoryFieldChangeDto>(query, token);
     }
 }

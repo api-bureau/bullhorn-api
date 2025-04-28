@@ -75,11 +75,11 @@ public class ApiConnection
         }
     }
 
-    public async Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0)
+    public async Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0, CancellationToken token = default)
     {
         query = $"{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
-        return await GetAsync(query);
+        return await GetAsync(query, token);
     }
 
     /// <summary>
@@ -88,11 +88,11 @@ public class ApiConnection
     /// <typeparam name="T"></typeparam>
     /// <param name="query"></param>
     /// <returns></returns>
-    public async Task<List<T>> QueryAsync<T>(string query)
+    public async Task<List<T>> QueryAsync<T>(string query, CancellationToken token)
     {
         var items = new List<T>();
 
-        var result = await ApiQueryAsync<T>(query, QueryCount);
+        var result = await ApiQueryAsync<T>(query, QueryCount, token: token);
 
         items.AddRange(result?.Data ?? new());
 
@@ -100,7 +100,7 @@ public class ApiConnection
 
         for (var i = result.Count; i < result.Total; i += result!.Count)
         {
-            result = await ApiQueryAsync<T>(query, QueryCount, i);
+            result = await ApiQueryAsync<T>(query, QueryCount, i, token: token);
 
             items.AddRange(result?.Data ?? new());
         }
@@ -108,11 +108,11 @@ public class ApiConnection
         return items;
     }
 
-    public async Task<QueryResponse<T>?> ApiQueryAsync<T>(string query, int count, int start = 0)
+    public async Task<QueryResponse<T>?> ApiQueryAsync<T>(string query, int count, int start = 0, CancellationToken token = default)
     {
         query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
-        var response = await GetAsync(query);
+        var response = await GetAsync(query, token);
 
         return await DeserializeAsync<QueryResponse<T>>(response);
     }
@@ -125,22 +125,22 @@ public class ApiConnection
     /// <param name="count">The number of results to return.</param>
     /// <param name="start">The starting index for paginated results (default is 0).</param>
     /// <returns>A task representing the asynchronous operation, containing the search response or <c>null</c> if the response couldn't be deserialized.</returns>
-    public async Task<SearchResponse<T>?> SearchApiAsync<T>(string searchTerm, int count, int start = 0)
+    public async Task<SearchResponse<T>?> SearchApiAsync<T>(string searchTerm, int count, int start = 0, CancellationToken token = default)
     {
         var query = $"search/{searchTerm}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
-        var response = await GetAsync(query);
+        var response = await GetAsync(query, token);
 
         return await DeserializeAsync<SearchResponse<T>>(response);
     }
 
-    public async Task<HttpResponseMessage> GetAsync(string query)
+    public async Task<HttpResponseMessage> GetAsync(string query, CancellationToken token)
     {
         await PingCheckAsync();
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
-        return await _client.GetAsync(restUrl);
+        return await _client.GetAsync(restUrl, token);
     }
 
     // This might be wrapped to ApiCreateEntity
@@ -260,11 +260,11 @@ public class ApiConnection
     public Task<T?> DeserializeAsync<T>(HttpResponseMessage response)
         => response.DeserializeAsync<T>(_logger);
 
-    public async Task<T?> EntityAsync<T>(string query)
+    public async Task<T?> EntityAsync<T>(string query, CancellationToken token)
     {
         query = $"entity/{query}";
 
-        var response = await GetAsync(query);
+        var response = await GetAsync(query, token);
 
         var entityResponse = await DeserializeAsync<EntityResponse<T>>(response);
 
@@ -287,7 +287,7 @@ public class ApiConnection
     /// <param name="queryCount">The number of results to fetch per request (defaults to a constant QueryCount).</param>
     /// <param name="total">The maximum number of results to return (optional).</param>
     /// <returns>A task that represents the asynchronous operation, containing a list of results.</returns>
-    public async Task<List<T>> SearchAsync<T>(string searchTerm, int queryCount = QueryCount, int total = 0)
+    public async Task<List<T>> SearchAsync<T>(string searchTerm, int queryCount = QueryCount, int total = 0, CancellationToken token = default)
     {
         var result = await SearchApiAsync<T>(searchTerm, queryCount);
 

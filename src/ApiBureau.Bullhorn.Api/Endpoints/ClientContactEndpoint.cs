@@ -38,10 +38,10 @@ public class ClientContactEndpoint : SearchBaseEndpoint<ClientContactDto>
     //    return searchResponse?.Data?.FirstOrDefault()?.ToObject<ClientContactDto>();
     //}
 
-    public async Task<List<ClientContactDto>> FindClientContactIdByEmailAsync(List<string> emails)
+    public async Task<List<ClientContactDto>> FindClientContactIdByEmailAsync(List<string> emails, CancellationToken token)
     {
         var query = $"{RequestUrl}?fields=id,firstName,lastName,email&query=email:({ApiConnection.GetQuotedString(emails)}) AND isDeleted:0";
 
-        return await ApiConnection.SearchAsync<ClientContactDto>(query);
+        return await ApiConnection.SearchAsync<ClientContactDto>(query, token: token);
     }
 }

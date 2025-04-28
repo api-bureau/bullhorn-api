@@ -16,6 +16,7 @@ public class PlacementDto : EntityBaseDto
     public string SalaryUnit { get; set; } = "";
     public string Status { get; set; } = "";
     public string EmploymentType { get; set; } = "";
+    public EntityResponse<List<PlacementCommissionDto>>? Commissions { get; set; }
 
     public PlacementDto()
     {

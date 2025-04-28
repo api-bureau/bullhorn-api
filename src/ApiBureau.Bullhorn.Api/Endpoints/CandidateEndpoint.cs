@@ -18,11 +18,11 @@ public class CandidateEndpoint : SearchBaseEndpoint<CandidateDto>
     public async Task<Result<ChangeResponse>> AddAsync(object dto)
         => await ApiConnection.PutAsJsonAsync(EntityType.Candidate, dto);
 
-    public async Task<int> GetFilesCount(int id)
+    public async Task<int> GetFilesCount(int id, CancellationToken token)
     {
         var query = $"entity/{RequestUrl}/{id}/fileAttachments?fields=id";
 
-        var response = await ApiConnection.GetAsync(query);
+        var response = await ApiConnection.GetAsync(query, token);
 
         //var entityResponse = JsonConvert.DeserializeObject<QueryResponse>(await response.Content.ReadAsStringAsync(),
         //    new JsonSerializerSettings
@@ -59,11 +59,11 @@ public class CandidateEndpoint : SearchBaseEndpoint<CandidateDto>
     //    return await ApiConnection.SearchAsync<CandidateDto>(query);
     //}
 
-    public async Task<CandidateDto?> FindCandidateIdByEmailAsync(string email)
+    public async Task<CandidateDto?> FindCandidateIdByEmailAsync(string email, CancellationToken token)
     {
         var query = $"search/{RequestUrl}?fields=id,firstName,lastName&query=email:\"{email}\" AND isDeleted:0";
 
-        var response = await ApiConnection.GetAsync(query);
+        var response = await ApiConnection.GetAsync(query, token);
 
         //var searchResponse = JsonConvert.DeserializeObject<SearchResponse>(
         //    await response.Content.ReadAsStringAsync());
@@ -74,11 +74,11 @@ public class CandidateEndpoint : SearchBaseEndpoint<CandidateDto>
         return searchResponse?.Data?.FirstOrDefault();
     }
 
-    public async Task<List<CandidateDto>> FindCandidateIdByEmailAsync(List<string> emails)
+    public async Task<List<CandidateDto>> FindCandidateIdByEmailAsync(List<string> emails, CancellationToken token)
     {
         var query = $"{RequestUrl}?fields=id,firstName,lastName,email&query=email:({ApiConnection.GetQuotedString(emails)}) AND isDeleted:0";
 
-        return await ApiConnection.SearchAsync<CandidateDto>(query);
+        return await ApiConnection.SearchAsync<CandidateDto>(query, token: token);
 
         //var result = await ApiConnection.ApiSearchAsync(query, BullhornApi.QueryCount);
 

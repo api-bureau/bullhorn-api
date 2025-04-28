@@ -10,11 +10,11 @@ public class SearchBaseEndpoint<T> : BaseEntityEndpoint<T>
     /// <param name="dateTimeFrom"></param>
     /// <param name="fields"></param>
     /// <returns></returns>
-    public async Task<List<T>> SearchFromAsync(DateTime dateTimeFrom, string? fields = null)
+    public async Task<List<T>> SearchFromAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken token = default)
     {
         var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&query=dateAdded:[{dateTimeFrom:yyyyMMddHHmmss} TO *]";
 
-        return await ApiConnection.SearchAsync<T>(query).ConfigureAwait(false);
+        return await ApiConnection.SearchAsync<T>(query, token: token).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -24,11 +24,11 @@ public class SearchBaseEndpoint<T> : BaseEntityEndpoint<T>
     /// <param name="dateTimeTo"></param>
     /// <param name="fields"></param>
     /// <returns></returns>
-    public async Task<List<T>> SearchFromToAsync(DateTime dateTimeFrom, DateTime dateTimeTo, string? fields = null)
+    public async Task<List<T>> SearchFromToAsync(DateTime dateTimeFrom, DateTime dateTimeTo, string? fields = null, CancellationToken token = default)
     {
         var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&query=dateAdded:[{dateTimeFrom:yyyyMMddHHmmss} TO {dateTimeTo:yyyyMMddHHmmss}]";
 
-        return await ApiConnection.SearchAsync<T>(query).ConfigureAwait(false);
+        return await ApiConnection.SearchAsync<T>(query, token: token).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -37,18 +37,18 @@ public class SearchBaseEndpoint<T> : BaseEntityEndpoint<T>
     /// <param name="dateTimeFrom"></param>
     /// <param name="fields"></param>
     /// <returns></returns>
-    public async Task<List<T>> SearchNewAndUpdatedFromAsync(DateTime dateTimeFrom, string? fields = null)
+    public async Task<List<T>> SearchNewAndUpdatedFromAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken token = default)
     {
         var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&query=dateAdded:[{dateTimeFrom:yyyyMMddHHmmss} TO *] OR dateLastModified:[{dateTimeFrom:yyyyMMddHHmmss} TO *]";
 
-        return await ApiConnection.SearchAsync<T>(query).ConfigureAwait(false);
+        return await ApiConnection.SearchAsync<T>(query, token: token).ConfigureAwait(false);
     }
 
-    public async Task<List<T>> GetUpdatedFromAsync(DateTime dateTime, string? fields = null)
+    public async Task<List<T>> GetUpdatedFromAsync(DateTime dateTime, string? fields = null, CancellationToken token = default)
     {
         var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&query=dateLastModified:[{dateTime:yyyyMMddHHmmss} TO *]";
 
-        return await ApiConnection.SearchAsync<T>(query).ConfigureAwait(false);
+        return await ApiConnection.SearchAsync<T>(query, token: token).ConfigureAwait(false);
     }
 }
 
@@ -65,11 +65,11 @@ public class BaseEntityEndpoint<T> : BaseEndpoint
     /// <param name="id"></param>
     /// <param name="fields"></param>
     /// <returns></returns>
-    public async Task<T?> GetAsync(int id, string? fields = null)
+    public async Task<T?> GetAsync(int id, string? fields = null, CancellationToken token = default)
     {
         var query = $"{RequestUrl}/{id}?fields={fields ?? DefaultFields}";
 
-        return await ApiConnection.EntityAsync<T>(query).ConfigureAwait(false);
+        return await ApiConnection.EntityAsync<T>(query, token).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public class BaseEntityEndpoint<T> : BaseEndpoint
     /// <param name="ids"></param>
     /// <param name="fields"></param>
     /// <returns></returns>
-    public async Task<List<T>> GetAsync(IEnumerable<int> ids, string? fields = null)
+    public async Task<List<T>> GetAsync(IEnumerable<int> ids, string? fields = null, CancellationToken token = default)
     {
         if (ids.Count() == 1)
         {
@@ -89,7 +89,7 @@ public class BaseEntityEndpoint<T> : BaseEndpoint
 
         var query = $"{RequestUrl}/{string.Join(",", ids)}?fields={fields ?? DefaultFields}";
 
-        return await ApiConnection.EntityAsync<List<T>>(query).ConfigureAwait(false) ?? [];
+        return await ApiConnection.EntityAsync<List<T>>(query, token).ConfigureAwait(false) ?? [];
     }
 }
 

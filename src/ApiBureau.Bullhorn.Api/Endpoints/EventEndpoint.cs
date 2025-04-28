@@ -51,13 +51,13 @@ public class EventEndpoint : BaseEndpoint
     /// </summary>
     /// <param name="subscriptionId"></param>
     /// <returns></returns>
-    public async Task<EventsDto?> GetAsync(string subscriptionId)
+    public async Task<EventsDto?> GetAsync(string subscriptionId, CancellationToken token)
     {
         var query = $"{RequestUrl}/subscription/{subscriptionId}?maxEvents=100";
 
         ApiConnection.LogWarning("Placement Event Subscription: This call might throw an error if expected the input to start with a no valid JSON token (empty string), meaning no data in this case.");
 
-        var response = await ApiConnection.GetAsync(query);
+        var response = await ApiConnection.GetAsync(query, token);
 
         return await response.DeserializeAsync<EventsDto>();
     }

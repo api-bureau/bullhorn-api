@@ -10,11 +10,11 @@ public class JobOrderEndpoint : QueryBaseEndpoint<JobOrderDto>
     public JobOrderEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
     [Obsolete("Use QueryNewAndUpdatedFromAsync", true)]
-    public async Task<List<JobOrderDto>> GetNewAndUpdatedFromAsync(long timestampFrom)
+    public async Task<List<JobOrderDto>> GetNewAndUpdatedFromAsync(long timestampFrom, CancellationToken token)
     {
         var query = $"{RequestUrl}?fields={DefaultFields}&where=dateAdded>{timestampFrom} OR dateLastModified>{timestampFrom}";
 
-        return await ApiConnection.QueryAsync<JobOrderDto>(query);
+        return await ApiConnection.QueryAsync<JobOrderDto>(query, token);
     }
 
     /// <summary>
