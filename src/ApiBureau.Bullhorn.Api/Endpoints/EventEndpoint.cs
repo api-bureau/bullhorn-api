@@ -26,22 +26,22 @@ public class EventEndpoint : BaseEndpoint
         return await response.DeserializeAsync<EventSubscribeDto>();
     }
 
-    public async Task<EventSubscribeDto?> ReSubscribeAsync(string subscriptionId, string entityNames, string eventTypes)
+    public async Task<EventSubscribeDto?> ReSubscribeAsync(string subscriptionId, string entityNames, string eventTypes, CancellationToken token)
     {
-        var unsubscribed = await UnSubscribeAsync(subscriptionId);
+        var unsubscribed = await UnSubscribeAsync(subscriptionId, token);
 
         if (unsubscribed != null && unsubscribed.Result) return await SubscribeAsync(subscriptionId, entityNames, eventTypes);
 
         return null;
     }
 
-    public async Task<EventUnSubscribeDto?> UnSubscribeAsync(string subscriptionId)
+    public async Task<EventUnSubscribeDto?> UnSubscribeAsync(string subscriptionId, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(null, nameof(subscriptionId));
 
         var query = $"{RequestUrl}/subscription/{subscriptionId}";
 
-        var response = await ApiConnection.ApiDeleteAsync(query);
+        var response = await ApiConnection.ApiDeleteAsync(query, token);
 
         return await response.DeserializeAsync<EventUnSubscribeDto>();
     }
