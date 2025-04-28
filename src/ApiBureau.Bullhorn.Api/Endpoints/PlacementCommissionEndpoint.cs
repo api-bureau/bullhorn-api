@@ -7,7 +7,7 @@ public class PlacementCommissionEndpoint : QueryBaseEndpoint<PlacementCommission
     public PlacementCommissionEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
     public Task<Result<ChangeResponse>> AddAsync(object content)
-        => ApiConnection.PutAsJsonAsync(EntityType.PlacementCommision, content);
+        => ApiConnection.PutAsJsonAsync(EntityType.PlacementCommission, content);
 
     /// <summary>
     /// This will soft delete the commission.
@@ -16,5 +16,5 @@ public class PlacementCommissionEndpoint : QueryBaseEndpoint<PlacementCommission
     /// <param name="token"></param>
     /// <returns></returns>
     public Task<Result<ChangeResponse>> DeleteAsync(int id, CancellationToken token)
-        => ApiConnection.DeleteAsync(id, EntityType.PlacementCommision, token);
+        => ApiConnection.DeleteAsync(id, EntityType.PlacementCommission, token);
 }

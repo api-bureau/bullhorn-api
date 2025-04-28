@@ -19,7 +19,7 @@ public enum EntityType
     Note,
     Opportunity,
     Placement,
-    PlacementCommision,
+    PlacementCommission,
     PlacementChangeRequest,
     Tearsheet
 }
