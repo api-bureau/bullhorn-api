@@ -236,15 +236,20 @@ public class ApiConnection
                 DefaultIgnoreCondition = JsonIgnoreCondition.Always
             }), Encoding.UTF8, "application/json"));
 
-    public async Task DeleteAsync(int id, string entityName) => await ApiDeleteAsync($"entity/{entityName}/{id}?");
+    public async Task<Result<ChangeResponse>> DeleteAsync(int id, EntityType type, CancellationToken token)
+    {
+        var response = await ApiDeleteAsync($"entity/{type}/{id}?", token);
 
-    public async Task<HttpResponseMessage> ApiDeleteAsync(string query)
+        return await GetChangeResponseAsync(response).ConfigureAwait(false);
+    }
+
+    public async Task<HttpResponseMessage> ApiDeleteAsync(string query, CancellationToken token)
     {
         await PingCheckAsync();
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
-        return await _client.DeleteAsync(restUrl);
+        return await _client.DeleteAsync(restUrl, token);
     }
 
     //ToDo
