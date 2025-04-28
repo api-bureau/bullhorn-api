@@ -222,15 +222,6 @@ public class ApiConnection
         return new HttpResponseMessage();
     }
 
-    public async Task<HttpResponseMessage> ApiDeleteAsync(string query)
-    {
-        await PingCheckAsync();
-
-        var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
-
-        return await _client.DeleteAsync(restUrl);
-    }
-
     public async Task UpdateAsync<T>(int id, string entityName, T updateDto) => await PostAsync($"entity/{entityName}/{id}",
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
@@ -246,6 +237,15 @@ public class ApiConnection
             }), Encoding.UTF8, "application/json"));
 
     public async Task DeleteAsync(int id, string entityName) => await ApiDeleteAsync($"entity/{entityName}/{id}?");
+
+    public async Task<HttpResponseMessage> ApiDeleteAsync(string query)
+    {
+        await PingCheckAsync();
+
+        var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
+
+        return await _client.DeleteAsync(restUrl);
+    }
 
     //ToDo
     //public List<T> MapResults<T>(IEnumerable<JObject> data)
