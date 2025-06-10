@@ -12,4 +12,11 @@ public class EntityEditHistoryEndpoint : BaseEndpoint
 
         return await ApiConnection.QueryAsync<EditHistoryFieldChangeDto>(query, token);
     }
+
+    public async Task<List<EditHistoryFieldChangeDto>> GetFromByColumnNameAsync(EntityType entityType, long timestampFrom, string columnName, CancellationToken token)
+    {
+        var query = $"{entityType}EditHistoryFieldChange?fields={EntityDefaultFields}&where=editHistory.dateAdded>={timestampFrom} AND columnName='{columnName}'";
+
+        return await ApiConnection.QueryAsync<EditHistoryFieldChangeDto>(query, token);
+    }
 }
