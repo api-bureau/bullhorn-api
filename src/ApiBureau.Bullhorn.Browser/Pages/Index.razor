@@ -44,6 +44,8 @@
                     3) Get all columns from Sendout with more conditions:
                     date format: 'dd/mm/yyyy hh:mm:ss'
                     <pre>query/Sendout?fields=id,candidate,dateAdded,jobOrder&where=(id>0) AND dateAdded > '10/02/2017 00:00:00' AND candidate.lastName='Smith'</pre>
+                    <pre>ClientCorporationEditHistoryFieldChange?fields=display,columnName,editHistory(modifyingPerson,dateAdded)&where=columnName='merged' AND editHistory.dateAdded>'07/06/2025 00:00:00'&orderBy=-id</pre>
+                    <pre>ClientCorporationEditHistoryFieldChange?fields=display,columnName,editHistory(modifyingPerson,dateAdded)&where=columnName='merged' AND editHistory.dateAdded>'07/06/2025 00:0UserEditHistoryFieldChange?fields=display,columnName,editHistory(targetEntity,modifyingPerson,dateAdded)&where=columnName='merged' AND editHistory.dateAdded>'07/06/2025 00:00:00'&orderBy=-id</pre>
                 </p>
                 <p>
                     4) Get selected columns from Placements with more conditions:
