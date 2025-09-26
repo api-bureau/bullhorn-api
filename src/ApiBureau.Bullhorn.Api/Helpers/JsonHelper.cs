@@ -5,21 +5,20 @@ namespace ApiBureau.Bullhorn.Api.Helpers;
 
 public static class JsonHelper
 {
+    private static readonly JsonSerializerOptions _cachedOptions = new()
+    {
+        AllowTrailingCommas = true,
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
 
     public static async Task<T?> DeserializeAsync<T>(this HttpResponseMessage response, ILogger? logger = null)
     {
-        var options = new JsonSerializerOptions
-        {
-            AllowTrailingCommas = true,
-            IgnoreNullValues = true,
-            PropertyNameCaseInsensitive = true
-        };
-
         await using var stream = await response.Content.ReadAsStreamAsync();
 
         try
         {
-            return await JsonSerializer.DeserializeAsync<T>(stream, options);
+            return await JsonSerializer.DeserializeAsync<T>(stream, _cachedOptions);
         }
         catch (Exception e)
         {
