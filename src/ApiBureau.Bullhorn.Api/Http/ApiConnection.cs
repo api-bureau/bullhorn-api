@@ -21,7 +21,7 @@ public class ApiConnection
     {
         AllowTrailingCommas = true,
         PropertyNameCaseInsensitive = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
     public ApiConnection(HttpClient client, IOptions<BullhornSettings> settings, ILogger<ApiConnection> logger)
