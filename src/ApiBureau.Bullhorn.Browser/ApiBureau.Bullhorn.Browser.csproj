@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CodeCapital.System.Text.Json" Version="9.0.0" />
+      <PackageReference Include="CodeCapital.System.Text.Json" Version="10.0.0.1" />
     </ItemGroup>
 
     <ItemGroup>
