@@ -44,4 +44,11 @@ public class ClientContactEndpoint : SearchBaseEndpoint<ClientContactDto>
 
         return await ApiConnection.SearchAsync<ClientContactDto>(query, token: token);
     }
+
+    /// <summary>
+    /// Http POST /entity/ClientContact/{clientContactId}
+    /// </summary>
+    /// <returns></returns>
+    public Task<Result<ChangeResponse>> UpdateAsync(int clientContactId, object data)
+        => ApiConnection.PostAsJsonAsync(EntityType.ClientContact, clientContactId, data);
 }
