@@ -11,4 +11,11 @@ public class CorporateUserEndpoint : QueryBaseEndpoint<UserDto>
     /// </summary>
     /// <returns></returns>
     public async Task<List<UserDto>> GetAllUsersAsync() => await QueryWhereAsync();
+
+    /// <summary>
+    /// Http POST /entity/CorporateUser/{corporateUserId}
+    /// </summary>
+    /// <returns></returns>
+    public Task<Result<ChangeResponse>> UpdateAsync(int corporateUserId, object data)
+        => ApiConnection.PostAsJsonAsync(EntityType.CorporateUser, corporateUserId, data);
 }
