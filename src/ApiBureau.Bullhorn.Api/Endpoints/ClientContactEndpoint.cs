@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class ClientContactEndpoint : SearchBaseEndpoint<ClientContactDto>
+public class ClientContactEndpoint : SearchEndpointBase<ClientContactDto>
 {
     private const string EntityDefaultFields = "id,clientCorporation,isDeleted,firstName,lastName,email,dateAdded,dateLastModified,owner";
 

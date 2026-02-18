@@ -3,7 +3,7 @@ namespace ApiBureau.Bullhorn.Api.Endpoints;
 /// <summary>
 /// Note entity with default fields: id,action,commentingPerson,dateAdded,dateLastModified,isDeleted,comments,minutesSpent,personReference
 /// </summary>
-public class NoteEndpoint : SearchBaseEndpoint<NoteDto>
+public class NoteEndpoint : SearchEndpointBase<NoteDto>
 {
     private const string AllFields = "id,action,commentingPerson,dateAdded,dateLastModified,isDeleted,comments,minutesSpent,personReference";
 

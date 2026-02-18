@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class CandidateEndpoint : SearchBaseEndpoint<CandidateDto>
+public class CandidateEndpoint : SearchEndpointBase<CandidateDto>
 {
     private const string EntityDefaultFields = "id,status,isDeleted,firstName,lastName,email,dateAdded,dateLastModified,source,owner";
 

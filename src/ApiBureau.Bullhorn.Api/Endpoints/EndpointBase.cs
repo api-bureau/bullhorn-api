@@ -1,8 +1,8 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class SearchBaseEndpoint<T> : EntityEndpointBase<T>
+public class SearchEndpointBase<T> : EntityEndpointBase<T>
 {
-    public SearchBaseEndpoint(ApiConnection apiConnection, string requestUrl, string defaultFields) : base(apiConnection, requestUrl, defaultFields) { }
+    public SearchEndpointBase(ApiConnection apiConnection, string requestUrl, string defaultFields) : base(apiConnection, requestUrl, defaultFields) { }
 
     /// <summary>
     /// Uses /search, and dateAdded for search
