@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class CorporateUserEndpoint : QueryBaseEndpoint<UserDto>
+public class CorporateUserEndpoint : QueryEndpointBase<UserDto>
 {
     private const string EntityDefaultFields = "id,firstName,lastName,name,isDeleted,departments";
 

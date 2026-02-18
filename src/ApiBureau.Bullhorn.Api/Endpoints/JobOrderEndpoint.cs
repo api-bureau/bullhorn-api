@@ -3,7 +3,7 @@ namespace ApiBureau.Bullhorn.Api.Endpoints;
 /// <summary>
 /// JobOrder entity with default fields: id,dateAdded,dateLastModified,status,title,source,owner,isOpen,isDeleted,clientContact,clientCorporation
 /// </summary>
-public class JobOrderEndpoint : QueryBaseEndpoint<JobOrderDto>
+public class JobOrderEndpoint : QueryEndpointBase<JobOrderDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,dateLastModified,status,title,source,owner,isOpen,isDeleted,clientContact,clientCorporation";
 

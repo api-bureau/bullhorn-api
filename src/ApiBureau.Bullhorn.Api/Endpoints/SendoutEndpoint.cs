@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class SendoutEndpoint : QueryBaseEndpoint<SendoutDto>
+public class SendoutEndpoint : QueryEndpointBase<SendoutDto>
 {
     private const string EntityDefaultFields = "id,candidate,user,dateAdded,jobOrder,clientContact,clientCorporation";
 

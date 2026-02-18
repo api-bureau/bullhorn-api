@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class AppointmentEndpoint : QueryBaseEndpoint<AppointmentDto>
+public class AppointmentEndpoint : QueryEndpointBase<AppointmentDto>
 {
     private const string EntityDefaultFields = "id,candidateReference,clientContactReference,dateAdded,dateBegin,dateLastModified,type,isDeleted,jobOrder,owner";
 

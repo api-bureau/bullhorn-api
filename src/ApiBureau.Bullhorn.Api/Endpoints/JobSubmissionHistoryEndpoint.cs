@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class JobSubmissionHistoryEndpoint : QueryBaseEndpoint<JobSubmissionHistoryDto>
+public class JobSubmissionHistoryEndpoint : QueryEndpointBase<JobSubmissionHistoryDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,status,modifyingUser,jobSubmission";
 

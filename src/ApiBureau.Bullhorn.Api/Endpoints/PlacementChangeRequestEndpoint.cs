@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class PlacementChangeRequestEndpoint : QueryBaseEndpoint<PlacementChangeRequestDto>
+public class PlacementChangeRequestEndpoint : QueryEndpointBase<PlacementChangeRequestDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,dateLastModified,status,title,requestStatus,requestType,placement(id),customText12";
 

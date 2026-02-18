@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class OpportunityEndpoint : QueryBaseEndpoint<JobOrderDto>
+public class OpportunityEndpoint : QueryEndpointBase<JobOrderDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,dateLastModified,status,title,source,owner,isOpen,isDeleted,clientContact,clientCorporation";
 

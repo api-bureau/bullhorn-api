@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class CountryEndpoint : QueryBaseEndpoint<CountryDto>
+public class CountryEndpoint : QueryEndpointBase<CountryDto>
 {
     private const string EntityDefaultFields = "id,code,name";
 

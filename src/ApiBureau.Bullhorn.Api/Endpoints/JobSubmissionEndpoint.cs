@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class JobSubmissionEndpoint : QueryBaseEndpoint<JobSubmissionDto>
+public class JobSubmissionEndpoint : QueryEndpointBase<JobSubmissionDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,dateLastModified,status,isDeleted,candidate,jobOrder,sendingUser";
 

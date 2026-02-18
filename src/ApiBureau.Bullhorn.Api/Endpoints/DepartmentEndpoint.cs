@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class DepartmentEndpoint : QueryBaseEndpoint<DepartmentDto>
+public class DepartmentEndpoint : QueryEndpointBase<DepartmentDto>
 {
     private const string EntityDefaultFields = "id,description,enabled,name";
 

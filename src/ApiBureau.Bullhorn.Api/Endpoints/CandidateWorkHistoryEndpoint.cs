@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class CandidateWorkHistoryEndpoint : QueryBaseEndpoint<CandidateWorkHistoryDto>
+public class CandidateWorkHistoryEndpoint : QueryEndpointBase<CandidateWorkHistoryDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,isDeleted,candidate(id)";
 

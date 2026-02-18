@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class PlacementEndpoint : QueryBaseEndpoint<PlacementDto>
+public class PlacementEndpoint : QueryEndpointBase<PlacementDto>
 {
     private const string EntityDefaultFields = "id,billingClientContact,candidate,dateAdded,dateLastModified,dateBegin,dateEnd,employeeType,employmentType,fee,flatFee,jobOrder,payRate,correlatedCustomText1,salary,salaryUnit,status";
 
