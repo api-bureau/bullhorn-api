@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class QueryBaseEndpoint<T> : EntityEndpointBase<T>
+public abstract class QueryBaseEndpoint<T> : EntityEndpointBase<T>
 {
     private const string DefaultWhere = "id>0";
 
