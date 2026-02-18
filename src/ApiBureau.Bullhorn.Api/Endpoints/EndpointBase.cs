@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class SearchBaseEndpoint<T> : BaseEntityEndpoint<T>
+public class SearchBaseEndpoint<T> : EntityEndpointBase<T>
 {
     public SearchBaseEndpoint(ApiConnection apiConnection, string requestUrl, string defaultFields) : base(apiConnection, requestUrl, defaultFields) { }
 
@@ -52,11 +52,11 @@ public class SearchBaseEndpoint<T> : BaseEntityEndpoint<T>
     }
 }
 
-public class BaseEntityEndpoint<T> : BaseEndpoint
+public abstract class EntityEndpointBase<T> : EndpointBase
 {
     public string DefaultFields { get; }
 
-    public BaseEntityEndpoint(ApiConnection apiConnection, string requestUrl, string defaultFields) : base(apiConnection, requestUrl)
+    public EntityEndpointBase(ApiConnection apiConnection, string requestUrl, string defaultFields) : base(apiConnection, requestUrl)
         => DefaultFields = defaultFields;
 
     /// <summary>
@@ -93,12 +93,12 @@ public class BaseEntityEndpoint<T> : BaseEndpoint
     }
 }
 
-public class BaseEndpoint
+public abstract class EndpointBase
 {
     protected ApiConnection ApiConnection { get; }
     public string RequestUrl { get; }
 
-    public BaseEndpoint(ApiConnection apiConnection, string requestUrl)
+    public EndpointBase(ApiConnection apiConnection, string requestUrl)
     {
         ApiConnection = apiConnection;
         RequestUrl = requestUrl;

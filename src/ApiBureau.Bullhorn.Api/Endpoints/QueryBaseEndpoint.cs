@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class QueryBaseEndpoint<T> : BaseEntityEndpoint<T>
+public class QueryBaseEndpoint<T> : EntityEndpointBase<T>
 {
     private const string DefaultWhere = "id>0";
 
@@ -10,7 +10,7 @@ public class QueryBaseEndpoint<T> : BaseEntityEndpoint<T>
     {
         var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom}";
 
-        // Appoitments "AND candidateReference IS NOT NULL"
+        // Appointments "AND candidateReference IS NOT NULL"
 
         return await ApiConnection.QueryAsync<T>(query, token).ConfigureAwait(false);
     }
@@ -19,7 +19,7 @@ public class QueryBaseEndpoint<T> : BaseEntityEndpoint<T>
     {
         var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom} AND dateAdded<{timestampTo}";
 
-        // Appoitments "AND candidateReference IS NOT NULL"
+        // Appointments "AND candidateReference IS NOT NULL"
 
         return await ApiConnection.QueryAsync<T>(query, token).ConfigureAwait(false);
     }
@@ -34,7 +34,7 @@ public class QueryBaseEndpoint<T> : BaseEntityEndpoint<T>
     {
         var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom} OR dateLastModified>={timestampFrom}";
 
-        // Appoitments "AND candidateReference IS NOT NULL"
+        // Appointments "AND candidateReference IS NOT NULL"
 
         return await ApiConnection.QueryAsync<T>(query, token).ConfigureAwait(false);
     }

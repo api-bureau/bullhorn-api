@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class MassUpdateEndpoint : BaseEndpoint
+public class MassUpdateEndpoint : EndpointBase
 {
     public MassUpdateEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl) { }
 

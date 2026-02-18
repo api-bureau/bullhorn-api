@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class EntityEditHistoryEndpoint : BaseEndpoint
+public class EntityEditHistoryEndpoint : EndpointBase
 {
     public EntityEditHistoryEndpoint(ApiConnection apiConnection) : base(apiConnection, "") { }
 

@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class FileEndpoint : BaseEndpoint
+public class FileEndpoint : EndpointBase
 {
     public FileEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl) { }
 

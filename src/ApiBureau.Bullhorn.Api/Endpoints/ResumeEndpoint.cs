@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class ResumeEndpoint : BaseEndpoint
+public class ResumeEndpoint : EndpointBase
 {
     public ResumeEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl) { }
 

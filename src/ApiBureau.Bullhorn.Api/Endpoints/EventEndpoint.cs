@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class EventEndpoint : BaseEndpoint
+public class EventEndpoint : EndpointBase
 {
     public EventEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl) { }
 

@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class FileAttachmentEndpoint : BaseEndpoint
+public class FileAttachmentEndpoint : EndpointBase
 {
     public FileAttachmentEndpoint(ApiConnection apiConnection) : base(apiConnection, "") { }
 
