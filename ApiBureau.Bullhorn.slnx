@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/ApiBureau.Bullhorn.Api.Console/ApiBureau.Bullhorn.Api.Console.csproj" />
+  <Project Path="src/ApiBureau.Bullhorn.Api/ApiBureau.Bullhorn.Api.csproj" />
+</Solution>

@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../../README.md" />
+  </Folder>
+  <Project Path="../ApiBureau.Bullhorn.Api.Console/ApiBureau.Bullhorn.Api.Console.csproj" />
+  <Project Path="../ApiBureau.Bullhorn.Api/ApiBureau.Bullhorn.Api.csproj" />
+  <Project Path="ApiBureau.Bullhorn.Browser.csproj" />
+</Solution>
