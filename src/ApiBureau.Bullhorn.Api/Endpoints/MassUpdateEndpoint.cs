@@ -4,8 +4,6 @@ public class MassUpdateEndpoint : EndpointBase
 {
     public MassUpdateEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl) { }
 
-    public Task<HttpResponseMessage> UpdateAsync(EntityType type, object data)
-    {
-        return ApiConnection.PostAsJsonAsync($"/{RequestUrl}/{type}", data);
-    }
+    public Task<HttpResponseMessage> UpdateAsync(EntityType type, object data, CancellationToken token)
+        => ApiConnection.PostAsJsonAsync($"/{RequestUrl}/{type}", data, token);
 }
