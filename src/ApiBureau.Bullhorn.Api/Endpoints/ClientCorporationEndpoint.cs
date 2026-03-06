@@ -6,13 +6,13 @@ public class ClientCorporationEndpoint : QueryEndpointBase<ClientCorporationDto>
 
     public ClientCorporationEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
-    public Task<Result<ChangeResponse>> AddAsync(ClientCorporationDto dto)
-        => ApiConnection.PutAsJsonAsync(EntityType.ClientCorporation, dto);
+    public Task<Result<ChangeResponse>> AddAsync(ClientCorporationDto dto, CancellationToken token)
+        => ApiConnection.PutAsJsonAsync(EntityType.ClientCorporation, dto, token);
 
     /// <summary>
     /// Http POST /entity/ClientCorporation/{clientCorporationId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int clientCorporationId, object data)
-        => ApiConnection.PostAsJsonAsync(EntityType.ClientCorporation, clientCorporationId, data);
+    public Task<Result<ChangeResponse>> UpdateAsync(int clientCorporationId, object data, CancellationToken token)
+        => ApiConnection.PostAsJsonAsync(EntityType.ClientCorporation, clientCorporationId, data, token);
 }

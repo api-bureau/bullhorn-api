@@ -6,8 +6,8 @@ public class ClientContactEndpoint : SearchEndpointBase<ClientContactDto>
 
     public ClientContactEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
-    public Task<Result<ChangeResponse>> AddAsync(ClientContactDto dto)
-        => ApiConnection.PutAsJsonAsync(EntityType.ClientContact, dto);
+    public Task<Result<ChangeResponse>> AddAsync(ClientContactDto dto, CancellationToken token)
+        => ApiConnection.PutAsJsonAsync(EntityType.ClientContact, dto, token);
 
     //public async Task<ClientContactDto> FindClientContactIdByEmail2Async(string emailQuery)
     //{
@@ -49,6 +49,6 @@ public class ClientContactEndpoint : SearchEndpointBase<ClientContactDto>
     /// Http POST /entity/ClientContact/{clientContactId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int clientContactId, object data)
-        => ApiConnection.PostAsJsonAsync(EntityType.ClientContact, clientContactId, data);
+    public Task<Result<ChangeResponse>> UpdateAsync(int clientContactId, object data, CancellationToken token)
+        => ApiConnection.PostAsJsonAsync(EntityType.ClientContact, clientContactId, data, token);
 }

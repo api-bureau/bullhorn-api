@@ -6,8 +6,8 @@ public class PlacementChangeRequestEndpoint : QueryEndpointBase<PlacementChangeR
 
     public PlacementChangeRequestEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
-    public Task<Result<ChangeResponse>> AddAsync(object content)
-        => ApiConnection.PutAsJsonAsync(EntityType.PlacementChangeRequest, content);
+    public Task<Result<ChangeResponse>> AddAsync(object content, CancellationToken token)
+        => ApiConnection.PutAsJsonAsync(EntityType.PlacementChangeRequest, content, token);
 
     public Task<Result<ChangeResponse>> UpdateAsync(int placementChangeRequestId, object data, CancellationToken token)
         => ApiConnection.PostAsJsonAsync(EntityType.PlacementChangeRequest, placementChangeRequestId, data, token);

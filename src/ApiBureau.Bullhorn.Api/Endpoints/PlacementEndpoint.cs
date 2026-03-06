@@ -6,8 +6,8 @@ public class PlacementEndpoint : QueryEndpointBase<PlacementDto>
 
     public PlacementEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
-    public Task<HttpResponseMessage> ApproveAsync(int placementId)
-        => ApiConnection.PostAsync($"services/{RequestUrl}/approve/{placementId}", null);
+    public Task<HttpResponseMessage> ApproveAsync(int placementId, CancellationToken token = default)
+        => ApiConnection.PostAsync($"services/{RequestUrl}/approve/{placementId}", null, token);
 
     /// <summary>
     /// Http POST /entity/Placement/{placementId}
@@ -16,6 +16,6 @@ public class PlacementEndpoint : QueryEndpointBase<PlacementDto>
     public Task<Result<ChangeResponse>> UpdateAsync(int placementId, object data, CancellationToken token = default)
         => ApiConnection.PostAsJsonAsync(EntityType.Placement, placementId, data, token);
 
-    public Task<Result<ChangeResponse>> AddAsync(object content)
-        => ApiConnection.PutAsJsonAsync(EntityType.Placement, content);
+    public Task<Result<ChangeResponse>> AddAsync(object content, CancellationToken token)
+        => ApiConnection.PutAsJsonAsync(EntityType.Placement, content, token);
 }

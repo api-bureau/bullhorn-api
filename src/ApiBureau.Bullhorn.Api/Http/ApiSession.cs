@@ -27,7 +27,7 @@ public class ApiSession
         _settings = settings;
     }
 
-    public async Task ConnectAsync(IProgress<string>? progress = null)
+    public async Task ConnectAsync(IProgress<string>? progress = null, CancellationToken token = default)
     {
         for (var tryCount = 1; tryCount <= SessionRetry; tryCount++)
         {
@@ -35,11 +35,11 @@ public class ApiSession
             {
                 ReportProgress(progress, $"Attempt {tryCount}/{SessionRetry}: Trying to connect...");
 
-                var authorisationCode = await GetAuthorizationCodeAsync(progress);
+                var authorisationCode = await GetAuthorizationCodeAsync(progress, token);
 
-                var tokenResponse = await GetTokenResponseAsync(authorisationCode, progress);
+                var tokenResponse = await GetTokenResponseAsync(authorisationCode, progress, token);
 
-                await LoginAsync(tokenResponse, progress);
+                await LoginAsync(tokenResponse, progress, token);
 
                 ReportProgress(progress, "Connection successful");
 
@@ -71,7 +71,7 @@ public class ApiSession
         }
     }
 
-    private async Task<string> GetAuthorizationCodeAsync(IProgress<string>? progress = null)
+    private async Task<string> GetAuthorizationCodeAsync(IProgress<string>? progress = null, CancellationToken token = default)
     {
         var response = await _client.RequestPasswordTokenAsync(new PasswordTokenRequest
         {
@@ -86,7 +86,7 @@ public class ApiSession
                 {"action", "Login" },
                 {"state", "ips" },
             }
-        });
+        }, token);
 
         // response.IsError might be true (Moved temporarily) even if response is not null
         // with correct authorization code
@@ -114,7 +114,7 @@ public class ApiSession
         return code!;
     }
 
-    private async Task<TokenResponse> GetTokenResponseAsync(string authorisationCode, IProgress<string>? progress = null)
+    private async Task<TokenResponse> GetTokenResponseAsync(string authorisationCode, IProgress<string>? progress = null, CancellationToken token = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(authorisationCode);
 
@@ -126,7 +126,7 @@ public class ApiSession
             GrantType = "authorization_code",
             Parameters = { { "code", authorisationCode } },
             ClientCredentialStyle = ClientCredentialStyle.PostBody
-        });
+        }, token);
 
         if (response is null || response.IsError)
         {
@@ -140,13 +140,13 @@ public class ApiSession
 
     // This API call is failing in some cases, so we retry it a few times
     //{"errorMessage":"Invalid or expired OAuth access token.","errorMessageKey":"errors.authentication.invalidOAuthToken","errorCode":400}
-    private async Task LoginAsync(TokenResponse token, IProgress<string>? progress = null)
+    private async Task LoginAsync(TokenResponse token, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(token);
 
         var loginUrl = _settings.LoginUrl + $"?version=2.0&access_token={token.AccessToken}&ttl={SessionLength}";
 
-        using var response = await _client.GetAsync(loginUrl);
+        using var response = await _client.GetAsync(loginUrl, cancellationToken);
 
         // temp variable to log the response in case of failure
         //var temp = await response.Content.ReadAsStringAsync();
@@ -183,17 +183,17 @@ public class ApiSession
         _client.DefaultRequestHeaders.TryAddWithoutValidation("BhRestToken", token);
     }
 
-    public async Task RefreshTokenAsync()
+    public async Task RefreshTokenAsync(CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrEmpty(_refreshToken);
 
-        var tokenResponse = await GetRefreshTokenAsync();
+        var tokenResponse = await GetRefreshTokenAsync(cancellationToken);
 
         for (var tryCount = 1; tryCount <= SessionRetry; tryCount++)
         {
             try
             {
-                await LoginAsync(tokenResponse);
+                await LoginAsync(tokenResponse, cancellationToken: cancellationToken);
 
                 break;
             }
@@ -212,7 +212,7 @@ public class ApiSession
         }
     }
 
-    private async Task<TokenResponse> GetRefreshTokenAsync() =>
+    private async Task<TokenResponse> GetRefreshTokenAsync(CancellationToken token) =>
         await _client.RequestRefreshTokenAsync(new RefreshTokenRequest
         {
             Address = _settings.TokenUrl,
@@ -220,7 +220,7 @@ public class ApiSession
             ClientSecret = _settings.Secret,
             RefreshToken = _refreshToken!,
             ClientCredentialStyle = ClientCredentialStyle.PostBody
-        });
+        }, token);
 
     private static string GetQuery(HttpResponseMessage response) =>
         response.Headers?.Location?.Query ?? response.RequestMessage?.RequestUri?.Query ?? "";

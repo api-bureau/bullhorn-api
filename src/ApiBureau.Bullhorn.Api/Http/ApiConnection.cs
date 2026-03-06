@@ -136,7 +136,7 @@ public class ApiConnection
 
     public async Task<HttpResponseMessage> GetAsync(string query, CancellationToken token)
     {
-        await PingCheckAsync();
+        await PingCheckAsync(token);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
@@ -144,31 +144,31 @@ public class ApiConnection
     }
 
     // This might be wrapped to ApiCreateEntity
-    public async Task<HttpResponseMessage> ApiPutAsync(string query, HttpContent content)
+    public async Task<HttpResponseMessage> ApiPutAsync(string query, HttpContent content, CancellationToken token)
     {
-        await PingCheckAsync();
+        await PingCheckAsync(token);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
         return await _client.PutAsync(restUrl, content);
     }
 
-    public async Task<Result<ChangeResponse>> PutAsJsonAsync(EntityType type, object content)
+    public async Task<Result<ChangeResponse>> PutAsJsonAsync(EntityType type, object content, CancellationToken token)
     {
-        var response = await PutAsJsonAsync($"entity/{type}", content);
+        var response = await PutAsJsonAsync($"entity/{type}", content, token);
 
         return await GetChangeResponseAsync(response).ConfigureAwait(false);
     }
 
-    public async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content)
+    public async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content, CancellationToken token)
     {
-        await PingCheckAsync();
+        await PingCheckAsync(token);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
         try
         {
-            return await _client.PutAsJsonAsync(restUrl, content);
+            return await _client.PutAsJsonAsync(restUrl, content, token);
         }
         catch (Exception e)
         {
@@ -188,7 +188,7 @@ public class ApiConnection
 
     public async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content, CancellationToken token = default)
     {
-        await PingCheckAsync();
+        await PingCheckAsync(token);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
@@ -204,15 +204,15 @@ public class ApiConnection
         return new HttpResponseMessage();
     }
 
-    public async Task<HttpResponseMessage> PostAsync(string query, HttpContent? content)
+    public async Task<HttpResponseMessage> PostAsync(string query, HttpContent? content, CancellationToken token)
     {
-        await PingCheckAsync();
+        await PingCheckAsync(token);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
         try
         {
-            return await _client.PostAsync(restUrl, content);
+            return await _client.PostAsync(restUrl, content, token);
         }
         catch (Exception e)
         {
@@ -222,19 +222,19 @@ public class ApiConnection
         return new HttpResponseMessage();
     }
 
-    public async Task UpdateAsync<T>(int id, string entityName, T updateDto) => await PostAsync($"entity/{entityName}/{id}",
+    public async Task UpdateAsync<T>(int id, string entityName, T updateDto, CancellationToken token) => await PostAsync($"entity/{entityName}/{id}",
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
                 AllowTrailingCommas = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            }), Encoding.UTF8, "application/json"));
+            }), Encoding.UTF8, "application/json"), token);
 
-    public async Task MassUpdateAsync<T>(string entityName, T updateDto) => await PostAsync($"massUpdate/{entityName}?",
+    public async Task MassUpdateAsync<T>(string entityName, T updateDto, CancellationToken token) => await PostAsync($"massUpdate/{entityName}?",
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
                 AllowTrailingCommas = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.Always
-            }), Encoding.UTF8, "application/json"));
+            }), Encoding.UTF8, "application/json"), token);
 
     public async Task<Result<ChangeResponse>> DeleteAsync(int id, EntityType type, CancellationToken token)
     {
@@ -245,7 +245,7 @@ public class ApiConnection
 
     public async Task<HttpResponseMessage> ApiDeleteAsync(string query, CancellationToken token)
     {
-        await PingCheckAsync();
+        await PingCheckAsync(token);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
@@ -294,7 +294,7 @@ public class ApiConnection
     /// <returns>A task that represents the asynchronous operation, containing a list of results.</returns>
     public async Task<List<T>> SearchAsync<T>(string searchTerm, int queryCount = QueryCount, int total = 0, CancellationToken token = default)
     {
-        var result = await SearchApiAsync<T>(searchTerm, queryCount);
+        var result = await SearchApiAsync<T>(searchTerm, queryCount, token: token);
 
         if (result == null || result.Data == null) return [];
 
@@ -311,7 +311,7 @@ public class ApiConnection
         // Fetch more data if necessary
         for (var i = fetchedCount; i < result.Total; i += result.Count)
         {
-            result = await SearchApiAsync<T>(searchTerm, queryCount, start: i);
+            result = await SearchApiAsync<T>(searchTerm, queryCount, start: i, token);
 
             if (result == null || result.Data == null)
             {
@@ -328,7 +328,7 @@ public class ApiConnection
 
     public void LogWarning(string text) => _logger.LogWarning(text);
 
-    private async Task PingCheckAsync()
+    private async Task PingCheckAsync(CancellationToken token)
     {
         _logger.LogDebug("Next token refresh at {expiryDate}", _session.Ping.SessionExpiryDate);
 
@@ -343,7 +343,7 @@ public class ApiConnection
 
         try
         {
-            using var response = await _client.GetAsync($"{_session.LoginResponse!.RestUrl}/ping");
+            using var response = await _client.GetAsync($"{_session.LoginResponse!.RestUrl}/ping", token);
 
             var result = await DeserializeAsync<PingResponse>(response);
 
@@ -360,7 +360,7 @@ public class ApiConnection
         {
             _logger.LogError(e, "PingCheckAsync");
 
-            await _session.ConnectAsync();
+            await _session.ConnectAsync(token: token);
         }
 
         if (_session.Ping is null)
@@ -376,7 +376,7 @@ public class ApiConnection
 
         _logger.LogInformation($"Token refresh on {_apiCallCounter} API call.");
 
-        await _session.RefreshTokenAsync();
+        await _session.RefreshTokenAsync(token);
     }
 
     private static async Task<Result<ChangeResponse>> GetChangeResponseAsync(HttpResponseMessage response)

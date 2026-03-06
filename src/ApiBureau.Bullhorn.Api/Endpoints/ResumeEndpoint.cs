@@ -4,7 +4,7 @@ public class ResumeEndpoint : EndpointBase
 {
     public ResumeEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl) { }
 
-    public async Task<ResumeDto?> ParseAsync(FileDto fileDto)
+    public async Task<ResumeDto?> ParseAsync(FileDto fileDto, CancellationToken token)
     {
         var query = $"{RequestUrl}/parseToCandidate?format=text&populateDescription=html&";
 
@@ -15,7 +15,7 @@ public class ResumeEndpoint : EndpointBase
 
         //content.Add(new ByteArrayContent(Convert.FromBase64String(fileDto.FileContent)), "resume", string.IsNullOrWhiteSpace(fileDto.Name) ? "temp-file-name" : fileDto.Name);
 
-        var response = await ApiConnection.PostAsync(query, content);
+        var response = await ApiConnection.PostAsync(query, content, token);
 
         return await response.DeserializeAsync<ResumeDto>();
     }

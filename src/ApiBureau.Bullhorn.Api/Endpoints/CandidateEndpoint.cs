@@ -9,14 +9,14 @@ public class CandidateEndpoint : SearchEndpointBase<CandidateDto>
 
     public CandidateEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
 
-    public async Task AddOldAsync(CandidateDto dto)
-        => await ApiConnection.ApiPutAsync($"entity/{RequestUrl}", new StringContent(JsonSerializer.Serialize(dto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json"));
+    public async Task AddOldAsync(CandidateDto dto, CancellationToken token)
+        => await ApiConnection.ApiPutAsync($"entity/{RequestUrl}", new StringContent(JsonSerializer.Serialize(dto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json"), token);
 
-    public async Task<Result<ChangeResponse>> AddAsync(CandidateDto dto)
-        => await ApiConnection.PutAsJsonAsync(EntityType.Candidate, dto);
+    public async Task<Result<ChangeResponse>> AddAsync(CandidateDto dto, CancellationToken token)
+        => await ApiConnection.PutAsJsonAsync(EntityType.Candidate, dto, token);
 
-    public async Task<Result<ChangeResponse>> AddAsync(object dto)
-        => await ApiConnection.PutAsJsonAsync(EntityType.Candidate, dto);
+    public async Task<Result<ChangeResponse>> AddAsync(object dto, CancellationToken token)
+        => await ApiConnection.PutAsJsonAsync(EntityType.Candidate, dto, token);
 
     public async Task<int> GetFilesCount(int id, CancellationToken token)
     {
@@ -89,6 +89,6 @@ public class CandidateEndpoint : SearchEndpointBase<CandidateDto>
     /// Http POST /entity/Candidate/{candidateId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int candidateId, object data)
-        => ApiConnection.PostAsJsonAsync(EntityType.Candidate, candidateId, data);
+    public Task<Result<ChangeResponse>> UpdateAsync(int candidateId, object data, CancellationToken token)
+        => ApiConnection.PostAsJsonAsync(EntityType.Candidate, candidateId, data, token);
 }

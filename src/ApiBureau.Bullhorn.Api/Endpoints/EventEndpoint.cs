@@ -11,7 +11,7 @@ public class EventEndpoint : EndpointBase
     /// <param name="entityNames">Comma separated entities e.g. "Candidate,ClientContact"</param>
     /// <param name="eventTypes">Comma separated events e.g. "inserted,updated,deleted"</param>
     /// <returns></returns>
-    public async Task<EventSubscribeDto?> SubscribeAsync(string subscriptionId, string entityNames, string eventTypes)
+    public async Task<EventSubscribeDto?> SubscribeAsync(string subscriptionId, string entityNames, string eventTypes, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(null, nameof(subscriptionId));
 
@@ -21,7 +21,7 @@ public class EventEndpoint : EndpointBase
 
         var query = $"{RequestUrl}/subscription/{subscriptionId}?type=entity&names={entityNames}&eventTypes={eventTypes}";
 
-        var response = await ApiConnection.ApiPutAsync(query, new StringContent(string.Empty));
+        var response = await ApiConnection.ApiPutAsync(query, new StringContent(string.Empty), token);
 
         return await response.DeserializeAsync<EventSubscribeDto>();
     }
@@ -30,7 +30,7 @@ public class EventEndpoint : EndpointBase
     {
         var unsubscribed = await UnSubscribeAsync(subscriptionId, token);
 
-        if (unsubscribed != null && unsubscribed.Result) return await SubscribeAsync(subscriptionId, entityNames, eventTypes);
+        if (unsubscribed != null && unsubscribed.Result) return await SubscribeAsync(subscriptionId, entityNames, eventTypes, token);
 
         return null;
     }

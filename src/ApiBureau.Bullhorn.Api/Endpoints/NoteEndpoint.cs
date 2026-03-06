@@ -12,8 +12,8 @@ public class NoteEndpoint : SearchEndpointBase<NoteDto>
     //public async Task AddOldAsync(NoteDto noteDto)
     //    => await ApiConnection.ApiPutAsync("entity/Note", new StringContent(JsonSerializer.Serialize(noteDto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json"));
 
-    public async Task<Result<ChangeResponse>> AddAsync(NoteDto dto)
-        => await ApiConnection.PutAsJsonAsync(EntityType.Note, dto);
+    public async Task<Result<ChangeResponse>> AddAsync(NoteDto dto, CancellationToken token)
+        => await ApiConnection.PutAsJsonAsync(EntityType.Note, dto, token);
 
     [Obsolete("Use SearchFromAsync", true)]
     public async Task<List<NoteDto>> GetFromAsync(DateTime dateTime, CancellationToken token)

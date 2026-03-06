@@ -30,8 +30,8 @@ public class AppointmentEndpoint : QueryEndpointBase<AppointmentDto>
         return await ApiConnection.QueryAsync<AppointmentDto>(query, token);
     }
 
-    public Task<Result<ChangeResponse>> AddAsync(NewAppointmentDto appointment)
-        => ApiConnection.PutAsJsonAsync(EntityType.Appointment, appointment);
+    public Task<Result<ChangeResponse>> AddAsync(NewAppointmentDto appointment, CancellationToken token)
+        => ApiConnection.PutAsJsonAsync(EntityType.Appointment, appointment, token);
 
     /// <summary>
     /// Http POST /entity/Appointment/{appointmentId}

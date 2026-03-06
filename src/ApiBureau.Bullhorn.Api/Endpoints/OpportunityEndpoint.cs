@@ -10,6 +10,6 @@ public class OpportunityEndpoint : QueryEndpointBase<JobOrderDto>
     /// Http POST /entity/Opportunity/{opportunityId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int opportunityId, object data)
-        => ApiConnection.PostAsJsonAsync(EntityType.Opportunity, opportunityId, data);
+    public Task<Result<ChangeResponse>> UpdateAsync(int opportunityId, object data, CancellationToken token)
+        => ApiConnection.PostAsJsonAsync(EntityType.Opportunity, opportunityId, data, token);
 }

@@ -47,7 +47,7 @@ public abstract class QueryEndpointBase<T> : EntityEndpointBase<T>
     }
 
     /// <summary>
-    /// Returns all items, default where condition is "id>0", useful e.g. for returing all Departments and Countries
+    /// Returns all items, default where condition is "id>0", useful e.g. for returning all Departments and Countries
     /// </summary>
     /// <param name="fields"></param>
     /// <param name="defaultWhere"></param>
