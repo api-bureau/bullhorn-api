@@ -18,6 +18,19 @@ public class JobOrderEndpoint : QueryEndpointBase<JobOrderDto>
     }
 
     /// <summary>
+    /// Adds a new job order using an anonymous or partial object, sending only the properties defined on it.
+    /// </summary>
+    /// <remarks>
+    /// Prefer this overload when only a subset of job order fields need to be set, avoiding empty values
+    /// overwriting existing Bullhorn data. The object is serialised as-is to the API.
+    /// </remarks>
+    /// <param name="dto">An object whose properties represent the job order fields to add.</param>
+    /// <param name="token">A cancellation token to cancel the asynchronous operation.</param>
+    /// <returns>A <see cref="Result{ChangeResponse}"/> indicating the outcome of the operation.</returns>
+    public async Task<Result<ChangeResponse>> AddAsync(object dto, CancellationToken token)
+        => await ApiConnection.PutAsJsonAsync(EntityType.JobOrder, dto, token);
+
+    /// <summary>
     /// Http POST /entity/JobOrder/{jobOrderId}
     /// </summary>
     /// <returns></returns>
