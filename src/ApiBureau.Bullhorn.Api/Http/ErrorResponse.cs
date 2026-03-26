@@ -7,6 +7,9 @@ public class ErrorResponse
     public int ErrorCode { get; set; }
     public List<ErrorDetail>? Errors { get; set; }
     public bool Success => string.IsNullOrWhiteSpace(ErrorMessage) && ErrorCode == 0;
+    public string? ErrorsFormatted => Errors?.Count > 0
+        ? string.Join("; ", Errors.Select(e => $"{e.PropertyName}: {e.DetailMesssage}"))
+        : null;
 }
 
 public class ErrorDetail
