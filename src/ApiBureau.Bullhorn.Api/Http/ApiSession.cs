@@ -1,4 +1,4 @@
-using IdentityModel.Client;
+
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
@@ -73,20 +73,16 @@ public class ApiSession
 
     private async Task<string> GetAuthorizationCodeAsync(IProgress<string>? progress = null, CancellationToken token = default)
     {
-        var response = await _client.RequestPasswordTokenAsync(new PasswordTokenRequest
+        var request = new AuthorizationCodeRequest
         {
             Address = _settings.AuthorizeUrl,
             ClientId = _settings.ClientId,
-            ClientSecret = _settings.Secret,
             UserName = _settings.UserName,
-            Password = _settings.Password,
-            ClientCredentialStyle = ClientCredentialStyle.PostBody,
-            Parameters = {
-                {"response_type", "code" },
-                {"action", "Login" },
-                {"state", "ips" },
-            }
-        }, token);
+            Password = _settings.Password
+        };
+        request.AddParameter("state", "ips");
+
+        var response = await _client.RequestAuthorizationCodeAsync(request, token);
 
         // response.IsError might be true (Moved temporarily) even if response is not null
         // with correct authorization code
@@ -118,24 +114,22 @@ public class ApiSession
     {
         ArgumentException.ThrowIfNullOrEmpty(authorisationCode);
 
-        var response = await _client.RequestTokenAsync(new AuthorizationCodeTokenRequest
+        var request = new AuthorizationCodeTokenRequest
         {
             Address = _settings.TokenUrl,
             ClientId = _settings.ClientId,
             ClientSecret = _settings.Secret,
-            GrantType = "authorization_code",
-            Parameters = { { "code", authorisationCode } },
-            ClientCredentialStyle = ClientCredentialStyle.PostBody
-        }, token);
+            GrantType = "authorization_code"
+        };
+        request.AddParameter("code", authorisationCode);
 
-        if (response is null || response.IsError)
-        {
-            ThrowInvalidOperation("Error retrieving token", response?.Error);
-        }
+        var response = await _client.RequestTokenAsync(request, token);
+
+        var validatedResponse = EnsureTokenResponse(response, "Error retrieving token");
 
         ReportProgress(progress, "Token retrieval was successful");
 
-        return response;
+        return validatedResponse;
     }
 
     // This API call is failing in some cases, so we retry it a few times
@@ -212,21 +206,34 @@ public class ApiSession
         }
     }
 
-    private async Task<TokenResponse> GetRefreshTokenAsync(CancellationToken token) =>
-        await _client.RequestRefreshTokenAsync(new RefreshTokenRequest
+    private async Task<TokenResponse> GetRefreshTokenAsync(CancellationToken token)
+    {
+        var response = await _client.RequestRefreshTokenAsync(new RefreshTokenRequest
         {
             Address = _settings.TokenUrl,
             ClientId = _settings.ClientId,
             ClientSecret = _settings.Secret,
-            RefreshToken = _refreshToken!,
-            ClientCredentialStyle = ClientCredentialStyle.PostBody
+            RefreshToken = _refreshToken!
         }, token);
+
+        return EnsureTokenResponse(response, "Error refreshing token");
+    }
 
     private static string GetQuery(HttpResponseMessage response) =>
         response.Headers?.Location?.Query ?? response.RequestMessage?.RequestUri?.Query ?? "";
 
     private static void ReportProgress(IProgress<string>? progress, string message)
         => progress?.Report(message);
+
+    private TokenResponse EnsureTokenResponse(TokenResponse? response, string customMessage)
+    {
+        if (response is null || response.IsError)
+        {
+            ThrowInvalidOperation(customMessage, response?.ErrorDescription ?? response?.Error);
+        }
+
+        return response;
+    }
 
     [DoesNotReturn]
     private void ThrowInvalidOperation(string customMessage, string? responseMessage = null)
