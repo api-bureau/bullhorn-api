@@ -14,6 +14,7 @@ public class ApiSession
     private const int SessionRetry = 5;
     private const int DelayBetweenRetriesInMs = 200;
     private const string NoAuthorizationCodeRetrieved = "No authorization code retrieved.";
+    private const string AuthorizationState = "ips";
     private string? _refreshToken;
 
     public LoginResponse? LoginResponse { get; private set; }
@@ -28,48 +29,20 @@ public class ApiSession
     }
 
     public async Task ConnectAsync(IProgress<string>? progress = null, CancellationToken token = default)
-    {
-        for (var tryCount = 1; tryCount <= SessionRetry; tryCount++)
-        {
-            try
+        => await ExecuteWithRetryAsync(
+            async () =>
             {
-                ReportProgress(progress, $"Attempt {tryCount}/{SessionRetry}: Trying to connect...");
-
                 var authorisationCode = await GetAuthorizationCodeAsync(progress, token);
-
                 var tokenResponse = await GetTokenResponseAsync(authorisationCode, progress, token);
 
                 await LoginAsync(tokenResponse, progress, token);
 
                 ReportProgress(progress, "Connection successful");
-
-                break;
-            }
-            catch (Exception e)
-            {
-                var errorMessage = $"Attempt {tryCount}/{SessionRetry} failed. Reason: {e.Message}";
-
-                if (tryCount < SessionRetry)
-                {
-                    ReportProgress(progress, $"{errorMessage}. Retrying...");
-
-                    _logger.LogError(e, "{errorMessage}. Retrying...", errorMessage);
-
-                    await Task.Delay(DelayBetweenRetriesInMs * tryCount);
-
-                    continue;
-                }
-                else
-                {
-                    ReportProgress(progress, $"{errorMessage}. No more retries.");
-
-                    _logger.LogError(e, "Error: {errorMessage}. No more retries.", errorMessage);
-                }
-
-                throw;
-            }
-        }
-    }
+            },
+            tryCount => $"Attempt {tryCount}/{SessionRetry}: Trying to connect...",
+            (tryCount, exception) => $"Attempt {tryCount}/{SessionRetry} failed. Reason: {exception.Message}",
+            progress,
+            token);
 
     private async Task<string> GetAuthorizationCodeAsync(IProgress<string>? progress = null, CancellationToken token = default)
     {
@@ -80,20 +53,13 @@ public class ApiSession
             UserName = _settings.UserName,
             Password = _settings.Password
         };
-        request.AddParameter("state", "ips");
+        request.AddParameter("state", AuthorizationState);
 
         var response = await _client.RequestAuthorizationCodeAsync(request, token);
 
-        // response.IsError might be true (Moved temporarily) even if response is not null
-        // with correct authorization code
-        if (response is null)
+        if (response.HttpResponse is null)
         {
-            ThrowInvalidOperation("Error retrieving authorization code", response?.Error);
-        }
-
-        if (response?.HttpResponse == null)
-        {
-            ThrowInvalidOperation("No response received", response?.Error);
+            ThrowInvalidOperation("No response received", response.ErrorDescription ?? response.Error);
         }
 
         var collection = QueryHelpers.ParseQuery(GetQuery(response.HttpResponse));
@@ -132,41 +98,30 @@ public class ApiSession
         return validatedResponse;
     }
 
-    // This API call is failing in some cases, so we retry it a few times
+    // This API call is failing in some cases, so we retry it a few times through ExecuteWithRetryAsync
     //{"errorMessage":"Invalid or expired OAuth access token.","errorMessageKey":"errors.authentication.invalidOAuthToken","errorCode":400}
     private async Task LoginAsync(TokenResponse token, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(token);
 
-        var loginUrl = _settings.LoginUrl + $"?version=2.0&access_token={token.AccessToken}&ttl={SessionLength}";
+        ArgumentException.ThrowIfNullOrEmpty(token.AccessToken);
+
+        var loginUrl = BuildLoginUrl(token.AccessToken);
 
         using var response = await _client.GetAsync(loginUrl, cancellationToken);
 
         // temp variable to log the response in case of failure
         //var temp = await response.Content.ReadAsStringAsync();
 
-        LoginResponse = await response.DeserializeAsync<LoginResponse>(_logger);
+        var loginResponse = await response.DeserializeAsync<LoginResponse>(_logger);
+        EnsureLoginResponse(loginResponse);
 
-        if (LoginResponse is null)
-        {
-            ThrowInvalidOperation("Login failed, LoginResponse is null");
-        }
-
-        if (!LoginResponse.Success)
-        {
-            ThrowInvalidOperation("Login failed, error received: {LoginResponse.ErrorMessageKey}, {LoginResponse.ErrorMessage}");
-        }
-
-        if (!LoginResponse.IsValid)
-        {
-            ThrowInvalidOperation($"Login failed, Invalid BhRestToken.");
-        }
-
-        UpdateBhRestTokenHeader(LoginResponse.BhRestToken!);
+        LoginResponse = loginResponse;
+        UpdateBhRestTokenHeader(loginResponse?.BhRestToken ?? throw new InvalidOperationException("Login failed, BhRestToken is null."));
 
         _refreshToken = token.RefreshToken;
 
-        Ping.SetExpiryDate(DateTime.Now.AddMinutes(SessionLength).Timestamp());
+        Ping.SetExpiryDate(DateTime.UtcNow.AddMinutes(SessionLength).Timestamp());
 
         ReportProgress(progress, "Login was successful");
     }
@@ -181,29 +136,15 @@ public class ApiSession
     {
         ArgumentException.ThrowIfNullOrEmpty(_refreshToken);
 
-        var tokenResponse = await GetRefreshTokenAsync(cancellationToken);
-
-        for (var tryCount = 1; tryCount <= SessionRetry; tryCount++)
-        {
-            try
+        await ExecuteWithRetryAsync(
+            async () =>
             {
+                var tokenResponse = await GetRefreshTokenAsync(cancellationToken);
                 await LoginAsync(tokenResponse, cancellationToken: cancellationToken);
-
-                break;
-            }
-            catch (Exception e)
-            {
-                if (tryCount < SessionRetry)
-                {
-                    _logger.LogError(e, $"Refresh Session creation attempt {tryCount}/{SessionRetry}");
-                    continue;
-                }
-
-                _logger.LogError(e, $"Refresh Session creation failed {tryCount}/{SessionRetry}");
-
-                throw;
-            }
-        }
+            },
+            tryCount => $"Refresh session creation attempt {tryCount}/{SessionRetry}",
+            (tryCount, exception) => $"Refresh session creation attempt {tryCount}/{SessionRetry} failed. Reason: {exception.Message}",
+            cancellationToken: cancellationToken);
     }
 
     private async Task<TokenResponse> GetRefreshTokenAsync(CancellationToken token)
@@ -225,6 +166,32 @@ public class ApiSession
     private static void ReportProgress(IProgress<string>? progress, string message)
         => progress?.Report(message);
 
+    private string BuildLoginUrl(string accessToken) =>
+        QueryHelpers.AddQueryString(_settings.LoginUrl, new Dictionary<string, string?>
+        {
+            ["version"] = "2.0",
+            ["access_token"] = accessToken,
+            ["ttl"] = SessionLength.ToString()
+        });
+
+    private void EnsureLoginResponse(LoginResponse? loginResponse)
+    {
+        if (loginResponse is null)
+        {
+            ThrowInvalidOperation("Login failed, LoginResponse is null");
+        }
+
+        if (!loginResponse.Success)
+        {
+            ThrowInvalidOperation("Login failed", $"{loginResponse.ErrorMessageKey}, {loginResponse.ErrorMessage}");
+        }
+
+        if (!loginResponse.IsValid)
+        {
+            ThrowInvalidOperation("Login failed, invalid BhRestToken.");
+        }
+    }
+
     private TokenResponse EnsureTokenResponse(TokenResponse? response, string customMessage)
     {
         if (response is null || response.IsError)
@@ -233,6 +200,48 @@ public class ApiSession
         }
 
         return response;
+    }
+
+    private async Task ExecuteWithRetryAsync(
+        Func<Task> action,
+        Func<int, string>? attemptMessageFactory = null,
+        Func<int, Exception, string>? failureMessageFactory = null,
+        IProgress<string>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        for (var tryCount = 1; tryCount <= SessionRetry; tryCount++)
+        {
+            try
+            {
+                if (attemptMessageFactory is not null)
+                {
+                    ReportProgress(progress, attemptMessageFactory(tryCount));
+                }
+
+                await action();
+                return;
+            }
+            catch (Exception exception) when (tryCount < SessionRetry)
+            {
+                var failureMessage = failureMessageFactory?.Invoke(tryCount, exception)
+                    ?? $"Attempt {tryCount}/{SessionRetry} failed. Reason: {exception.Message}";
+
+                ReportProgress(progress, $"{failureMessage}. Retrying...");
+                _logger.LogError(exception, "{failureMessage}. Retrying...", failureMessage);
+
+                await Task.Delay(DelayBetweenRetriesInMs * tryCount, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                var failureMessage = failureMessageFactory?.Invoke(tryCount, exception)
+                    ?? $"Attempt {tryCount}/{SessionRetry} failed. Reason: {exception.Message}";
+
+                ReportProgress(progress, $"{failureMessage}. No more retries.");
+                _logger.LogError(exception, "{failureMessage}. No more retries.", failureMessage);
+
+                throw;
+            }
+        }
     }
 
     [DoesNotReturn]
