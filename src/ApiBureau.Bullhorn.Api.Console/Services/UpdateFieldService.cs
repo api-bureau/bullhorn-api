@@ -24,7 +24,7 @@ public class UpdateFieldService
         {
             await _bullhornApi.CheckConnectionAsync();
 
-            await UpdatePlacementFieldAsync(6911);
+            await UpdatePlacementFieldAsync(2112);
         }
         catch (Exception e)
         {
@@ -36,5 +36,5 @@ public class UpdateFieldService
 
     // Important! Make sure you update only a field you want to update. Do not use Dtos with multiple fields which are not going to be updated because Bullhorn entity will be updated with defaults.
     private Task<Result<ChangeResponse>> UpdatePlacementFieldAsync(int placementId)
-        => _bullhornApi.Placement.UpdateAsync(placementId, new PlacementUpdateDto { CustomText8 = "New" }, default);
+        => _bullhornApi.Placement.UpdateAsync(placementId, new PlacementUpdateDto { Status = "Submitted" }, default);
 }
