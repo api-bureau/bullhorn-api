@@ -8,7 +8,7 @@ public class ErrorResponse
     public List<ErrorDetail>? Errors { get; set; }
     public bool Success => string.IsNullOrWhiteSpace(ErrorMessage) && ErrorCode == 0;
     public string? ErrorsFormatted => Errors?.Count > 0
-        ? string.Join("; ", Errors.Select(e => $"{e.PropertyName}: {e.DetailMesssage}"))
+        ? string.Join("; ", Errors.Select(e => $"{e.PropertyName}: {e.DetailMessage}"))
         : null;
 }
 
@@ -16,6 +16,6 @@ public class ErrorDetail
 {
     public string? PropertyName { get; set; }
     public string? Severity { get; set; }
-    public string? DetailMesssage { get; set; }
+    public string? DetailMessage { get; set; }
     public string? Type { get; set; }
 }
