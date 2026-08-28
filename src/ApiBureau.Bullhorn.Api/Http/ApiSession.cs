@@ -174,7 +174,7 @@ public class ApiSession
             ["ttl"] = SessionLength.ToString()
         });
 
-    private void EnsureLoginResponse(LoginResponse? loginResponse)
+    private static void EnsureLoginResponse(LoginResponse? loginResponse)
     {
         if (loginResponse is null)
         {
@@ -192,7 +192,7 @@ public class ApiSession
         }
     }
 
-    private TokenResponse EnsureTokenResponse(TokenResponse? response, string customMessage)
+    private static TokenResponse EnsureTokenResponse(TokenResponse? response, string customMessage)
     {
         if (response is null || response.IsError)
         {
@@ -245,7 +245,7 @@ public class ApiSession
     }
 
     [DoesNotReturn]
-    private void ThrowInvalidOperation(string customMessage, string? responseMessage = null)
+    private static void ThrowInvalidOperation(string customMessage, string? responseMessage = null)
     {
         if (string.IsNullOrWhiteSpace(responseMessage))
         {

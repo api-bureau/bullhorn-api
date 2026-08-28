@@ -337,6 +337,7 @@ public class ApiConnection
             _logger.LogError("{0}, Not logged in yet.", nameof(PingCheckAsync));
         }
 
+        // A still-valid ping means the existing server session can be reused.
         if (_session.Ping?.Valid ?? false) return;
 
         _apiCallCounter++;
@@ -360,6 +361,7 @@ public class ApiConnection
         {
             _logger.LogError(e, "PingCheckAsync");
 
+            // Reconnect before checking whether a token refresh is still required.
             await _session.ConnectAsync(token: token);
         }
 
@@ -374,6 +376,7 @@ public class ApiConnection
 
         if (_session.Ping.Valid) return;
 
+        // Refresh only when both the ping and reconnect paths leave the session invalid.
         _logger.LogInformation($"Token refresh on {_apiCallCounter} API call.");
 
         await _session.RefreshTokenAsync(token);

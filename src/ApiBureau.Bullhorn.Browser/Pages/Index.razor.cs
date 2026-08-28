@@ -31,7 +31,7 @@ public partial class Index
     private MarkupString _jsonResultFormatted = new();
     private JsonFlattener _flattener = new();
     private JsonSerializerFlattenOptions _options = new() { StartToken = "data", MaxDepth = 2 };
-    private JsonSerializerOptions _formattedOptions = new() { WriteIndented = true };
+    private readonly JsonSerializerOptions _formattedOptions = new() { WriteIndented = true };
 
     protected override void OnInitialized()
     {
@@ -103,7 +103,7 @@ public partial class Index
 
     private void WriteError(string message) => WriteLog($"<span class=\"text-danger\">{message}</span>");
 
-    private string ConvertDateToTimeStamp(ApiType queryType, string query)
+    private static string ConvertDateToTimeStamp(ApiType queryType, string query)
     {
         // I need to fing dates in this format 'dd/mm/yyyy HH:mm:ss', including the quotes and convert them to DateTime and then use existing extension ToTimeStamp()
 

@@ -4,7 +4,7 @@ public abstract class QueryEndpointBase<T> : EntityEndpointBase<T>
 {
     private const string DefaultWhere = "id>0";
 
-    public QueryEndpointBase(ApiConnection apiConnection, string requestUrl, string defaultFields) : base(apiConnection, requestUrl, defaultFields) { }
+    protected QueryEndpointBase(ApiConnection apiConnection, string requestUrl, string defaultFields) : base(apiConnection, requestUrl, defaultFields) { }
 
     public async Task<List<T>> QueryFromAsync(long timestampFrom, string? fields = null, CancellationToken token = default)
     {
