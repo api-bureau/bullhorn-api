@@ -9,5 +9,5 @@ public class QueryResponse : ErrorResponse
     public int Count { get; set; }
 
     //ToDo Json
-    public List<JsonDocument> Data { get; set; }
+    public List<JsonDocument> Data { get; set; } = [];
 }

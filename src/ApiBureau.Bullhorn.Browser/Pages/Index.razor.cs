@@ -17,13 +17,11 @@ public partial class Index
     [Inject] protected DataService DataService { get; set; } = default!;
 
     private bool _isLoading = false;
-    private bool _isResponse = false;
     private bool _showExamples = false;
 
     private ApiType _selectedType = ApiType.Query;
     private string _defaultQuery = "CorporationDepartment?fields=id,dateAdded,name,enabled&where=id>0&orderBy=enabled,dateAdded";
     private MarkupString _response = new();
-    private string _resultDynamic = "";
     private List<IDictionary<string, object>> _data = [];
     private HashSet<string> _columnNames = [];
     private DisplayType _displayType = DisplayType.Table;
@@ -67,7 +65,7 @@ public partial class Index
             var response = await DataService.GetAsync(query, 100, 0);
 
             WriteLog($"Response status code: {response.StatusCode}");
-            WriteLog($"Uri: {response.RequestMessage.RequestUri}");
+            WriteLog($"Uri: {response.RequestMessage?.RequestUri}");
 
             SetJsonResult(await response.Content.ReadAsStringAsync());
 

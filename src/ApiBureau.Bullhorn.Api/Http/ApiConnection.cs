@@ -411,66 +411,7 @@ public class ApiConnection
             return Result.Failure<ChangeResponse>(e.Message);
         }
     }
-
-    ///// <summary>
-    ///// Gives only total, only for search/queries
-    ///// </summary>
-    ///// <param name="query"></param>
-    ///// <returns>total number</returns>
-    //public async Task<int> TotalAsync(string query)
-    //{
-    //    var response = await ApiSearchAsync(query, 1);
-
-    //    return response.Total;
-    //}
-
-    //ToDo
-    //public async Task<SearchResponse<JObject>> ApiSearchAsync(string query, int count, int start = 0) => await ApiSearchAsync<JObject>(query, count, start);
-
-    //[Obsolete("Investigate if this should be removed", true)]
-    //public async Task<QueryResponse> ApiQueryAsync(string query, int count, int start = 0)
-    //{
-    //    query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
-
-    //    var response = await ApiGetAsync(query);
-
-    //    return await DeserializeAsync<QueryResponse>(response);
-    //}
-
-    //public async Task<DynamicQueryResponse> ApiQueryToDynamicAsync(string query, int count, int start = 0)
-    //{
-    //    query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
-
-    //    var response = await ApiGetAsync(query);
-
-    //    ApiCallCounter();
-
-    //    return await response.Content.ReadAsAsync<DynamicQueryResponse>();
-    //}
-
-    //[Obsolete("Investigate if this should be removed", true)]
-    //private static void LogList(List<JObject> list)
-    //{
-    //    foreach (var item in list)
-    //    {
-    //        Logger(JsonConvert.SerializeObject(item) + "\n");
-    //    }
-    //}
-
-    //public string GetBullhornRestToken() => _authorization.LoginResponse?.BhRestToken ?? string.Empty;
-
-    //[Obsolete("Investigate if this should be removed", true)]
-    //private static void Logger(string content) => File.AppendAllText("temp-logfile.txt", content);
-
-    //private string GetToken() => $"BhRestToken={_authorization.LoginResponse.BhRestToken}";
-
-    //private void UpdateBhRestTokenHeader()
-    //{
-    //    _httpClient.DefaultRequestHeaders.Remove("BhRestToken");
-    //    _httpClient.DefaultRequestHeaders.Add("BhRestToken", _authorization.LoginResponse.BhRestToken);
-    //}
 }
-
 // Other query examples
 //search/Note?fields=id,dateAdded,action,commentingPerson&query=dateAdded:[20210101000000 TO *] AND action:'Phone Call'&sort=-dateAdded
 //[ContestType.GdprWithDrawn] = "Candidate?fields=id&query=notes.id:\"^^action:(\\\"gdpr withdrawn\\\") AND isDeleted:false\""
