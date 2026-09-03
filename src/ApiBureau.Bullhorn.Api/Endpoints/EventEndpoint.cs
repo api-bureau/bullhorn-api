@@ -1,8 +1,16 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class EventEndpoint : EndpointBase
+public sealed class EventEndpoint
 {
-    public EventEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl) { }
+    private readonly BullhornHttpClient _client;
+
+    internal EventEndpoint(BullhornHttpClient client, string requestUrl)
+    {
+        _client = client;
+        RequestUrl = requestUrl;
+    }
+
+    public string RequestUrl { get; }
 
     /// <summary>
     /// Lets you subscribe to Bullhorn event types
@@ -21,7 +29,7 @@ public class EventEndpoint : EndpointBase
 
         var query = $"{RequestUrl}/subscription/{subscriptionId}?type=entity&names={entityNames}&eventTypes={eventTypes}";
 
-        var response = await ApiConnection.ApiPutAsync(query, new StringContent(string.Empty), token);
+        var response = await _client.ApiPutAsync(query, new StringContent(string.Empty), token);
 
         return await response.DeserializeAsync<EventSubscribeDto>();
     }
@@ -41,7 +49,7 @@ public class EventEndpoint : EndpointBase
 
         var query = $"{RequestUrl}/subscription/{subscriptionId}";
 
-        var response = await ApiConnection.ApiDeleteAsync(query, token);
+        var response = await _client.ApiDeleteAsync(query, token);
 
         return await response.DeserializeAsync<EventUnSubscribeDto>();
     }
@@ -55,9 +63,9 @@ public class EventEndpoint : EndpointBase
     {
         var query = $"{RequestUrl}/subscription/{subscriptionId}?maxEvents=100";
 
-        ApiConnection.LogWarning("Placement Event Subscription: This call might throw an error if expected the input to start with a no valid JSON token (empty string), meaning no data in this case.");
+        _client.LogWarning("Placement Event Subscription: This call might throw an error if expected the input to start with a no valid JSON token (empty string), meaning no data in this case.");
 
-        var response = await ApiConnection.GetAsync(query, token);
+        var response = await _client.GetAsync(query, token);
 
         return await response.DeserializeAsync<EventsDto>();
     }

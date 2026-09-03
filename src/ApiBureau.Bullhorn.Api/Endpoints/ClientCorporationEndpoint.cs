@@ -3,11 +3,12 @@ namespace ApiBureau.Bullhorn.Api.Endpoints;
 /// <summary>
 /// Provides query and mutation operations for Bullhorn client corporations.
 /// </summary>
-public class ClientCorporationEndpoint : QueryEndpointBase<ClientCorporationDto>
+public sealed class ClientCorporationEndpoint : QueryEndpointBase<ClientCorporationDto>
 {
     private const string EntityDefaultFields = "id,name,dateAdded";
 
-    public ClientCorporationEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
+    internal ClientCorporationEndpoint(BullhornHttpClient httpClient, string requestUrl)
+        : base(httpClient, requestUrl, EntityDefaultFields) { }
 
     /// <summary>
     /// Creates a new client corporation.
@@ -16,7 +17,7 @@ public class ClientCorporationEndpoint : QueryEndpointBase<ClientCorporationDto>
     /// <param name="token">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the create request.</returns>
     public Task<Result<ChangeResponse>> AddAsync(ClientCorporationDto dto, CancellationToken token)
-        => ApiConnection.PutAsJsonAsync(EntityType.ClientCorporation, dto, token);
+        => HttpClient.PutAsJsonAsync(EntityType.ClientCorporation, dto, token);
 
     /// <summary>
     /// Updates an existing client corporation.
@@ -26,5 +27,5 @@ public class ClientCorporationEndpoint : QueryEndpointBase<ClientCorporationDto>
     /// <param name="token">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the update request.</returns>
     public Task<Result<ChangeResponse>> UpdateAsync(int clientCorporationId, object data, CancellationToken token)
-        => ApiConnection.PostAsJsonAsync(EntityType.ClientCorporation, clientCorporationId, data, token);
+        => HttpClient.PostAsJsonAsync(EntityType.ClientCorporation, clientCorporationId, data, token);
 }

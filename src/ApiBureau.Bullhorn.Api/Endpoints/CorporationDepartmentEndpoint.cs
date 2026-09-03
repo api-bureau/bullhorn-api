@@ -1,10 +1,11 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class CorporationDepartmentEndpoint : QueryEndpointBase<CorporationDepartmentDto>
+public sealed class CorporationDepartmentEndpoint : QueryEndpointBase<CorporationDepartmentDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,enabled,name";
 
-    public CorporationDepartmentEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
+    internal CorporationDepartmentEndpoint(BullhornHttpClient httpClient, string requestUrl)
+        : base(httpClient, requestUrl, EntityDefaultFields) { }
 
     /// <summary>
     /// Returns all departments

@@ -1,21 +1,10 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class SendoutEndpoint : QueryEndpointBase<SendoutDto>
+public sealed class SendoutEndpoint : QueryEndpointBase<SendoutDto>
 {
     private const string EntityDefaultFields = "id,candidate,user,dateAdded,jobOrder,clientContact,clientCorporation";
 
-    public SendoutEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
+    internal SendoutEndpoint(BullhornHttpClient httpClient, string requestUrl)
+        : base(httpClient, requestUrl, EntityDefaultFields) { }
 
-    // Moved to QueryBaseEndpoint
-    ///// <summary>
-    ///// Get all from a specific timestamp
-    ///// </summary>
-    ///// <param name="timestampFrom"></param>
-    ///// <returns></returns>
-    //public async Task<List<SendoutDto>> GetAsync(long timestampFrom)
-    //{
-    //    var query = $"Sendout?fields=id,candidate,user,dateAdded,jobOrder,clientContact,clientCorporation&where=dateAdded>={timestampFrom}";
-
-    //    return await ApiConnection.QueryAsync<SendoutDto>(query);
-    //}
 }

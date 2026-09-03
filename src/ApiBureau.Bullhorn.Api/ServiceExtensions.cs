@@ -1,3 +1,4 @@
+using ApiBureau.Bullhorn.Api.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -26,8 +27,10 @@ public static class ServiceExtensions
     public static void AddBullhorn(this IServiceCollection services, BullhornSettings configureSettings)
     {
         services.TryAddSingleton(Options.Create(configureSettings));
-        services.AddHttpClient<IBullhornClient, BullhornClient>()
+        services.AddHttpClient<BullhornHttpClient>()
             .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(20))
             .AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(3) }));
+
+        services.AddSingleton<IBullhornClient, BullhornClient>();
     }
 }

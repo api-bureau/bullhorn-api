@@ -5,26 +5,16 @@ using System.Text.Json;
 
 namespace ApiBureau.Bullhorn.Api.Http;
 
-// Refactor according this 11th Minute https://channel9.msdn.com/Shows/XamarinShow/Azure-Active-Directory-B2C-Authentication-For-Mobile-with-Matthew-Soucoup
-// Call it Bullhorn.Identity, AcquireTokenAsync
-
-public class ApiConnection
+public sealed class BullhornHttpClient
 {
-    private const int QueryCount = 500; // 500 max in BullhornApiJsonSerializerSettings
+    internal const int QueryCount = 500; // 500 max in BullhornApiJsonSerializerSettings
     private readonly HttpClient _client;
-    private readonly ILogger<ApiConnection> _logger;
+    private readonly ILogger<BullhornHttpClient> _logger;
     private readonly BullhornSettings _settings;
     private readonly ApiSession _session;
     private readonly TimeSpan _defaultTimeout = TimeSpan.FromMinutes(5);
     private int _apiCallCounter;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        AllowTrailingCommas = true,
-        PropertyNameCaseInsensitive = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
-
-    public ApiConnection(HttpClient client, IOptions<BullhornSettings> settings, ILogger<ApiConnection> logger)
+    public BullhornHttpClient(HttpClient client, IOptions<BullhornSettings> settings, ILogger<BullhornHttpClient> logger)
     {
         _client = client;
         _client.Timeout = _defaultTimeout;
@@ -43,7 +33,7 @@ public class ApiConnection
 
     //public void SetAuthorizationMeta(BullhornSettings bullhornSettings) => _settings = bullhornSettings;
 
-    public async Task<bool> CheckConnectionAsync(IProgress<string>? progress = null)
+    internal async Task<bool> CheckConnectionAsync(IProgress<string>? progress = null)
     {
         if (_settings is null)
         {
@@ -75,40 +65,14 @@ public class ApiConnection
         }
     }
 
-    public async Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0, CancellationToken token = default)
+    internal async Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0, CancellationToken token = default)
     {
         query = $"{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
         return await GetAsync(query, token);
     }
 
-    /// <summary>
-    /// Where condition must be included
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="query"></param>
-    /// <returns></returns>
-    public async Task<List<T>> QueryAsync<T>(string query, CancellationToken token)
-    {
-        var items = new List<T>();
-
-        var result = await ApiQueryAsync<T>(query, QueryCount, token: token);
-
-        items.AddRange(result?.Data ?? new());
-
-        if (result is null) return items;
-
-        for (var i = result.Count; i < result.Total; i += result!.Count)
-        {
-            result = await ApiQueryAsync<T>(query, QueryCount, i, token: token);
-
-            items.AddRange(result?.Data ?? new());
-        }
-
-        return items;
-    }
-
-    public async Task<QueryResponse<T>?> ApiQueryAsync<T>(string query, int count, int start = 0, CancellationToken token = default)
+    internal async Task<QueryResponse<T>?> QueryPageAsync<T>(string query, int count, int start = 0, CancellationToken token = default)
     {
         query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
@@ -125,7 +89,7 @@ public class ApiConnection
     /// <param name="count">The number of results to return.</param>
     /// <param name="start">The starting index for paginated results (default is 0).</param>
     /// <returns>A task representing the asynchronous operation, containing the search response or <c>null</c> if the response couldn't be deserialized.</returns>
-    public async Task<SearchResponse<T>?> SearchApiAsync<T>(string searchTerm, int count, int start = 0, CancellationToken token = default)
+    internal async Task<SearchResponse<T>?> SearchPageAsync<T>(string searchTerm, int count, int start = 0, CancellationToken token = default)
     {
         var query = $"search/{searchTerm}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
@@ -134,7 +98,7 @@ public class ApiConnection
         return await DeserializeAsync<SearchResponse<T>>(response);
     }
 
-    public async Task<HttpResponseMessage> GetAsync(string query, CancellationToken token)
+    internal async Task<HttpResponseMessage> GetAsync(string query, CancellationToken token)
     {
         await PingCheckAsync(token);
 
@@ -144,7 +108,7 @@ public class ApiConnection
     }
 
     // This might be wrapped to ApiCreateEntity
-    public async Task<HttpResponseMessage> ApiPutAsync(string query, HttpContent content, CancellationToken token)
+    internal async Task<HttpResponseMessage> ApiPutAsync(string query, HttpContent content, CancellationToken token)
     {
         await PingCheckAsync(token);
 
@@ -153,14 +117,14 @@ public class ApiConnection
         return await _client.PutAsync(restUrl, content);
     }
 
-    public async Task<Result<ChangeResponse>> PutAsJsonAsync(EntityType type, object content, CancellationToken token)
+    internal async Task<Result<ChangeResponse>> PutAsJsonAsync(EntityType type, object content, CancellationToken token)
     {
         var response = await PutAsJsonAsync($"entity/{type}", content, token);
 
         return await GetChangeResponseAsync(response).ConfigureAwait(false);
     }
 
-    public async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content, CancellationToken token)
+    internal async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content, CancellationToken token)
     {
         await PingCheckAsync(token);
 
@@ -179,14 +143,14 @@ public class ApiConnection
     }
 
     // Probably this pattern should be used across
-    public async Task<Result<ChangeResponse>> PostAsJsonAsync(EntityType type, int entityId, object content, CancellationToken token = default)
+    internal async Task<Result<ChangeResponse>> PostAsJsonAsync(EntityType type, int entityId, object content, CancellationToken token = default)
     {
         var response = await PostAsJsonAsync($"entity/{type}/{entityId}", content, token);
 
         return await GetChangeResponseAsync(response).ConfigureAwait(false);
     }
 
-    public async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content, CancellationToken token = default)
+    internal async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content, CancellationToken token = default)
     {
         await PingCheckAsync(token);
 
@@ -204,7 +168,7 @@ public class ApiConnection
         return new HttpResponseMessage();
     }
 
-    public async Task<HttpResponseMessage> PostAsync(string query, HttpContent? content, CancellationToken token)
+    internal async Task<HttpResponseMessage> PostAsync(string query, HttpContent? content, CancellationToken token)
     {
         await PingCheckAsync(token);
 
@@ -222,28 +186,28 @@ public class ApiConnection
         return new HttpResponseMessage();
     }
 
-    public async Task UpdateAsync<T>(int id, string entityName, T updateDto, CancellationToken token) => await PostAsync($"entity/{entityName}/{id}",
+    internal async Task UpdateAsync<T>(int id, string entityName, T updateDto, CancellationToken token) => await PostAsync($"entity/{entityName}/{id}",
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
                 AllowTrailingCommas = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             }), Encoding.UTF8, "application/json"), token);
 
-    public async Task MassUpdateAsync<T>(string entityName, T updateDto, CancellationToken token) => await PostAsync($"massUpdate/{entityName}?",
+    internal async Task MassUpdateAsync<T>(string entityName, T updateDto, CancellationToken token) => await PostAsync($"massUpdate/{entityName}?",
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
                 AllowTrailingCommas = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.Always
             }), Encoding.UTF8, "application/json"), token);
 
-    public async Task<Result<ChangeResponse>> DeleteAsync(int id, EntityType type, CancellationToken token)
+    internal async Task<Result<ChangeResponse>> DeleteAsync(int id, EntityType type, CancellationToken token)
     {
         var response = await ApiDeleteAsync($"entity/{type}/{id}?", token);
 
         return await GetChangeResponseAsync(response).ConfigureAwait(false);
     }
 
-    public async Task<HttpResponseMessage> ApiDeleteAsync(string query, CancellationToken token)
+    internal async Task<HttpResponseMessage> ApiDeleteAsync(string query, CancellationToken token)
     {
         await PingCheckAsync(token);
 
@@ -252,81 +216,12 @@ public class ApiConnection
         return await _client.DeleteAsync(restUrl, token);
     }
 
-    //ToDo
-    //public List<T> MapResults<T>(IEnumerable<JObject> data)
-    //{
-    //    var objects = data.Select(s => s.ToObject<T>()).ToList();
-
-    //    return objects;
-    //}
-
-    public static string GetQuotedString(IEnumerable<string> list) => string.Join(" OR ", list.Select(s => $"\"{s}\""));
-
-    public Task<T?> DeserializeAsync<T>(HttpResponseMessage response)
+    internal Task<T?> DeserializeAsync<T>(HttpResponseMessage response)
         => response.DeserializeAsync<T>(_logger);
 
-    public async Task<T?> EntityAsync<T>(string query, CancellationToken token)
-    {
-        query = $"entity/{query}";
+    internal void LogWarning(string text) => _logger.LogWarning(text);
 
-        var response = await GetAsync(query, token);
-
-        var entityResponse = await DeserializeAsync<EntityResponse<T>>(response);
-
-        if (entityResponse is null)
-        {
-            _logger.LogError("EntityAsync, Entity deserialization failed.");
-
-            return default;
-        }
-
-        return entityResponse.Data;
-    }
-
-    /// <summary>
-    /// Performs an asynchronous search query with pagination, returning a list of results.
-    /// Supports a maximum result count through the <paramref name="total"/> parameter.
-    /// </summary>
-    /// <typeparam name="T">The type of items in the search result.</typeparam>
-    /// <param name="searchTerm">The search term or query string.</param>
-    /// <param name="queryCount">The number of results to fetch per request (defaults to a constant QueryCount).</param>
-    /// <param name="total">The maximum number of results to return (optional).</param>
-    /// <returns>A task that represents the asynchronous operation, containing a list of results.</returns>
-    public async Task<List<T>> SearchAsync<T>(string searchTerm, int queryCount = QueryCount, int total = 0, CancellationToken token = default)
-    {
-        var result = await SearchApiAsync<T>(searchTerm, queryCount, token: token);
-
-        if (result == null || result.Data == null) return [];
-
-        var data = new List<T>(result.Data);
-
-        var fetchedCount = result.Count;
-
-        // If total is provided and we've already fetched enough data, return
-        if (total != 0 && fetchedCount >= total)
-        {
-            return data;
-        }
-
-        // Fetch more data if necessary
-        for (var i = fetchedCount; i < result.Total; i += result.Count)
-        {
-            result = await SearchApiAsync<T>(searchTerm, queryCount, start: i, token);
-
-            if (result == null || result.Data == null)
-            {
-                break;
-            }
-
-            data.AddRange(result.Data);
-
-            if (total != 0 && total <= i) break;
-        }
-
-        return data ?? [];
-    }
-
-    public void LogWarning(string text) => _logger.LogWarning(text);
+    internal void LogError(string message, params object?[] args) => _logger.LogError(message, args);
 
     private async Task PingCheckAsync(CancellationToken token)
     {

@@ -3,18 +3,19 @@ namespace ApiBureau.Bullhorn.Api.Endpoints;
 /// <summary>
 /// JobOrder entity with default fields: id,dateAdded,dateLastModified,status,title,source,owner,isOpen,isDeleted,clientContact,clientCorporation
 /// </summary>
-public class JobOrderEndpoint : QueryEndpointBase<JobOrderDto>
+public sealed class JobOrderEndpoint : QueryEndpointBase<JobOrderDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,dateLastModified,status,title,source,owner,isOpen,isDeleted,clientContact,clientCorporation";
 
-    public JobOrderEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
+    internal JobOrderEndpoint(BullhornHttpClient httpClient, string requestUrl)
+        : base(httpClient, requestUrl, EntityDefaultFields) { }
 
     [Obsolete("Use QueryNewAndUpdatedFromAsync", true)]
     public async Task<List<JobOrderDto>> GetNewAndUpdatedFromAsync(long timestampFrom, CancellationToken token)
     {
         var query = $"{RequestUrl}?fields={DefaultFields}&where=dateAdded>{timestampFrom} OR dateLastModified>{timestampFrom}";
 
-        return await ApiConnection.QueryAsync<JobOrderDto>(query, token);
+        return await ExecuteQueryAsync(query, token);
     }
 
     /// <summary>
@@ -28,12 +29,12 @@ public class JobOrderEndpoint : QueryEndpointBase<JobOrderDto>
     /// <param name="token">A cancellation token to cancel the asynchronous operation.</param>
     /// <returns>A <see cref="Result{ChangeResponse}"/> indicating the outcome of the operation.</returns>
     public async Task<Result<ChangeResponse>> AddAsync(object dto, CancellationToken token)
-        => await ApiConnection.PutAsJsonAsync(EntityType.JobOrder, dto, token);
+        => await HttpClient.PutAsJsonAsync(EntityType.JobOrder, dto, token);
 
     /// <summary>
     /// Http POST /entity/JobOrder/{jobOrderId}
     /// </summary>
     /// <returns></returns>
     public Task<Result<ChangeResponse>> UpdateAsync(int jobOrderId, object data, CancellationToken token = default)
-        => ApiConnection.PostAsJsonAsync(EntityType.JobOrder, jobOrderId, data, token);
+        => HttpClient.PostAsJsonAsync(EntityType.JobOrder, jobOrderId, data, token);
 }

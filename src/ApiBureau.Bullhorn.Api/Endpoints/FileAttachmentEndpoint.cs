@@ -1,12 +1,19 @@
+using ApiBureau.Bullhorn.Api.Internals;
+
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class FileAttachmentEndpoint : EndpointBase
+public sealed class FileAttachmentEndpoint
 {
-    public FileAttachmentEndpoint(ApiConnection apiConnection) : base(apiConnection, "") { }
+    private readonly QueryOperations<FileAttachmentDto> _operations;
+
+    internal FileAttachmentEndpoint(BullhornHttpClient client)
+        => _operations = new(client, string.Empty, string.Empty);
+
+    public string RequestUrl => string.Empty;
 
     public async Task<List<FileAttachmentDto>> GetAsync(string query, CancellationToken token)
     {
-        var data = await ApiConnection.QueryAsync<FileAttachmentDto>(query, token);
+        var data = await _operations.ExecuteAsync(query, token);
 
         return data;
 

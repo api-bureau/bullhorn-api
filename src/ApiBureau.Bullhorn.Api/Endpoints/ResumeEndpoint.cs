@@ -1,8 +1,16 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class ResumeEndpoint : EndpointBase
+public sealed class ResumeEndpoint
 {
-    public ResumeEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl) { }
+    private readonly BullhornHttpClient _client;
+
+    internal ResumeEndpoint(BullhornHttpClient client, string requestUrl)
+    {
+        _client = client;
+        RequestUrl = requestUrl;
+    }
+
+    public string RequestUrl { get; }
 
     public async Task<ResumeDto?> ParseAsync(FileDto fileDto, CancellationToken token)
     {
@@ -15,7 +23,7 @@ public class ResumeEndpoint : EndpointBase
 
         //content.Add(new ByteArrayContent(Convert.FromBase64String(fileDto.FileContent)), "resume", string.IsNullOrWhiteSpace(fileDto.Name) ? "temp-file-name" : fileDto.Name);
 
-        var response = await ApiConnection.PostAsync(query, content, token);
+        var response = await _client.PostAsync(query, content, token);
 
         return await response.DeserializeAsync<ResumeDto>();
     }

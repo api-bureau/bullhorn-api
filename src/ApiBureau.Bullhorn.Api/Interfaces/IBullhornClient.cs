@@ -1,3 +1,5 @@
+using ApiBureau.Bullhorn.Api.Endpoints;
+
 namespace ApiBureau.Bullhorn.Api.Interfaces;
 
 public interface IBullhornClient
@@ -27,11 +29,13 @@ public interface IBullhornClient
     ResumeEndpoint Resume { get; }
     SendoutEndpoint Sendout { get; }
 
+    // ToDo move raw GET access to client.Advanced during public API normalization.
     Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0, CancellationToken token = default);
 
     /// <summary>
     /// Check the Bullhorn client connection.
     /// </summary>
     Task<bool> CheckConnectionAsync(IProgress<string>? progress = null);
+    // ToDo move raw query access to client.Advanced during public API normalization.
     Task<List<T>> QueryAsync<T>(string query, CancellationToken token);
 }

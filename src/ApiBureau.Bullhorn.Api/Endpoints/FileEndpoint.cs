@@ -1,14 +1,22 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class FileEndpoint : EndpointBase
+public sealed class FileEndpoint
 {
-    public FileEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl) { }
+    private readonly BullhornHttpClient _client;
+
+    internal FileEndpoint(BullhornHttpClient client, string requestUrl)
+    {
+        _client = client;
+        RequestUrl = requestUrl;
+    }
+
+    public string RequestUrl { get; }
 
     public async Task<FileDto?> GetFileAsync(EntityType entityType, int entityId, int fileId, CancellationToken token)
     {
         var query = $"{RequestUrl}/{entityType}/{entityId}/{fileId}?";
 
-        var response = await ApiConnection.GetAsync(query, token);
+        var response = await _client.GetAsync(query, token);
 
         var fileResponse = await response.DeserializeAsync<FileResponse<FileDto>>();
 
@@ -21,7 +29,7 @@ public class FileEndpoint : EndpointBase
         //ToDo refactor and use EntityType
         var query = $"{RequestUrl}/{entityType}/{entityId}/{fileId}?";
 
-        var response = await ApiConnection.GetAsync(query, token);
+        var response = await _client.GetAsync(query, token);
 
         var fileResponse = await response.DeserializeAsync<FileResponse<FileDto>>();
 

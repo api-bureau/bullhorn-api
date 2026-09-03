@@ -1,61 +1,56 @@
+using ApiBureau.Bullhorn.Api.Internals;
+
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public abstract class QueryEndpointBase<T> : EntityEndpointBase<T>
+public abstract class QueryEndpointBase<T>
 {
     private const string DefaultWhere = "id>0";
+    private readonly QueryOperations<T> _operations;
 
-    protected QueryEndpointBase(ApiConnection apiConnection, string requestUrl, string defaultFields) : base(apiConnection, requestUrl, defaultFields) { }
-
-    public async Task<List<T>> QueryFromAsync(long timestampFrom, string? fields = null, CancellationToken token = default)
+    private protected QueryEndpointBase(BullhornHttpClient httpClient, string requestUrl, string defaultFields)
     {
-        var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom}";
+        ArgumentNullException.ThrowIfNull(httpClient);
 
-        // Appointments "AND candidateReference IS NOT NULL"
-
-        return await ApiConnection.QueryAsync<T>(query, token).ConfigureAwait(false);
+        HttpClient = httpClient;
+        RequestUrl = requestUrl;
+        DefaultFields = defaultFields;
+        _operations = new(httpClient, requestUrl, defaultFields);
     }
 
-    public async Task<List<T>> QueryFromToAsync(long timestampFrom, long timestampTo, string? fields = null, CancellationToken token = default)
-    {
-        var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom} AND dateAdded<{timestampTo}";
+    private protected BullhornHttpClient HttpClient { get; }
 
-        // Appointments "AND candidateReference IS NOT NULL"
+    public string RequestUrl { get; }
 
-        return await ApiConnection.QueryAsync<T>(query, token).ConfigureAwait(false);
-    }
+    public string DefaultFields { get; }
 
-    /// <summary>
-    /// Uses /query, and dateAdded and dateLastModified for search
-    /// </summary>
-    /// <param name="timestampFrom"></param>
-    /// <param name="fields"></param>
-    /// <returns></returns>
-    public async Task<List<T>> QueryNewAndUpdatedFromAsync(long timestampFrom, string? fields = null, CancellationToken token = default)
-    {
-        var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom} OR dateLastModified>={timestampFrom}";
+    // ToDo rename to GetByIdAsync during public API normalization.
+    public Task<T?> GetAsync(int id, string? fields = null, CancellationToken token = default)
+        => _operations.GetAsync(id, fields, token);
 
-        // Appointments "AND candidateReference IS NOT NULL"
+    // ToDo rename to GetByIdsAsync during public API normalization.
+    public Task<List<T>> GetAsync(IEnumerable<int> ids, string? fields = null, CancellationToken token = default)
+        => _operations.GetAsync(ids, fields, token);
 
-        return await ApiConnection.QueryAsync<T>(query, token).ConfigureAwait(false);
-    }
+    // ToDo rename to GetAddedSinceAsync during public API normalization.
+    public Task<List<T>> QueryFromAsync(long timestampFrom, string? fields = null, CancellationToken token = default)
+        => _operations.QueryFromAsync(timestampFrom, fields, token);
 
-    public async Task<List<T>> QueryUpdatedFromAsync(long timestampFrom, string? fields = null, CancellationToken token = default)
-    {
-        var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where=dateLastModified>{timestampFrom}";
+    // ToDo rename to GetAddedBetweenAsync during public API normalization.
+    public Task<List<T>> QueryFromToAsync(long timestampFrom, long timestampTo, string? fields = null, CancellationToken token = default)
+        => _operations.QueryFromToAsync(timestampFrom, timestampTo, fields, token);
 
-        return await ApiConnection.QueryAsync<T>(query, token).ConfigureAwait(false);
-    }
+    // ToDo rename to GetChangedSinceAsync during public API normalization.
+    public Task<List<T>> QueryNewAndUpdatedFromAsync(long timestampFrom, string? fields = null, CancellationToken token = default)
+        => _operations.QueryNewAndUpdatedFromAsync(timestampFrom, fields, token);
 
-    /// <summary>
-    /// Returns all items, default where condition is "id>0", useful e.g. for returning all Departments and Countries
-    /// </summary>
-    /// <param name="fields"></param>
-    /// <param name="defaultWhere"></param>
-    /// <returns></returns>
-    public async Task<List<T>> QueryWhereAsync(string? fields = null, string? defaultWhere = DefaultWhere, CancellationToken token = default)
-    {
-        var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where={defaultWhere ?? DefaultWhere}";
+    // ToDo rename to GetUpdatedSinceAsync during public API normalization.
+    public Task<List<T>> QueryUpdatedFromAsync(long timestampFrom, string? fields = null, CancellationToken token = default)
+        => _operations.QueryUpdatedFromAsync(timestampFrom, fields, token);
 
-        return await ApiConnection.QueryAsync<T>(query, token).ConfigureAwait(false);
-    }
+    // ToDo rename to GetWhereAsync during public API normalization.
+    public Task<List<T>> QueryWhereAsync(string? fields = null, string? defaultWhere = DefaultWhere, CancellationToken token = default)
+        => _operations.QueryWhereAsync(fields, defaultWhere, token);
+
+    private protected Task<List<T>> ExecuteQueryAsync(string query, CancellationToken token)
+        => _operations.ExecuteAsync(query, token);
 }

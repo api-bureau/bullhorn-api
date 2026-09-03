@@ -1,10 +1,11 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class JobSubmissionEndpoint : QueryEndpointBase<JobSubmissionDto>
+public sealed class JobSubmissionEndpoint : QueryEndpointBase<JobSubmissionDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,dateLastModified,status,isDeleted,candidate,jobOrder,sendingUser";
 
-    public JobSubmissionEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
+    internal JobSubmissionEndpoint(BullhornHttpClient httpClient, string requestUrl)
+        : base(httpClient, requestUrl, EntityDefaultFields) { }
 
     /// <summary>
     /// Adds a new job submission using an anonymous or partial object, sending only the properties defined on it.
@@ -17,12 +18,12 @@ public class JobSubmissionEndpoint : QueryEndpointBase<JobSubmissionDto>
     /// <param name="token">A cancellation token to cancel the asynchronous operation.</param>
     /// <returns>A <see cref="Result{ChangeResponse}"/> indicating the outcome of the operation.</returns>
     public async Task<Result<ChangeResponse>> AddAsync(object dto, CancellationToken token)
-        => await ApiConnection.PutAsJsonAsync(EntityType.JobSubmission, dto, token);
+        => await HttpClient.PutAsJsonAsync(EntityType.JobSubmission, dto, token);
 
     /// <summary>
     /// Http POST /entity/JobSubmission/{jobSubmissionId}
     /// </summary>
     /// <returns></returns>
     public Task<Result<ChangeResponse>> UpdateAsync(int jobSubmissionId, object data, CancellationToken token)
-        => ApiConnection.PostAsJsonAsync(EntityType.JobSubmission, jobSubmissionId, data, token);
+        => HttpClient.PostAsJsonAsync(EntityType.JobSubmission, jobSubmissionId, data, token);
 }

@@ -1,15 +1,16 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class CandidateWorkHistoryEndpoint : QueryEndpointBase<CandidateWorkHistoryDto>
+public sealed class CandidateWorkHistoryEndpoint : QueryEndpointBase<CandidateWorkHistoryDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,isDeleted,candidate(id)";
 
-    public CandidateWorkHistoryEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
+    internal CandidateWorkHistoryEndpoint(BullhornHttpClient httpClient, string requestUrl)
+        : base(httpClient, requestUrl, EntityDefaultFields) { }
 
     public async Task<List<CandidateWorkHistoryDto>> GetDeletedFromAsync(DateTime dateAddedFrom, string? fields = null, CancellationToken token = default)
     {
         var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where=isDeleted=true AND dateAdded>={dateAddedFrom.Timestamp()}";
 
-        return await ApiConnection.QueryAsync<CandidateWorkHistoryDto>(query, token);
+        return await ExecuteQueryAsync(query, token);
     }
 }

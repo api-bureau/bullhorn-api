@@ -1,10 +1,12 @@
-using Microsoft.Extensions.Logging;
+using ApiBureau.Bullhorn.Api.Endpoints;
+using ApiBureau.Bullhorn.Api.Interfaces;
+using ApiBureau.Bullhorn.Api.Internals;
 
 namespace ApiBureau.Bullhorn.Api;
 
-public class BullhornClient : IBullhornClient //: BaseClient
+public sealed class BullhornClient : IBullhornClient
 {
-    private readonly ApiConnection _apiConnection;
+    private readonly BullhornHttpClient _httpClient;
 
     public AppointmentEndpoint Appointment { get; }
     public CandidateEndpoint Candidate { get; }
@@ -31,43 +33,44 @@ public class BullhornClient : IBullhornClient //: BaseClient
     public ResumeEndpoint Resume { get; }
     public SendoutEndpoint Sendout { get; }
 
-    // ToDo: Shall we move the below to the setter above?
-    public BullhornClient(HttpClient client, IOptions<BullhornSettings> settings, ILogger<ApiConnection> logger)
+    public BullhornClient(BullhornHttpClient httpClient)
     {
-        _apiConnection = new ApiConnection(client, settings, logger);
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
-        Appointment = new(_apiConnection, "Appointment");
-        Candidate = new(_apiConnection, "Candidate");
-        CandidateWorkHistory = new(_apiConnection, "CandidateWorkHistory");
-        ClientContact = new(_apiConnection, "ClientContact");
-        ClientCorporation = new(_apiConnection, "ClientCorporation");
-        CorporateUser = new(_apiConnection, "CorporateUser");
-        CorporationDepartment = new(_apiConnection, "CorporationDepartment");
-        Country = new(_apiConnection, "Country");
-        Department = new(_apiConnection, "Department");
-        EntityEditHistory = new(_apiConnection);
-        Event = new(_apiConnection, "event");
-        FileAttachment = new(_apiConnection);
-        File = new(_apiConnection, "file");
-        JobOrder = new(_apiConnection, "JobOrder");
-        JobSubmission = new(_apiConnection, "JobSubmission");
-        JobSubmissionHistory = new(_apiConnection, "JobSubmissionHistory");
-        MassUpdate = new(_apiConnection, "massUpdate");
-        Note = new(_apiConnection, "Note");
-        Opportunity = new(_apiConnection, "Opportunity");
-        Placement = new(_apiConnection, "Placement");
-        PlacementChangeRequest = new(_apiConnection, "PlacementChangeRequest");
-        PlacementCommission = new(_apiConnection, "PlacementCommission");
-        Resume = new(_apiConnection, "resume");
-        Sendout = new(_apiConnection, "Sendout");
+        Appointment = new(_httpClient, "Appointment");
+        Candidate = new(_httpClient, "Candidate");
+        CandidateWorkHistory = new(_httpClient, "CandidateWorkHistory");
+        ClientContact = new(_httpClient, "ClientContact");
+        ClientCorporation = new(_httpClient, "ClientCorporation");
+        CorporateUser = new(_httpClient, "CorporateUser");
+        CorporationDepartment = new(_httpClient, "CorporationDepartment");
+        Country = new(_httpClient, "Country");
+        Department = new(_httpClient, "Department");
+        EntityEditHistory = new(_httpClient);
+        Event = new(_httpClient, "event");
+        FileAttachment = new(_httpClient);
+        File = new(_httpClient, "file");
+        JobOrder = new(_httpClient, "JobOrder");
+        JobSubmission = new(_httpClient, "JobSubmission");
+        JobSubmissionHistory = new(_httpClient, "JobSubmissionHistory");
+        MassUpdate = new(_httpClient, "massUpdate");
+        Note = new(_httpClient, "Note");
+        Opportunity = new(_httpClient, "Opportunity");
+        Placement = new(_httpClient, "Placement");
+        PlacementChangeRequest = new(_httpClient, "PlacementChangeRequest");
+        PlacementCommission = new(_httpClient, "PlacementCommission");
+        Resume = new(_httpClient, "resume");
+        Sendout = new(_httpClient, "Sendout");
     }
 
     // ToDo Refactor this so the check connection is done automatically
-    public Task<bool> CheckConnectionAsync(IProgress<string>? progress = null) => _apiConnection.CheckConnectionAsync(progress);
+    public Task<bool> CheckConnectionAsync(IProgress<string>? progress = null) => _httpClient.CheckConnectionAsync(progress);
 
-    public Task<List<T>> QueryAsync<T>(string query, CancellationToken token) => _apiConnection.QueryAsync<T>(query, token);
+    // ToDo move raw query access to client.Advanced during public API normalization.
+    public Task<List<T>> QueryAsync<T>(string query, CancellationToken token)
+        => new QueryOperations<T>(_httpClient, string.Empty, string.Empty).ExecuteAsync(query, token);
 
-    // ToDo Temporary Location
+    // ToDo move raw GET access to client.Advanced during public API normalization.
     public Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0, CancellationToken token = default)
-        => _apiConnection.ApiGetAsync(query, count, start, token: token);
+        => _httpClient.ApiGetAsync(query, count, start, token: token);
 }

@@ -1,17 +1,18 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class AppointmentEndpoint : QueryEndpointBase<AppointmentDto>
+public sealed class AppointmentEndpoint : QueryEndpointBase<AppointmentDto>
 {
     private const string EntityDefaultFields = "id,candidateReference,clientContactReference,dateAdded,dateBegin,dateLastModified,type,isDeleted,jobOrder,owner";
 
-    public AppointmentEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
+    internal AppointmentEndpoint(BullhornHttpClient httpClient, string requestUrl)
+        : base(httpClient, requestUrl, EntityDefaultFields) { }
 
     [Obsolete("Use QueryFromAsync", true)]
     public async Task<List<AppointmentDto>> GetAsync(long timestampFrom, CancellationToken token)
     {
         var query = $"{RequestUrl}?fields={DefaultFields}&where=dateAdded>{timestampFrom} AND candidateReference IS NOT NULL";
 
-        return await ApiConnection.QueryAsync<AppointmentDto>(query, token);
+        return await ExecuteQueryAsync(query, token);
     }
 
     [Obsolete("Use QueryFromToAsync", true)]
@@ -19,7 +20,7 @@ public class AppointmentEndpoint : QueryEndpointBase<AppointmentDto>
     {
         var query = $"{RequestUrl}?fields={DefaultFields}&where=dateAdded>{timestampFrom} AND dateAdded<{timestampTo} AND candidateReference IS NOT NULL";
 
-        return await ApiConnection.QueryAsync<AppointmentDto>(query, token);
+        return await ExecuteQueryAsync(query, token);
     }
 
     [Obsolete("Use QueryNewAndUpdatedFromAsync", true)]
@@ -27,16 +28,16 @@ public class AppointmentEndpoint : QueryEndpointBase<AppointmentDto>
     {
         var query = $"{RequestUrl}?fields={DefaultFields}&where=(dateAdded>{timestampFrom} OR dateLastModified>{timestampFrom}) AND candidateReference IS NOT NULL";
 
-        return await ApiConnection.QueryAsync<AppointmentDto>(query, token);
+        return await ExecuteQueryAsync(query, token);
     }
 
     public Task<Result<ChangeResponse>> AddAsync(NewAppointmentDto appointment, CancellationToken token)
-        => ApiConnection.PutAsJsonAsync(EntityType.Appointment, appointment, token);
+        => HttpClient.PutAsJsonAsync(EntityType.Appointment, appointment, token);
 
     /// <summary>
     /// Http POST /entity/Appointment/{appointmentId}
     /// </summary>
     /// <returns></returns>
     public Task<Result<ChangeResponse>> UpdateAsync(int appointmentId, object data)
-        => ApiConnection.PostAsJsonAsync(EntityType.Appointment, appointmentId, data);
+        => HttpClient.PostAsJsonAsync(EntityType.Appointment, appointmentId, data);
 }

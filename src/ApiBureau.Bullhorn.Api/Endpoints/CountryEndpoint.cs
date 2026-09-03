@@ -1,13 +1,14 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class CountryEndpoint : QueryEndpointBase<CountryDto>
+public sealed class CountryEndpoint : QueryEndpointBase<CountryDto>
 {
     private const string EntityDefaultFields = "id,code,name";
 
-    public CountryEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
+    internal CountryEndpoint(BullhornHttpClient httpClient, string requestUrl)
+        : base(httpClient, requestUrl, EntityDefaultFields) { }
 
     /// <summary>
-    /// Returns all coutries
+    /// Returns all countries
     /// </summary>
     /// <returns></returns>
     public async Task<List<CountryDto>> GetAllAsync() => await QueryWhereAsync();

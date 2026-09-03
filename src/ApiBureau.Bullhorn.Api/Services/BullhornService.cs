@@ -1,3 +1,5 @@
+using ApiBureau.Bullhorn.Api.Interfaces;
+
 namespace ApiBureau.Bullhorn.Api.Services;
 
 /// <summary>

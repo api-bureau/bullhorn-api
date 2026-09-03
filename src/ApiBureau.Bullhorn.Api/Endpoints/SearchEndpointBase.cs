@@ -1,78 +1,51 @@
+using ApiBureau.Bullhorn.Api.Internals;
+
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public abstract class SearchEndpointBase<T>(ApiConnection apiConnection, string requestUrl, string defaultFields)
-    : EntityEndpointBase<T>(apiConnection, requestUrl, defaultFields)
+public abstract class SearchEndpointBase<T>
 {
-    /// <summary>
-    /// Searches for entities added on or after <paramref name="dateTimeFrom"/> using the <c>/search</c> endpoint,
-    /// filtering by <c>dateAdded</c>.
-    /// </summary>
-    /// <param name="dateTimeFrom">The inclusive lower bound of the date range.</param>
-    /// <param name="fields">
-    /// Comma-separated list of fields to return.
-    /// Defaults to <see cref="EntityEndpointBase{T}.DefaultFields"/> when <see langword="null"/>.
-    /// </param>
-    /// <param name="token">A token to cancel the asynchronous operation.</param>
-    /// <returns>A list of entities matching the search criteria.</returns>
-    public async Task<List<T>> SearchFromAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken token = default)
-    {
-        var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&query=dateAdded:[{dateTimeFrom:yyyyMMddHHmmss} TO *]";
+    private readonly SearchOperations<T> _operations;
 
-        return await ApiConnection.SearchAsync<T>(query, token: token).ConfigureAwait(false);
+    private protected SearchEndpointBase(BullhornHttpClient httpClient, string requestUrl, string defaultFields)
+    {
+        ArgumentNullException.ThrowIfNull(httpClient);
+
+        HttpClient = httpClient;
+        RequestUrl = requestUrl;
+        DefaultFields = defaultFields;
+        _operations = new(httpClient, requestUrl, defaultFields);
     }
 
-    /// <summary>
-    /// Searches for entities added within the specified date range using the <c>/search</c> endpoint,
-    /// filtering by <c>dateAdded</c>.
-    /// </summary>
-    /// <param name="dateTimeFrom">The inclusive lower bound of the date range.</param>
-    /// <param name="dateTimeTo">The inclusive upper bound of the date range.</param>
-    /// <param name="fields">
-    /// Comma-separated list of fields to return.
-    /// Defaults to <see cref="EntityEndpointBase{T}.DefaultFields"/> when <see langword="null"/>.
-    /// </param>
-    /// <param name="token">A token to cancel the asynchronous operation.</param>
-    /// <returns>A list of entities matching the search criteria.</returns>
-    public async Task<List<T>> SearchFromToAsync(DateTime dateTimeFrom, DateTime dateTimeTo, string? fields = null, CancellationToken token = default)
-    {
-        var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&query=dateAdded:[{dateTimeFrom:yyyyMMddHHmmss} TO {dateTimeTo:yyyyMMddHHmmss}]";
+    private protected BullhornHttpClient HttpClient { get; }
 
-        return await ApiConnection.SearchAsync<T>(query, token: token).ConfigureAwait(false);
-    }
+    public string RequestUrl { get; }
 
-    /// <summary>
-    /// Searches for entities that were added or last modified on or after <paramref name="dateTimeFrom"/>
-    /// using the <c>/search</c> endpoint, filtering by <c>dateAdded</c> and <c>dateLastModified</c>.
-    /// </summary>
-    /// <param name="dateTimeFrom">The inclusive lower bound of the date range.</param>
-    /// <param name="fields">
-    /// Comma-separated list of fields to return.
-    /// Defaults to <see cref="EntityEndpointBase{T}.DefaultFields"/> when <see langword="null"/>.
-    /// </param>
-    /// <param name="token">A token to cancel the asynchronous operation.</param>
-    /// <returns>A list of entities matching the search criteria.</returns>
-    public async Task<List<T>> SearchNewAndUpdatedFromAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken token = default)
-    {
-        var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&query=dateAdded:[{dateTimeFrom:yyyyMMddHHmmss} TO *] OR dateLastModified:[{dateTimeFrom:yyyyMMddHHmmss} TO *]";
+    public string DefaultFields { get; }
 
-        return await ApiConnection.SearchAsync<T>(query, token: token).ConfigureAwait(false);
-    }
+    // ToDo rename to GetByIdAsync during public API normalization.
+    public Task<T?> GetAsync(int id, string? fields = null, CancellationToken token = default)
+        => _operations.GetAsync(id, fields, token);
 
-    /// <summary>
-    /// Searches for entities last modified on or after <paramref name="dateTime"/> using the <c>/search</c>
-    /// endpoint, filtering by <c>dateLastModified</c>.
-    /// </summary>
-    /// <param name="dateTime">The inclusive lower bound of the date range.</param>
-    /// <param name="fields">
-    /// Comma-separated list of fields to return.
-    /// Defaults to <see cref="EntityEndpointBase{T}.DefaultFields"/> when <see langword="null"/>.
-    /// </param>
-    /// <param name="token">A token to cancel the asynchronous operation.</param>
-    /// <returns>A list of entities matching the search criteria.</returns>
-    public async Task<List<T>> GetUpdatedFromAsync(DateTime dateTime, string? fields = null, CancellationToken token = default)
-    {
-        var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&query=dateLastModified:[{dateTime:yyyyMMddHHmmss} TO *]";
+    // ToDo rename to GetByIdsAsync during public API normalization.
+    public Task<List<T>> GetAsync(IEnumerable<int> ids, string? fields = null, CancellationToken token = default)
+        => _operations.GetAsync(ids, fields, token);
 
-        return await ApiConnection.SearchAsync<T>(query, token: token).ConfigureAwait(false);
-    }
+    // ToDo rename to GetAddedSinceAsync during public API normalization.
+    public Task<List<T>> SearchFromAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken token = default)
+        => _operations.SearchFromAsync(dateTimeFrom, fields, token);
+
+    // ToDo rename to GetAddedBetweenAsync during public API normalization.
+    public Task<List<T>> SearchFromToAsync(DateTime dateTimeFrom, DateTime dateTimeTo, string? fields = null, CancellationToken token = default)
+        => _operations.SearchFromToAsync(dateTimeFrom, dateTimeTo, fields, token);
+
+    // ToDo rename to GetChangedSinceAsync during public API normalization.
+    public Task<List<T>> SearchNewAndUpdatedFromAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken token = default)
+        => _operations.SearchNewAndUpdatedFromAsync(dateTimeFrom, fields, token);
+
+    // ToDo rename to GetUpdatedSinceAsync during public API normalization.
+    public Task<List<T>> GetUpdatedFromAsync(DateTime dateTime, string? fields = null, CancellationToken token = default)
+        => _operations.GetUpdatedFromAsync(dateTime, fields, token);
+
+    private protected Task<List<T>> ExecuteSearchAsync(string searchTerm, CancellationToken token = default)
+        => _operations.ExecuteAsync(searchTerm, token: token);
 }

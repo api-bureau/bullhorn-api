@@ -1,10 +1,11 @@
 namespace ApiBureau.Bullhorn.Api.Endpoints;
 
-public class CorporateUserEndpoint : QueryEndpointBase<UserDto>
+public sealed class CorporateUserEndpoint : QueryEndpointBase<UserDto>
 {
     private const string EntityDefaultFields = "id,firstName,lastName,name,isDeleted,departments";
 
-    public CorporateUserEndpoint(ApiConnection apiConnection, string requestUrl) : base(apiConnection, requestUrl, EntityDefaultFields) { }
+    internal CorporateUserEndpoint(BullhornHttpClient httpClient, string requestUrl)
+        : base(httpClient, requestUrl, EntityDefaultFields) { }
 
     /// <summary>
     /// Returns all users
@@ -17,5 +18,5 @@ public class CorporateUserEndpoint : QueryEndpointBase<UserDto>
     /// </summary>
     /// <returns></returns>
     public Task<Result<ChangeResponse>> UpdateAsync(int corporateUserId, object data)
-        => ApiConnection.PostAsJsonAsync(EntityType.CorporateUser, corporateUserId, data);
+        => HttpClient.PostAsJsonAsync(EntityType.CorporateUser, corporateUserId, data);
 }
