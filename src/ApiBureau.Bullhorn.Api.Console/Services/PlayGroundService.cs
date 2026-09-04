@@ -42,17 +42,17 @@ public class PlayGroundService
         _logger.LogInformation("Items: {count}", result.Count);
     }
 
-    private async Task GetDepartmentsAsync()
-    {
-        var result = await _bullhornApi.Departments.GetAllAsync();
+    //private async Task GetDepartmentsAsync()
+    //{
+    //    var result = await _bullhornApi.Departments.GetAllAsync();
 
-        _logger.LogInformation("Items: {count}", result.Count);
-    }
+    //    _logger.LogInformation("Items: {count}", result.Count);
+    //}
 
-    private async Task GetCountriesAsync()
-    {
-        var result = await _bullhornApi.Countries.GetAllAsync();
+    //private async Task GetCountriesAsync()
+    //{
+    //    var result = await _bullhornApi.Countries.GetAllAsync();
 
-        _logger.LogInformation("Items: {count}", result.Count);
-    }
+    //    _logger.LogInformation("Items: {count}", result.Count);
+    //}
 }

@@ -12,15 +12,12 @@ public abstract class SearchEndpointBase<T>
 
         HttpClient = httpClient;
         RequestUrl = requestUrl;
-        DefaultFields = defaultFields;
         _operations = new(httpClient, requestUrl, defaultFields);
     }
 
     private protected BullhornHttpClient HttpClient { get; }
 
     private protected string RequestUrl { get; }
-
-    private protected string DefaultFields { get; }
 
     public Task<T?> GetByIdAsync(int id, string? fields = null, CancellationToken cancellationToken = default)
         => _operations.GetByIdAsync(id, fields, cancellationToken);
