@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
 
 namespace ApiBureau.Bullhorn.Api.Http;
 
@@ -124,7 +122,7 @@ public sealed class BullhornHttpClient
         return await GetChangeResponseAsync(response).ConfigureAwait(false);
     }
 
-    internal async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content, CancellationToken cancellationToken)
+    private async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content, CancellationToken cancellationToken)
     {
         await PingCheckAsync(cancellationToken);
 
@@ -186,19 +184,19 @@ public sealed class BullhornHttpClient
         return new HttpResponseMessage();
     }
 
-    internal async Task UpdateAsync<T>(int id, string entityName, T updateDto, CancellationToken cancellationToken) => await PostAsync($"entity/{entityName}/{id}",
-            new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
-            {
-                AllowTrailingCommas = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            }), Encoding.UTF8, "application/json"), cancellationToken);
+    //internal async Task UpdateAsync<T>(int id, string entityName, T updateDto, CancellationToken cancellationToken) => await PostAsync($"entity/{entityName}/{id}",
+    //        new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
+    //        {
+    //            AllowTrailingCommas = true,
+    //            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    //        }), Encoding.UTF8, "application/json"), cancellationToken);
 
-    internal async Task MassUpdateAsync<T>(string entityName, T updateDto, CancellationToken cancellationToken) => await PostAsync($"massUpdate/{entityName}?",
-            new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
-            {
-                AllowTrailingCommas = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.Always
-            }), Encoding.UTF8, "application/json"), cancellationToken);
+    //internal async Task MassUpdateAsync<T>(string entityName, T updateDto, CancellationToken cancellationToken) => await PostAsync($"massUpdate/{entityName}?",
+    //        new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
+    //        {
+    //            AllowTrailingCommas = true,
+    //            DefaultIgnoreCondition = JsonIgnoreCondition.Always
+    //        }), Encoding.UTF8, "application/json"), cancellationToken);
 
     internal async Task<Result<ChangeResponse>> DeleteAsync(int id, EntityType type, CancellationToken cancellationToken)
     {
