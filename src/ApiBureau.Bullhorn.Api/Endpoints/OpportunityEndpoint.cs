@@ -3,7 +3,7 @@ namespace ApiBureau.Bullhorn.Api.Endpoints;
 /// <summary>
 /// Provides query and update operations for Bullhorn opportunities.
 /// </summary>
-public sealed class OpportunityEndpoint : QueryEndpointBase<JobOrderDto>
+public sealed class OpportunityEndpoint : QueryEndpointBase<OpportunityDto>
 {
     private const string EntityDefaultFields = "id,dateAdded,dateLastModified,status,title,source,owner,isOpen,isDeleted,clientContact,clientCorporation";
 
