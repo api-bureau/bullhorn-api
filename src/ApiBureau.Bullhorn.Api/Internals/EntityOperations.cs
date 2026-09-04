@@ -1,12 +1,19 @@
 namespace ApiBureau.Bullhorn.Api.Internals;
 
-internal class EntityOperations<T>(BullhornHttpClient client, string resourcePath, string defaultFields)
+internal class EntityOperations<T>
 {
-    protected BullhornHttpClient Client { get; } = client;
+    internal EntityOperations(BullhornHttpClient client, string resourcePath, string defaultFields)
+    {
+        Client = client;
+        ResourcePath = resourcePath;
+        DefaultFields = defaultFields;
+    }
 
-    protected string ResourcePath { get; } = resourcePath;
+    protected BullhornHttpClient Client { get; }
 
-    protected string DefaultFields { get; } = defaultFields;
+    protected string ResourcePath { get; }
+
+    protected string DefaultFields { get; }
 
     internal async Task<T?> GetByIdAsync(int id, string? fields = null, CancellationToken cancellationToken = default)
     {
