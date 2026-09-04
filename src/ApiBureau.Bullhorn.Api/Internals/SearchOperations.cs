@@ -1,8 +1,12 @@
 namespace ApiBureau.Bullhorn.Api.Internals;
 
-internal sealed class SearchOperations<T>(BullhornHttpClient client, string resourcePath, string defaultFields)
-    : EntityOperations<T>(client, resourcePath, defaultFields)
+internal sealed class SearchOperations<T> : EntityOperations<T>
 {
+    internal SearchOperations(BullhornHttpClient client, string resourcePath, string defaultFields)
+        : base(client, resourcePath, defaultFields)
+    {
+    }
+
     internal Task<List<T>> GetAddedSinceAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken cancellationToken = default)
         => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&query=dateAdded:[{dateTimeFrom:yyyyMMddHHmmss} TO *]", cancellationToken: cancellationToken);
 

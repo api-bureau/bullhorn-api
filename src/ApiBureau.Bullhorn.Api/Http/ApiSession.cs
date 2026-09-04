@@ -17,18 +17,18 @@ internal sealed class ApiSession
     private const string AuthorizationState = "ips";
     private string? _refreshToken;
 
-    public LoginResponse? LoginResponse { get; private set; }
-    public PingResponse Ping { get; set; } = new PingResponse();
-    public bool IsValid => LoginResponse != null && LoginResponse.IsValid;
+    internal LoginResponse? LoginResponse { get; private set; }
+    internal PingResponse Ping { get; set; } = new PingResponse();
+    internal bool IsValid => LoginResponse != null && LoginResponse.IsValid;
 
-    public ApiSession(HttpClient client, BullhornSettings settings, ILogger logger)
+    internal ApiSession(HttpClient client, BullhornSettings settings, ILogger logger)
     {
         _client = client;
         _logger = logger;
         _settings = settings;
     }
 
-    public async Task ConnectAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default)
+    internal async Task ConnectAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default)
         => await ExecuteWithRetryAsync(
             async () =>
             {
@@ -132,7 +132,7 @@ internal sealed class ApiSession
         _client.DefaultRequestHeaders.TryAddWithoutValidation("BhRestToken", bhRestToken);
     }
 
-    public async Task RefreshTokenAsync(CancellationToken cancellationToken)
+    internal async Task RefreshTokenAsync(CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrEmpty(_refreshToken);
 
