@@ -7,7 +7,7 @@ public class JobOrderDto : EntityBaseDto
     public string Source { get; set; } = "";
     public bool IsOpen { get; set; }
     public bool IsDeleted { get; set; }
-    public List<string> CustomText20 { get; set; } = new List<string>();
+    public List<string> CustomText20 { get; set; } = [];
 
     public ClientContactDto ClientContact { get; set; }
     public ClientCorporationDto ClientCorporation { get; set; }
