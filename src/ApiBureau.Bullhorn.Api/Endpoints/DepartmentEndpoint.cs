@@ -11,5 +11,5 @@ public sealed class DepartmentEndpoint : QueryEndpointBase<DepartmentDto>
     /// Returns all departments
     /// </summary>
     /// <returns></returns>
-    public async Task<List<DepartmentDto>> GetAllAsync() => await QueryWhereAsync();
+    public async Task<List<DepartmentDto>> GetAllAsync() => await GetWhereAsync();
 }

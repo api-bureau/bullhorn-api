@@ -10,13 +10,13 @@ public sealed class NoteEndpoint : SearchEndpointBase<NoteDto>
     internal NoteEndpoint(BullhornHttpClient httpClient, string requestUrl)
         : base(httpClient, requestUrl, AllFields) { }
 
-    public async Task<Result<ChangeResponse>> AddAsync(NoteDto dto, CancellationToken token)
-        => await HttpClient.PutAsJsonAsync(EntityType.Note, dto, token);
+    public async Task<Result<ChangeResponse>> AddAsync(NoteDto dto, CancellationToken cancellationToken)
+        => await HttpClient.PutAsJsonAsync(EntityType.Note, dto, cancellationToken);
 
-    public async Task<List<NoteDto>> GetNotesAsync(string userQuery, string fields = AllFields, CancellationToken token = default)
+    public async Task<List<NoteDto>> GetNotesAsync(string userQuery, string fields = AllFields, CancellationToken cancellationToken = default)
     {
         var query = $"{RequestUrl}?fields={fields}&query={userQuery}&sort=noteID"; // case must be noteID
 
-        return await ExecuteSearchAsync(query, token);
+        return await ExecuteSearchAsync(query, cancellationToken);
     }
 }

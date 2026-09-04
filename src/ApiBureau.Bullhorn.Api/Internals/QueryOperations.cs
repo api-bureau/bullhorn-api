@@ -5,25 +5,25 @@ internal sealed class QueryOperations<T>(BullhornHttpClient client, string resou
 {
     private const string DefaultWhere = "id>0";
 
-    internal Task<List<T>> QueryFromAsync(long timestampFrom, string? fields = null, CancellationToken token = default)
-        => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom}", token);
+    internal Task<List<T>> GetAddedSinceAsync(long timestampFrom, string? fields = null, CancellationToken cancellationToken = default)
+        => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom}", cancellationToken);
 
-    internal Task<List<T>> QueryFromToAsync(long timestampFrom, long timestampTo, string? fields = null, CancellationToken token = default)
-        => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom} AND dateAdded<{timestampTo}", token);
+    internal Task<List<T>> GetAddedBetweenAsync(long timestampFrom, long timestampTo, string? fields = null, CancellationToken cancellationToken = default)
+        => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom} AND dateAdded<{timestampTo}", cancellationToken);
 
-    internal Task<List<T>> QueryNewAndUpdatedFromAsync(long timestampFrom, string? fields = null, CancellationToken token = default)
-        => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom} OR dateLastModified>{timestampFrom}", token);
+    internal Task<List<T>> GetChangedSinceAsync(long timestampFrom, string? fields = null, CancellationToken cancellationToken = default)
+        => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&where=dateAdded>={timestampFrom} OR dateLastModified>{timestampFrom}", cancellationToken);
 
-    internal Task<List<T>> QueryUpdatedFromAsync(long timestampFrom, string? fields = null, CancellationToken token = default)
-        => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&where=dateLastModified>{timestampFrom}", token);
+    internal Task<List<T>> GetUpdatedSinceAsync(long timestampFrom, string? fields = null, CancellationToken cancellationToken = default)
+        => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&where=dateLastModified>{timestampFrom}", cancellationToken);
 
-    internal Task<List<T>> QueryWhereAsync(string? fields = null, string? defaultWhere = DefaultWhere, CancellationToken token = default)
-        => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&where={defaultWhere}", token);
+    internal Task<List<T>> GetWhereAsync(string? fields = null, string? defaultWhere = DefaultWhere, CancellationToken cancellationToken = default)
+        => ExecuteAsync($"{ResourcePath}?fields={fields ?? DefaultFields}&where={defaultWhere}", cancellationToken);
 
-    internal async Task<List<T>> ExecuteAsync(string query, CancellationToken token)
+    internal async Task<List<T>> ExecuteAsync(string query, CancellationToken cancellationToken)
     {
         var items = new List<T>();
-        var result = await Client.QueryPageAsync<T>(query, BullhornHttpClient.QueryCount, token: token).ConfigureAwait(false);
+        var result = await Client.QueryPageAsync<T>(query, BullhornHttpClient.QueryCount, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         items.AddRange(result?.Data ?? []);
 
@@ -34,7 +34,7 @@ internal sealed class QueryOperations<T>(BullhornHttpClient client, string resou
 
         for (var start = result.Count; start < result.Total;)
         {
-            var page = await Client.QueryPageAsync<T>(query, BullhornHttpClient.QueryCount, start, token).ConfigureAwait(false);
+            var page = await Client.QueryPageAsync<T>(query, BullhornHttpClient.QueryCount, start, cancellationToken).ConfigureAwait(false);
 
             if (page is null || page.Count == 0)
             {

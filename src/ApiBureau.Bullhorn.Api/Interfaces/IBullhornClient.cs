@@ -4,38 +4,34 @@ namespace ApiBureau.Bullhorn.Api.Interfaces;
 
 public interface IBullhornClient
 {
-    AppointmentEndpoint Appointment { get; }
-    CandidateEndpoint Candidate { get; }
-    CandidateWorkHistoryEndpoint CandidateWorkHistory { get; }
-    ClientContactEndpoint ClientContact { get; }
-    ClientCorporationEndpoint ClientCorporation { get; }
-    CorporateUserEndpoint CorporateUser { get; }
-    CorporationDepartmentEndpoint CorporationDepartment { get; }
-    CountryEndpoint Country { get; }
-    DepartmentEndpoint Department { get; }
-    EntityEditHistoryEndpoint EntityEditHistory { get; }
-    EventEndpoint Event { get; }
-    FileEndpoint File { get; }
-    FileAttachmentEndpoint FileAttachment { get; }
-    JobOrderEndpoint JobOrder { get; }
-    JobSubmissionEndpoint JobSubmission { get; }
-    JobSubmissionHistoryEndpoint JobSubmissionHistory { get; }
-    MassUpdateEndpoint MassUpdate { get; }
-    NoteEndpoint Note { get; }
-    OpportunityEndpoint Opportunity { get; }
-    PlacementEndpoint Placement { get; }
-    PlacementChangeRequestEndpoint PlacementChangeRequest { get; }
-    PlacementCommissionEndpoint PlacementCommission { get; }
-    ResumeEndpoint Resume { get; }
-    SendoutEndpoint Sendout { get; }
-
-    // ToDo move raw GET access to client.Advanced during public API normalization.
-    Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0, CancellationToken token = default);
+    BullhornAdvancedClient Advanced { get; }
+    AppointmentEndpoint Appointments { get; }
+    CandidateEndpoint Candidates { get; }
+    CandidateWorkHistoryEndpoint CandidateWorkHistories { get; }
+    ClientContactEndpoint ClientContacts { get; }
+    ClientCorporationEndpoint ClientCorporations { get; }
+    CorporateUserEndpoint CorporateUsers { get; }
+    CorporationDepartmentEndpoint CorporationDepartments { get; }
+    CountryEndpoint Countries { get; }
+    DepartmentEndpoint Departments { get; }
+    EntityEditHistoryEndpoint EntityEditHistories { get; }
+    EventEndpoint Events { get; }
+    FileEndpoint Files { get; }
+    FileAttachmentEndpoint FileAttachments { get; }
+    JobOrderEndpoint JobOrders { get; }
+    JobSubmissionEndpoint JobSubmissions { get; }
+    JobSubmissionHistoryEndpoint JobSubmissionHistories { get; }
+    MassUpdateEndpoint MassUpdates { get; }
+    NoteEndpoint Notes { get; }
+    OpportunityEndpoint Opportunities { get; }
+    PlacementEndpoint Placements { get; }
+    PlacementChangeRequestEndpoint PlacementChangeRequests { get; }
+    PlacementCommissionEndpoint PlacementCommissions { get; }
+    ResumeEndpoint Resumes { get; }
+    SendoutEndpoint Sendouts { get; }
 
     /// <summary>
     /// Check the Bullhorn client connection.
     /// </summary>
     Task<bool> CheckConnectionAsync(IProgress<string>? progress = null);
-    // ToDo move raw query access to client.Advanced during public API normalization.
-    Task<List<T>> QueryAsync<T>(string query, CancellationToken token);
 }

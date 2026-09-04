@@ -8,10 +8,10 @@ internal class EntityOperations<T>(BullhornHttpClient client, string resourcePat
 
     protected string DefaultFields { get; } = defaultFields;
 
-    internal async Task<T?> GetAsync(int id, string? fields = null, CancellationToken token = default)
+    internal async Task<T?> GetByIdAsync(int id, string? fields = null, CancellationToken cancellationToken = default)
     {
         var query = $"entity/{ResourcePath}/{id}?fields={fields ?? DefaultFields}";
-        var response = await Client.GetAsync(query, token).ConfigureAwait(false);
+        var response = await Client.GetAsync(query, cancellationToken).ConfigureAwait(false);
         var entityResponse = await Client.DeserializeAsync<EntityResponse<T>>(response).ConfigureAwait(false);
 
         if (entityResponse is null)
@@ -24,19 +24,19 @@ internal class EntityOperations<T>(BullhornHttpClient client, string resourcePat
         return entityResponse.Data;
     }
 
-    internal async Task<List<T>> GetAsync(IEnumerable<int> ids, string? fields = null, CancellationToken token = default)
+    internal async Task<List<T>> GetByIdsAsync(IEnumerable<int> ids, string? fields = null, CancellationToken cancellationToken = default)
     {
         var idList = ids.ToList();
 
         if (idList is [var id])
         {
-            var entity = await GetAsync(id, fields, token).ConfigureAwait(false);
+            var entity = await GetByIdAsync(id, fields, cancellationToken).ConfigureAwait(false);
 
             return entity is null ? [] : [entity];
         }
 
         var query = $"entity/{ResourcePath}/{string.Join(",", idList)}?fields={fields ?? DefaultFields}";
-        var response = await Client.GetAsync(query, token).ConfigureAwait(false);
+        var response = await Client.GetAsync(query, cancellationToken).ConfigureAwait(false);
         var entityResponse = await Client.DeserializeAsync<EntityResponse<List<T>>>(response).ConfigureAwait(false);
 
         if (entityResponse is null)

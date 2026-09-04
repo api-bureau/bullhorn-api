@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ApiBureau.Bullhorn.Api.Http;
 
-public class ApiSession
+internal sealed class ApiSession
 {
     private readonly HttpClient _client;
     private readonly ILogger _logger;
@@ -28,23 +28,23 @@ public class ApiSession
         _settings = settings;
     }
 
-    public async Task ConnectAsync(IProgress<string>? progress = null, CancellationToken token = default)
+    public async Task ConnectAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default)
         => await ExecuteWithRetryAsync(
             async () =>
             {
-                var authorisationCode = await GetAuthorizationCodeAsync(progress, token);
-                var tokenResponse = await GetTokenResponseAsync(authorisationCode, progress, token);
+                var authorisationCode = await GetAuthorizationCodeAsync(progress, cancellationToken);
+                var tokenResponse = await GetTokenResponseAsync(authorisationCode, progress, cancellationToken);
 
-                await LoginAsync(tokenResponse, progress, token);
+                await LoginAsync(tokenResponse, progress, cancellationToken);
 
                 ReportProgress(progress, "Connection successful");
             },
             tryCount => $"Attempt {tryCount}/{SessionRetry}: Trying to connect...",
             (tryCount, exception) => $"Attempt {tryCount}/{SessionRetry} failed. Reason: {exception.Message}",
             progress,
-            token);
+            cancellationToken);
 
-    private async Task<string> GetAuthorizationCodeAsync(IProgress<string>? progress = null, CancellationToken token = default)
+    private async Task<string> GetAuthorizationCodeAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default)
     {
         var request = new AuthorizationCodeRequest
         {
@@ -55,7 +55,7 @@ public class ApiSession
         };
         request.AddParameter("state", AuthorizationState);
 
-        var response = await _client.RequestAuthorizationCodeAsync(request, token);
+        var response = await _client.RequestAuthorizationCodeAsync(request, cancellationToken);
 
         if (response.HttpResponse is null)
         {
@@ -76,7 +76,7 @@ public class ApiSession
         return code!;
     }
 
-    private async Task<TokenResponse> GetTokenResponseAsync(string authorisationCode, IProgress<string>? progress = null, CancellationToken token = default)
+    private async Task<TokenResponse> GetTokenResponseAsync(string authorisationCode, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(authorisationCode);
 
@@ -89,7 +89,7 @@ public class ApiSession
         };
         request.AddParameter("code", authorisationCode);
 
-        var response = await _client.RequestTokenAsync(request, token);
+        var response = await _client.RequestTokenAsync(request, cancellationToken);
 
         var validatedResponse = EnsureTokenResponse(response, "Error retrieving token");
 
@@ -100,13 +100,13 @@ public class ApiSession
 
     // This API call is failing in some cases, so we retry it a few times through ExecuteWithRetryAsync
     //{"errorMessage":"Invalid or expired OAuth access token.","errorMessageKey":"errors.authentication.invalidOAuthToken","errorCode":400}
-    private async Task LoginAsync(TokenResponse token, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
+    private async Task LoginAsync(TokenResponse tokenResponse, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(token);
+        ArgumentNullException.ThrowIfNull(tokenResponse);
 
-        ArgumentException.ThrowIfNullOrEmpty(token.AccessToken);
+        ArgumentException.ThrowIfNullOrEmpty(tokenResponse.AccessToken);
 
-        var loginUrl = BuildLoginUrl(token.AccessToken);
+        var loginUrl = BuildLoginUrl(tokenResponse.AccessToken);
 
         using var response = await _client.GetAsync(loginUrl, cancellationToken);
 
@@ -119,17 +119,17 @@ public class ApiSession
         LoginResponse = loginResponse;
         UpdateBhRestTokenHeader(loginResponse?.BhRestToken ?? throw new InvalidOperationException("Login failed, BhRestToken is null."));
 
-        _refreshToken = token.RefreshToken;
+        _refreshToken = tokenResponse.RefreshToken;
 
         Ping.SetExpiryDate(DateTime.UtcNow.AddMinutes(SessionLength).Timestamp());
 
         ReportProgress(progress, "Login was successful");
     }
 
-    private void UpdateBhRestTokenHeader(string token)
+    private void UpdateBhRestTokenHeader(string bhRestToken)
     {
         _client.DefaultRequestHeaders.Remove("BhRestToken");
-        _client.DefaultRequestHeaders.TryAddWithoutValidation("BhRestToken", token);
+        _client.DefaultRequestHeaders.TryAddWithoutValidation("BhRestToken", bhRestToken);
     }
 
     public async Task RefreshTokenAsync(CancellationToken cancellationToken)
@@ -147,7 +147,7 @@ public class ApiSession
             cancellationToken: cancellationToken);
     }
 
-    private async Task<TokenResponse> GetRefreshTokenAsync(CancellationToken token)
+    private async Task<TokenResponse> GetRefreshTokenAsync(CancellationToken cancellationToken)
     {
         var response = await _client.RequestRefreshTokenAsync(new RefreshTokenRequest
         {
@@ -155,7 +155,7 @@ public class ApiSession
             ClientId = _settings.ClientId,
             ClientSecret = _settings.Secret,
             RefreshToken = _refreshToken!
-        }, token);
+        }, cancellationToken);
 
         return EnsureTokenResponse(response, "Error refreshing token");
     }

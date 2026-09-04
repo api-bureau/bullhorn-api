@@ -10,7 +10,7 @@ public sealed class EventEndpoint
         RequestUrl = requestUrl;
     }
 
-    public string RequestUrl { get; }
+    private string RequestUrl { get; }
 
     /// <summary>
     /// Lets you subscribe to Bullhorn event types
@@ -19,7 +19,7 @@ public sealed class EventEndpoint
     /// <param name="entityNames">Comma separated entities e.g. "Candidate,ClientContact"</param>
     /// <param name="eventTypes">Comma separated events e.g. "inserted,updated,deleted"</param>
     /// <returns></returns>
-    public async Task<EventSubscribeDto?> SubscribeAsync(string subscriptionId, string entityNames, string eventTypes, CancellationToken token)
+    public async Task<EventSubscribeDto?> SubscribeAsync(string subscriptionId, string entityNames, string eventTypes, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(null, nameof(subscriptionId));
 
@@ -29,27 +29,27 @@ public sealed class EventEndpoint
 
         var query = $"{RequestUrl}/subscription/{subscriptionId}?type=entity&names={entityNames}&eventTypes={eventTypes}";
 
-        var response = await _client.ApiPutAsync(query, new StringContent(string.Empty), token);
+        var response = await _client.ApiPutAsync(query, new StringContent(string.Empty), cancellationToken);
 
         return await response.DeserializeAsync<EventSubscribeDto>();
     }
 
-    public async Task<EventSubscribeDto?> ReSubscribeAsync(string subscriptionId, string entityNames, string eventTypes, CancellationToken token)
+    public async Task<EventSubscribeDto?> ReSubscribeAsync(string subscriptionId, string entityNames, string eventTypes, CancellationToken cancellationToken)
     {
-        var unsubscribed = await UnSubscribeAsync(subscriptionId, token);
+        var unsubscribed = await UnSubscribeAsync(subscriptionId, cancellationToken);
 
-        if (unsubscribed != null && unsubscribed.Result) return await SubscribeAsync(subscriptionId, entityNames, eventTypes, token);
+        if (unsubscribed != null && unsubscribed.Result) return await SubscribeAsync(subscriptionId, entityNames, eventTypes, cancellationToken);
 
         return null;
     }
 
-    public async Task<EventUnSubscribeDto?> UnSubscribeAsync(string subscriptionId, CancellationToken token)
+    public async Task<EventUnSubscribeDto?> UnSubscribeAsync(string subscriptionId, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(subscriptionId)) throw new ArgumentException(null, nameof(subscriptionId));
 
         var query = $"{RequestUrl}/subscription/{subscriptionId}";
 
-        var response = await _client.ApiDeleteAsync(query, token);
+        var response = await _client.ApiDeleteAsync(query, cancellationToken);
 
         return await response.DeserializeAsync<EventUnSubscribeDto>();
     }
@@ -59,13 +59,13 @@ public sealed class EventEndpoint
     /// </summary>
     /// <param name="subscriptionId"></param>
     /// <returns></returns>
-    public async Task<EventsDto?> GetAsync(string subscriptionId, CancellationToken token)
+    public async Task<EventsDto?> GetAsync(string subscriptionId, CancellationToken cancellationToken)
     {
         var query = $"{RequestUrl}/subscription/{subscriptionId}?maxEvents=100";
 
-        _client.LogWarning("Placement Event Subscription: This call might throw an error if expected the input to start with a no valid JSON token (empty string), meaning no data in this case.");
+        _client.LogWarning("Placement Event Subscription: This call might throw an error if expected the input to start with a no valid JSON cancellationToken (empty string), meaning no data in this case.");
 
-        var response = await _client.GetAsync(query, token);
+        var response = await _client.GetAsync(query, cancellationToken);
 
         return await response.DeserializeAsync<EventsDto>();
     }

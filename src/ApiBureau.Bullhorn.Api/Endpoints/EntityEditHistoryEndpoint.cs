@@ -10,19 +10,17 @@ public sealed class EntityEditHistoryEndpoint
     internal EntityEditHistoryEndpoint(BullhornHttpClient client)
         => _operations = new(client, string.Empty, EntityDefaultFields);
 
-    public string RequestUrl => string.Empty;
-
-    public async Task<List<EditHistoryFieldChangeDto>> GetFromAsync(EntityType entityType, long timestampFrom, CancellationToken token)
+    public async Task<List<EditHistoryFieldChangeDto>> GetFromAsync(EntityType entityType, long timestampFrom, CancellationToken cancellationToken)
     {
         var query = $"{entityType}EditHistoryFieldChange?fields={EntityDefaultFields}&where=editHistory.dateAdded>={timestampFrom}";
 
-        return await _operations.ExecuteAsync(query, token);
+        return await _operations.ExecuteAsync(query, cancellationToken);
     }
 
-    public async Task<List<EditHistoryFieldChangeDto>> GetFromByColumnNameAsync(EntityType entityType, long timestampFrom, string columnName, CancellationToken token)
+    public async Task<List<EditHistoryFieldChangeDto>> GetFromByColumnNameAsync(EntityType entityType, long timestampFrom, string columnName, CancellationToken cancellationToken)
     {
         var query = $"{entityType}EditHistoryFieldChange?fields={EntityDefaultFields}&where=editHistory.dateAdded>={timestampFrom} AND columnName='{columnName}'";
 
-        return await _operations.ExecuteAsync(query, token);
+        return await _operations.ExecuteAsync(query, cancellationToken);
     }
 }

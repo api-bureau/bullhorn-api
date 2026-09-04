@@ -15,7 +15,7 @@ public class DataService
     {
         await _client.CheckConnectionAsync();
 
-        var response = await _client.ApiGetAsync(query, count, start);
+        var response = await _client.Advanced.GetRawPageAsync(query, count, start);
 
         return response;
     }

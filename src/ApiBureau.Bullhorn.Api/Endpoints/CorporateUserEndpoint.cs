@@ -11,7 +11,7 @@ public sealed class CorporateUserEndpoint : QueryEndpointBase<UserDto>
     /// Returns all users
     /// </summary>
     /// <returns></returns>
-    public async Task<List<UserDto>> GetAllUsersAsync() => await QueryWhereAsync();
+    public async Task<List<UserDto>> GetAllAsync() => await GetWhereAsync();
 
     /// <summary>
     /// Http POST /entity/CorporateUser/{corporateUserId}

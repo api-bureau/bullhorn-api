@@ -65,18 +65,18 @@ public sealed class BullhornHttpClient
         }
     }
 
-    internal async Task<HttpResponseMessage> ApiGetAsync(string query, int count, int start = 0, CancellationToken token = default)
+    internal async Task<HttpResponseMessage> GetRawPageAsync(string query, int count, int start = 0, CancellationToken cancellationToken = default)
     {
         query = $"{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
-        return await GetAsync(query, token);
+        return await GetAsync(query, cancellationToken);
     }
 
-    internal async Task<QueryResponse<T>?> QueryPageAsync<T>(string query, int count, int start = 0, CancellationToken token = default)
+    internal async Task<QueryResponse<T>?> QueryPageAsync<T>(string query, int count, int start = 0, CancellationToken cancellationToken = default)
     {
         query = $"query/{query}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
-        var response = await GetAsync(query, token);
+        var response = await GetAsync(query, cancellationToken);
 
         return await DeserializeAsync<QueryResponse<T>>(response);
     }
@@ -89,50 +89,50 @@ public sealed class BullhornHttpClient
     /// <param name="count">The number of results to return.</param>
     /// <param name="start">The starting index for paginated results (default is 0).</param>
     /// <returns>A task representing the asynchronous operation, containing the search response or <c>null</c> if the response couldn't be deserialized.</returns>
-    internal async Task<SearchResponse<T>?> SearchPageAsync<T>(string searchTerm, int count, int start = 0, CancellationToken token = default)
+    internal async Task<SearchResponse<T>?> SearchPageAsync<T>(string searchTerm, int count, int start = 0, CancellationToken cancellationToken = default)
     {
         var query = $"search/{searchTerm}&start={start}&count={count}&showTotalMatched=true&usev2=true";
 
-        var response = await GetAsync(query, token);
+        var response = await GetAsync(query, cancellationToken);
 
         return await DeserializeAsync<SearchResponse<T>>(response);
     }
 
-    internal async Task<HttpResponseMessage> GetAsync(string query, CancellationToken token)
+    internal async Task<HttpResponseMessage> GetAsync(string query, CancellationToken cancellationToken)
     {
-        await PingCheckAsync(token);
+        await PingCheckAsync(cancellationToken);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
-        return await _client.GetAsync(restUrl, token);
+        return await _client.GetAsync(restUrl, cancellationToken);
     }
 
     // This might be wrapped to ApiCreateEntity
-    internal async Task<HttpResponseMessage> ApiPutAsync(string query, HttpContent content, CancellationToken token)
+    internal async Task<HttpResponseMessage> ApiPutAsync(string query, HttpContent content, CancellationToken cancellationToken)
     {
-        await PingCheckAsync(token);
+        await PingCheckAsync(cancellationToken);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
         return await _client.PutAsync(restUrl, content);
     }
 
-    internal async Task<Result<ChangeResponse>> PutAsJsonAsync(EntityType type, object content, CancellationToken token)
+    internal async Task<Result<ChangeResponse>> PutAsJsonAsync(EntityType type, object content, CancellationToken cancellationToken)
     {
-        var response = await PutAsJsonAsync($"entity/{type}", content, token);
+        var response = await PutAsJsonAsync($"entity/{type}", content, cancellationToken);
 
         return await GetChangeResponseAsync(response).ConfigureAwait(false);
     }
 
-    internal async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content, CancellationToken token)
+    internal async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content, CancellationToken cancellationToken)
     {
-        await PingCheckAsync(token);
+        await PingCheckAsync(cancellationToken);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
         try
         {
-            return await _client.PutAsJsonAsync(restUrl, content, token);
+            return await _client.PutAsJsonAsync(restUrl, content, cancellationToken);
         }
         catch (Exception e)
         {
@@ -143,22 +143,22 @@ public sealed class BullhornHttpClient
     }
 
     // Probably this pattern should be used across
-    internal async Task<Result<ChangeResponse>> PostAsJsonAsync(EntityType type, int entityId, object content, CancellationToken token = default)
+    internal async Task<Result<ChangeResponse>> PostAsJsonAsync(EntityType type, int entityId, object content, CancellationToken cancellationToken = default)
     {
-        var response = await PostAsJsonAsync($"entity/{type}/{entityId}", content, token);
+        var response = await PostAsJsonAsync($"entity/{type}/{entityId}", content, cancellationToken);
 
         return await GetChangeResponseAsync(response).ConfigureAwait(false);
     }
 
-    internal async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content, CancellationToken token = default)
+    internal async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content, CancellationToken cancellationToken = default)
     {
-        await PingCheckAsync(token);
+        await PingCheckAsync(cancellationToken);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
         try
         {
-            return await _client.PostAsJsonAsync(restUrl, content, token);
+            return await _client.PostAsJsonAsync(restUrl, content, cancellationToken);
         }
         catch (Exception e)
         {
@@ -168,15 +168,15 @@ public sealed class BullhornHttpClient
         return new HttpResponseMessage();
     }
 
-    internal async Task<HttpResponseMessage> PostAsync(string query, HttpContent? content, CancellationToken token)
+    internal async Task<HttpResponseMessage> PostAsync(string query, HttpContent? content, CancellationToken cancellationToken)
     {
-        await PingCheckAsync(token);
+        await PingCheckAsync(cancellationToken);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
         try
         {
-            return await _client.PostAsync(restUrl, content, token);
+            return await _client.PostAsync(restUrl, content, cancellationToken);
         }
         catch (Exception e)
         {
@@ -186,34 +186,34 @@ public sealed class BullhornHttpClient
         return new HttpResponseMessage();
     }
 
-    internal async Task UpdateAsync<T>(int id, string entityName, T updateDto, CancellationToken token) => await PostAsync($"entity/{entityName}/{id}",
+    internal async Task UpdateAsync<T>(int id, string entityName, T updateDto, CancellationToken cancellationToken) => await PostAsync($"entity/{entityName}/{id}",
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
                 AllowTrailingCommas = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            }), Encoding.UTF8, "application/json"), token);
+            }), Encoding.UTF8, "application/json"), cancellationToken);
 
-    internal async Task MassUpdateAsync<T>(string entityName, T updateDto, CancellationToken token) => await PostAsync($"massUpdate/{entityName}?",
+    internal async Task MassUpdateAsync<T>(string entityName, T updateDto, CancellationToken cancellationToken) => await PostAsync($"massUpdate/{entityName}?",
             new StringContent(JsonSerializer.Serialize(updateDto, new JsonSerializerOptions
             {
                 AllowTrailingCommas = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.Always
-            }), Encoding.UTF8, "application/json"), token);
+            }), Encoding.UTF8, "application/json"), cancellationToken);
 
-    internal async Task<Result<ChangeResponse>> DeleteAsync(int id, EntityType type, CancellationToken token)
+    internal async Task<Result<ChangeResponse>> DeleteAsync(int id, EntityType type, CancellationToken cancellationToken)
     {
-        var response = await ApiDeleteAsync($"entity/{type}/{id}?", token);
+        var response = await ApiDeleteAsync($"entity/{type}/{id}?", cancellationToken);
 
         return await GetChangeResponseAsync(response).ConfigureAwait(false);
     }
 
-    internal async Task<HttpResponseMessage> ApiDeleteAsync(string query, CancellationToken token)
+    internal async Task<HttpResponseMessage> ApiDeleteAsync(string query, CancellationToken cancellationToken)
     {
-        await PingCheckAsync(token);
+        await PingCheckAsync(cancellationToken);
 
         var restUrl = $"{_session.LoginResponse!.RestUrl}{query}";
 
-        return await _client.DeleteAsync(restUrl, token);
+        return await _client.DeleteAsync(restUrl, cancellationToken);
     }
 
     internal Task<T?> DeserializeAsync<T>(HttpResponseMessage response)
@@ -223,7 +223,7 @@ public sealed class BullhornHttpClient
 
     internal void LogError(string message, params object?[] args) => _logger.LogError(message, args);
 
-    private async Task PingCheckAsync(CancellationToken token)
+    private async Task PingCheckAsync(CancellationToken cancellationToken)
     {
         _logger.LogDebug("Next token refresh at {expiryDate}", _session.Ping.SessionExpiryDate);
 
@@ -239,7 +239,7 @@ public sealed class BullhornHttpClient
 
         try
         {
-            using var response = await _client.GetAsync($"{_session.LoginResponse!.RestUrl}/ping", token);
+            using var response = await _client.GetAsync($"{_session.LoginResponse!.RestUrl}/ping", cancellationToken);
 
             var result = await DeserializeAsync<PingResponse>(response);
 
@@ -257,7 +257,7 @@ public sealed class BullhornHttpClient
             _logger.LogError(e, "PingCheckAsync");
 
             // Reconnect before checking whether a token refresh is still required.
-            await _session.ConnectAsync(token: token);
+            await _session.ConnectAsync(cancellationToken: cancellationToken);
         }
 
         if (_session.Ping is null)
@@ -274,7 +274,7 @@ public sealed class BullhornHttpClient
         // Refresh only when both the ping and reconnect paths leave the session invalid.
         _logger.LogInformation($"Token refresh on {_apiCallCounter} API call.");
 
-        await _session.RefreshTokenAsync(token);
+        await _session.RefreshTokenAsync(cancellationToken);
     }
 
     private static async Task<Result<ChangeResponse>> GetChangeResponseAsync(HttpResponseMessage response)

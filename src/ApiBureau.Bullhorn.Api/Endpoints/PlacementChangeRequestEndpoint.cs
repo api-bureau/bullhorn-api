@@ -14,18 +14,18 @@ public sealed class PlacementChangeRequestEndpoint : QueryEndpointBase<Placement
     /// Creates a new placement change request.
     /// </summary>
     /// <param name="content">The placement change request payload to create.</param>
-    /// <param name="token">The cancellation token used to cancel the request.</param>
+    /// <param name="cancellationToken">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the create request.</returns>
-    public Task<Result<ChangeResponse>> AddAsync(object content, CancellationToken token)
-        => HttpClient.PutAsJsonAsync(EntityType.PlacementChangeRequest, content, token);
+    public Task<Result<ChangeResponse>> AddAsync(object content, CancellationToken cancellationToken)
+        => HttpClient.PutAsJsonAsync(EntityType.PlacementChangeRequest, content, cancellationToken);
 
     /// <summary>
     /// Updates an existing placement change request.
     /// </summary>
     /// <param name="placementChangeRequestId">The Bullhorn placement change request identifier.</param>
     /// <param name="data">The fields and values to update.</param>
-    /// <param name="token">The cancellation token used to cancel the request.</param>
+    /// <param name="cancellationToken">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the update request.</returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int placementChangeRequestId, object data, CancellationToken token)
-        => HttpClient.PostAsJsonAsync(EntityType.PlacementChangeRequest, placementChangeRequestId, data, token);
+    public Task<Result<ChangeResponse>> UpdateAsync(int placementChangeRequestId, object data, CancellationToken cancellationToken)
+        => HttpClient.PostAsJsonAsync(EntityType.PlacementChangeRequest, placementChangeRequestId, data, cancellationToken);
 }

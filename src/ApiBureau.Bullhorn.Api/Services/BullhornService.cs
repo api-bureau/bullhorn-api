@@ -16,11 +16,11 @@ public class BullhornService
     /// </summary>
     /// <param name="hours"></param>
     /// <returns></returns>
-    public async Task<List<CandidateDto>> BullhornCheck(int hours = 2, CancellationToken token = default)
+    public async Task<List<CandidateDto>> BullhornCheck(int hours = 2, CancellationToken cancellationToken = default)
     {
         await CheckConnectionAsync();
 
-        var newCandidates = await BullhornApi.Candidate.SearchFromAsync(DateTime.Now.AddHours(-hours), token: token);
+        var newCandidates = await BullhornApi.Candidates.GetAddedSinceAsync(DateTime.Now.AddHours(-hours), cancellationToken: cancellationToken);
 
         return newCandidates;
     }

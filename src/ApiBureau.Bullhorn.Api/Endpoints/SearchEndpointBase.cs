@@ -18,34 +18,28 @@ public abstract class SearchEndpointBase<T>
 
     private protected BullhornHttpClient HttpClient { get; }
 
-    public string RequestUrl { get; }
+    private protected string RequestUrl { get; }
 
-    public string DefaultFields { get; }
+    private protected string DefaultFields { get; }
 
-    // ToDo rename to GetByIdAsync during public API normalization.
-    public Task<T?> GetAsync(int id, string? fields = null, CancellationToken token = default)
-        => _operations.GetAsync(id, fields, token);
+    public Task<T?> GetByIdAsync(int id, string? fields = null, CancellationToken cancellationToken = default)
+        => _operations.GetByIdAsync(id, fields, cancellationToken);
 
-    // ToDo rename to GetByIdsAsync during public API normalization.
-    public Task<List<T>> GetAsync(IEnumerable<int> ids, string? fields = null, CancellationToken token = default)
-        => _operations.GetAsync(ids, fields, token);
+    public Task<List<T>> GetByIdsAsync(IEnumerable<int> ids, string? fields = null, CancellationToken cancellationToken = default)
+        => _operations.GetByIdsAsync(ids, fields, cancellationToken);
 
-    // ToDo rename to GetAddedSinceAsync during public API normalization.
-    public Task<List<T>> SearchFromAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken token = default)
-        => _operations.SearchFromAsync(dateTimeFrom, fields, token);
+    public Task<List<T>> GetAddedSinceAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken cancellationToken = default)
+        => _operations.GetAddedSinceAsync(dateTimeFrom, fields, cancellationToken);
 
-    // ToDo rename to GetAddedBetweenAsync during public API normalization.
-    public Task<List<T>> SearchFromToAsync(DateTime dateTimeFrom, DateTime dateTimeTo, string? fields = null, CancellationToken token = default)
-        => _operations.SearchFromToAsync(dateTimeFrom, dateTimeTo, fields, token);
+    public Task<List<T>> GetAddedBetweenAsync(DateTime dateTimeFrom, DateTime dateTimeTo, string? fields = null, CancellationToken cancellationToken = default)
+        => _operations.GetAddedBetweenAsync(dateTimeFrom, dateTimeTo, fields, cancellationToken);
 
-    // ToDo rename to GetChangedSinceAsync during public API normalization.
-    public Task<List<T>> SearchNewAndUpdatedFromAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken token = default)
-        => _operations.SearchNewAndUpdatedFromAsync(dateTimeFrom, fields, token);
+    public Task<List<T>> GetChangedSinceAsync(DateTime dateTimeFrom, string? fields = null, CancellationToken cancellationToken = default)
+        => _operations.GetChangedSinceAsync(dateTimeFrom, fields, cancellationToken);
 
-    // ToDo rename to GetUpdatedSinceAsync during public API normalization.
-    public Task<List<T>> GetUpdatedFromAsync(DateTime dateTime, string? fields = null, CancellationToken token = default)
-        => _operations.GetUpdatedFromAsync(dateTime, fields, token);
+    public Task<List<T>> GetUpdatedSinceAsync(DateTime dateTime, string? fields = null, CancellationToken cancellationToken = default)
+        => _operations.GetUpdatedSinceAsync(dateTime, fields, cancellationToken);
 
-    private protected Task<List<T>> ExecuteSearchAsync(string searchTerm, CancellationToken token = default)
-        => _operations.ExecuteAsync(searchTerm, token: token);
+    private protected Task<List<T>> ExecuteSearchAsync(string searchTerm, CancellationToken cancellationToken = default)
+        => _operations.ExecuteAsync(searchTerm, cancellationToken: cancellationToken);
 }

@@ -10,9 +10,9 @@ public sealed class ResumeEndpoint
         RequestUrl = requestUrl;
     }
 
-    public string RequestUrl { get; }
+    private string RequestUrl { get; }
 
-    public async Task<ResumeDto?> ParseAsync(FileDto fileDto, CancellationToken token)
+    public async Task<ResumeDto?> ParseAsync(FileDto fileDto, CancellationToken cancellationToken)
     {
         var query = $"{RequestUrl}/parseToCandidate?format=text&populateDescription=html&";
 
@@ -23,7 +23,7 @@ public sealed class ResumeEndpoint
 
         //content.Add(new ByteArrayContent(Convert.FromBase64String(fileDto.FileContent)), "resume", string.IsNullOrWhiteSpace(fileDto.Name) ? "temp-file-name" : fileDto.Name);
 
-        var response = await _client.PostAsync(query, content, token);
+        var response = await _client.PostAsync(query, content, cancellationToken);
 
         return await response.DeserializeAsync<ResumeDto>();
     }

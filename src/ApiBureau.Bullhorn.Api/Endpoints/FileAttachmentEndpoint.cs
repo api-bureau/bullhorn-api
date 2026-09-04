@@ -9,11 +9,11 @@ public sealed class FileAttachmentEndpoint
     internal FileAttachmentEndpoint(BullhornHttpClient client)
         => _operations = new(client, string.Empty, string.Empty);
 
-    public string RequestUrl => string.Empty;
+    private string RequestUrl => string.Empty;
 
-    public async Task<List<FileAttachmentDto>> GetAsync(string query, CancellationToken token)
+    public async Task<List<FileAttachmentDto>> GetAsync(string query, CancellationToken cancellationToken)
     {
-        var data = await _operations.ExecuteAsync(query, token);
+        var data = await _operations.ExecuteAsync(query, cancellationToken);
 
         return data;
 

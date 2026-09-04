@@ -11,5 +11,5 @@ public sealed class CountryEndpoint : QueryEndpointBase<CountryDto>
     /// Returns all countries
     /// </summary>
     /// <returns></returns>
-    public async Task<List<CountryDto>> GetAllAsync() => await QueryWhereAsync();
+    public async Task<List<CountryDto>> GetAllAsync() => await GetWhereAsync();
 }

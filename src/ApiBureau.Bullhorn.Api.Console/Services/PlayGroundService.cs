@@ -37,21 +37,21 @@ public class PlayGroundService
 
     private async Task QueryExampleAsync(CancellationToken token)
     {
-        var result = await _bullhornApi.QueryAsync<DepartmentDto>($"{EntityType.Department}?fields=id,name&where=id>0", token);
+        var result = await _bullhornApi.Advanced.QueryAsync<DepartmentDto>($"{EntityType.Department}?fields=id,name&where=id>0", token);
 
         _logger.LogInformation("Items: {count}", result.Count);
     }
 
     private async Task GetDepartmentsAsync()
     {
-        var result = await _bullhornApi.Department.GetAllAsync();
+        var result = await _bullhornApi.Departments.GetAllAsync();
 
         _logger.LogInformation("Items: {count}", result.Count);
     }
 
     private async Task GetCountriesAsync()
     {
-        var result = await _bullhornApi.Country.GetAllAsync();
+        var result = await _bullhornApi.Countries.GetAllAsync();
 
         _logger.LogInformation("Items: {count}", result.Count);
     }

@@ -15,8 +15,8 @@ public sealed class OpportunityEndpoint : QueryEndpointBase<OpportunityDto>
     /// </summary>
     /// <param name="opportunityId">The Bullhorn opportunity identifier.</param>
     /// <param name="data">The fields and values to update.</param>
-    /// <param name="token">The cancellation token used to cancel the request.</param>
+    /// <param name="cancellationToken">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the update request.</returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int opportunityId, object data, CancellationToken token)
-        => HttpClient.PostAsJsonAsync(EntityType.Opportunity, opportunityId, data, token);
+    public Task<Result<ChangeResponse>> UpdateAsync(int opportunityId, object data, CancellationToken cancellationToken)
+        => HttpClient.PostAsJsonAsync(EntityType.Opportunity, opportunityId, data, cancellationToken);
 }

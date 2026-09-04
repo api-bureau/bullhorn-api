@@ -14,17 +14,17 @@ public sealed class PlacementCommissionEndpoint : QueryEndpointBase<PlacementCom
     /// Creates a new placement commission.
     /// </summary>
     /// <param name="content">The placement commission payload to create.</param>
-    /// <param name="token">The cancellation token used to cancel the request.</param>
+    /// <param name="cancellationToken">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the create request.</returns>
-    public Task<Result<ChangeResponse>> AddAsync(object content, CancellationToken token)
-        => HttpClient.PutAsJsonAsync(EntityType.PlacementCommission, content, token);
+    public Task<Result<ChangeResponse>> AddAsync(object content, CancellationToken cancellationToken)
+        => HttpClient.PutAsJsonAsync(EntityType.PlacementCommission, content, cancellationToken);
 
     /// <summary>
     /// Soft deletes the specified placement commission.
     /// </summary>
     /// <param name="id">The Bullhorn placement commission identifier.</param>
-    /// <param name="token">The cancellation token used to cancel the request.</param>
+    /// <param name="cancellationToken">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the delete request.</returns>
-    public Task<Result<ChangeResponse>> DeleteAsync(int id, CancellationToken token)
-        => HttpClient.DeleteAsync(id, EntityType.PlacementCommission, token);
+    public Task<Result<ChangeResponse>> DeleteAsync(int id, CancellationToken cancellationToken)
+        => HttpClient.DeleteAsync(id, EntityType.PlacementCommission, cancellationToken);
 }

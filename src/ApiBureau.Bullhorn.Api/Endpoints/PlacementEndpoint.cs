@@ -14,27 +14,27 @@ public sealed class PlacementEndpoint : QueryEndpointBase<PlacementDto>
     /// Approves the specified placement.
     /// </summary>
     /// <param name="placementId">The Bullhorn placement identifier.</param>
-    /// <param name="token">The cancellation token used to cancel the request.</param>
+    /// <param name="cancellationToken">The cancellation token used to cancel the request.</param>
     /// <returns>The HTTP response returned by the Bullhorn approval endpoint.</returns>
-    public Task<HttpResponseMessage> ApproveAsync(int placementId, CancellationToken token = default)
-        => HttpClient.PostAsync($"services/{RequestUrl}/approve/{placementId}", null, token);
+    public Task<HttpResponseMessage> ApproveAsync(int placementId, CancellationToken cancellationToken = default)
+        => HttpClient.PostAsync($"services/{RequestUrl}/approve/{placementId}", null, cancellationToken);
 
     /// <summary>
     /// Updates an existing placement.
     /// </summary>
     /// <param name="placementId">The Bullhorn placement identifier.</param>
     /// <param name="data">The fields and values to update.</param>
-    /// <param name="token">The cancellation token used to cancel the request.</param>
+    /// <param name="cancellationToken">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the update request.</returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int placementId, object data, CancellationToken token = default)
-        => HttpClient.PostAsJsonAsync(EntityType.Placement, placementId, data, token);
+    public Task<Result<ChangeResponse>> UpdateAsync(int placementId, object data, CancellationToken cancellationToken = default)
+        => HttpClient.PostAsJsonAsync(EntityType.Placement, placementId, data, cancellationToken);
 
     /// <summary>
     /// Creates a new placement.
     /// </summary>
     /// <param name="content">The placement payload to create.</param>
-    /// <param name="token">The cancellation token used to cancel the request.</param>
+    /// <param name="cancellationToken">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the create request.</returns>
-    public Task<Result<ChangeResponse>> AddAsync(object content, CancellationToken token)
-        => HttpClient.PutAsJsonAsync(EntityType.Placement, content, token);
+    public Task<Result<ChangeResponse>> AddAsync(object content, CancellationToken cancellationToken)
+        => HttpClient.PutAsJsonAsync(EntityType.Placement, content, cancellationToken);
 }

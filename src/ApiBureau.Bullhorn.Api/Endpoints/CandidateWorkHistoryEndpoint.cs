@@ -7,10 +7,10 @@ public sealed class CandidateWorkHistoryEndpoint : QueryEndpointBase<CandidateWo
     internal CandidateWorkHistoryEndpoint(BullhornHttpClient httpClient, string requestUrl)
         : base(httpClient, requestUrl, EntityDefaultFields) { }
 
-    public async Task<List<CandidateWorkHistoryDto>> GetDeletedFromAsync(DateTime dateAddedFrom, string? fields = null, CancellationToken token = default)
+    public async Task<List<CandidateWorkHistoryDto>> GetDeletedFromAsync(DateTime dateAddedFrom, string? fields = null, CancellationToken cancellationToken = default)
     {
         var query = $"{RequestUrl}?fields={fields ?? DefaultFields}&where=isDeleted=true AND dateAdded>={dateAddedFrom.Timestamp()}";
 
-        return await ExecuteQueryAsync(query, token);
+        return await ExecuteQueryAsync(query, cancellationToken);
     }
 }
