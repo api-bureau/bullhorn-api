@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace ApiBureau.Bullhorn.Api.Http;
 
@@ -80,13 +81,17 @@ public sealed class BullhornHttpClient
     }
 
     /// <summary>
-    /// Performs an asynchronous search query against the API and deserializes the response into a strongly-typed object.
+    /// Performs an asynchronous search query against the API and deserializes the response into a strongly-typed
+    /// object.
     /// </summary>
     /// <typeparam name="T">The type of the expected result in the search response.</typeparam>
     /// <param name="searchTerm">The term or keyword to search for.</param>
     /// <param name="count">The number of results to return.</param>
     /// <param name="start">The starting index for paginated results (default is 0).</param>
-    /// <returns>A task representing the asynchronous operation, containing the search response or <c>null</c> if the response couldn't be deserialized.</returns>
+    /// <returns>
+    /// A task representing the asynchronous operation, containing the search response or <c>null</c> if the response
+    /// couldn't be deserialized.
+    /// </returns>
     internal async Task<SearchResponse<T>?> SearchPageAsync<T>(string searchTerm, int count, int start = 0, CancellationToken cancellationToken = default)
     {
         var query = $"search/{searchTerm}&start={start}&count={count}&showTotalMatched=true&usev2=true";
@@ -279,16 +284,27 @@ public sealed class BullhornHttpClient
     {
         if (!response.IsSuccessStatusCode)
         {
-            //var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+            var json = await response.Content.ReadAsStringAsync();
 
-            var errorResponse = await response.Content.ReadFromJsonAsync<ChangeResponse>();
+            var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
+            var errorResponse = JsonSerializer.Deserialize<ChangeResponse>(json, options);
+            var error2 = JsonSerializer.Deserialize<ErrorResponse>(json, options);
 
             if (errorResponse is null)
             {
-                return Result.Failure<ChangeResponse>(response.ReasonPhrase);
+                var error = JsonSerializer.Deserialize<ErrorResponse>(json, options);
+
+                if (error is null)
+                {
+                    return Result.Failure<ChangeResponse>(response.ReasonPhrase);
+                }
+
+                return Result.Failure<ChangeResponse>(error.ErrorsFormatted);
+
             }
 
-            return errorResponse;
+            return Result.Failure<ChangeResponse>(errorResponse.ErrorsFormatted);
         }
 
         try
