@@ -10,6 +10,7 @@ public class NoteDto : EntityBaseDto
 
     public IdDto? JobOrder { get; set; }
     public List<IdDto>? Placements { get; set; }
+    public List<IdDto>? JobOrders { get; set; }
 
     public NoteDto()
     {
