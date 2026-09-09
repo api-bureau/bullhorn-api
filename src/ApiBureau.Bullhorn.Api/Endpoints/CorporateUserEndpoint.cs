@@ -17,6 +17,6 @@ public sealed class CorporateUserEndpoint : QueryEndpointBase<UserDto>
     /// Http POST /entity/CorporateUser/{corporateUserId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int corporateUserId, object data)
+    public Task<Result<ChangeResponse, ErrorResponse>> UpdateAsync(int corporateUserId, object data)
         => HttpClient.PostAsJsonAsync(EntityType.CorporateUser, corporateUserId, data);
 }

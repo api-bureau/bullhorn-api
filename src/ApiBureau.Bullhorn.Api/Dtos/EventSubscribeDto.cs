@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Dtos;
 
-public class EventSubscribeDto : ErrorResponse
+public class EventSubscribeDto
 {
     public long CreatedOn { get; set; }
     public int LastRequestId { get; set; }

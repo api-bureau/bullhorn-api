@@ -9,7 +9,7 @@ public sealed class ClientContactEndpoint : SearchEndpointBase<ClientContactDto>
     internal ClientContactEndpoint(BullhornHttpClient httpClient, string requestUrl)
         : base(httpClient, requestUrl, EntityDefaultFields) { }
 
-    public Task<Result<ChangeResponse>> AddAsync(ClientContactDto dto, CancellationToken cancellationToken)
+    public Task<Result<ChangeResponse, ErrorResponse>> AddAsync(ClientContactDto dto, CancellationToken cancellationToken)
         => HttpClient.PutAsJsonAsync(EntityType.ClientContact, dto, cancellationToken);
 
     public async Task<List<ClientContactDto>> FindClientContactIdByEmailAsync(List<string> emails, CancellationToken cancellationToken)
@@ -23,6 +23,6 @@ public sealed class ClientContactEndpoint : SearchEndpointBase<ClientContactDto>
     /// Http POST /entity/ClientContact/{clientContactId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int clientContactId, object data, CancellationToken cancellationToken)
+    public Task<Result<ChangeResponse, ErrorResponse>> UpdateAsync(int clientContactId, object data, CancellationToken cancellationToken)
         => HttpClient.PostAsJsonAsync(EntityType.ClientContact, clientContactId, data, cancellationToken);
 }

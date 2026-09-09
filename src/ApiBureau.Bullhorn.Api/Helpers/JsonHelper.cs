@@ -14,6 +14,14 @@ public static class JsonHelper
 
     public static async Task<T?> DeserializeAsync<T>(this HttpResponseMessage response, ILogger? logger = null)
     {
+        if (!response.IsSuccessStatusCode)
+        {
+            logger?.LogWarning("Response deserialization skipped for unsuccessful status {statusCode} at {uri}",
+                (int)response.StatusCode, response.RequestMessage?.RequestUri);
+
+            return default;
+        }
+
         await using var stream = await response.Content.ReadAsStreamAsync();
 
         try

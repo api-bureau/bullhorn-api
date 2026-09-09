@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace ApiBureau.Bullhorn.Api.Http;
 
@@ -120,7 +119,7 @@ public sealed class BullhornHttpClient
         return await _client.PutAsync(restUrl, content);
     }
 
-    internal async Task<Result<ChangeResponse>> PutAsJsonAsync(EntityType type, object content, CancellationToken cancellationToken)
+    internal async Task<Result<ChangeResponse, ErrorResponse>> PutAsJsonAsync(EntityType type, object content, CancellationToken cancellationToken)
     {
         var response = await PutAsJsonAsync($"entity/{type}", content, cancellationToken);
 
@@ -146,7 +145,7 @@ public sealed class BullhornHttpClient
     }
 
     // Probably this pattern should be used across
-    internal async Task<Result<ChangeResponse>> PostAsJsonAsync(EntityType type, int entityId, object content, CancellationToken cancellationToken = default)
+    internal async Task<Result<ChangeResponse, ErrorResponse>> PostAsJsonAsync(EntityType type, int entityId, object content, CancellationToken cancellationToken = default)
     {
         var response = await PostAsJsonAsync($"entity/{type}/{entityId}", content, cancellationToken);
 
@@ -203,7 +202,7 @@ public sealed class BullhornHttpClient
     //            DefaultIgnoreCondition = JsonIgnoreCondition.Always
     //        }), Encoding.UTF8, "application/json"), cancellationToken);
 
-    internal async Task<Result<ChangeResponse>> DeleteAsync(int id, EntityType type, CancellationToken cancellationToken)
+    internal async Task<Result<ChangeResponse, ErrorResponse>> DeleteAsync(int id, EntityType type, CancellationToken cancellationToken)
     {
         var response = await ApiDeleteAsync($"entity/{type}/{id}?", cancellationToken);
 
@@ -280,49 +279,8 @@ public sealed class BullhornHttpClient
         await _session.RefreshTokenAsync(cancellationToken);
     }
 
-    private static async Task<Result<ChangeResponse>> GetChangeResponseAsync(HttpResponseMessage response)
-    {
-        if (!response.IsSuccessStatusCode)
-        {
-            var json = await response.Content.ReadAsStringAsync();
-
-            var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-
-            var errorResponse = JsonSerializer.Deserialize<ChangeResponse>(json, options);
-            var error2 = JsonSerializer.Deserialize<ErrorResponse>(json, options);
-
-            if (errorResponse is null)
-            {
-                var error = JsonSerializer.Deserialize<ErrorResponse>(json, options);
-
-                if (error is null)
-                {
-                    return Result.Failure<ChangeResponse>(response.ReasonPhrase);
-                }
-
-                return Result.Failure<ChangeResponse>(error.ErrorsFormatted);
-
-            }
-
-            return Result.Failure<ChangeResponse>(errorResponse.ErrorsFormatted);
-        }
-
-        try
-        {
-            var changeResponse = await response.Content.ReadFromJsonAsync<ChangeResponse>();
-
-            if (changeResponse is null)
-            {
-                return Result.Failure<ChangeResponse>("Response deserialization failed.");
-            }
-
-            return Result.Success(changeResponse);
-        }
-        catch (Exception e)
-        {
-            return Result.Failure<ChangeResponse>(e.Message);
-        }
-    }
+    private static Task<Result<ChangeResponse, ErrorResponse>> GetChangeResponseAsync(HttpResponseMessage response)
+        => BullhornResponseReader.ReadResultAsync<ChangeResponse>(response);
 }
 // Other query examples
 //search/Note?fields=id,dateAdded,action,commentingPerson&query=dateAdded:[20210101000000 TO *] AND action:'Phone Call'&sort=-dateAdded

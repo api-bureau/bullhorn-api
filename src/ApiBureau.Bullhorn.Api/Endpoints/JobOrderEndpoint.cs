@@ -20,13 +20,13 @@ public sealed class JobOrderEndpoint : QueryEndpointBase<JobOrderDto>
     /// <param name="dto">An object whose properties represent the job order fields to add.</param>
     /// <param name="cancellationToken">A cancellation token to cancel the asynchronous operation.</param>
     /// <returns>A <see cref="Result{ChangeResponse}"/> indicating the outcome of the operation.</returns>
-    public async Task<Result<ChangeResponse>> AddAsync(object dto, CancellationToken cancellationToken)
+    public async Task<Result<ChangeResponse, ErrorResponse>> AddAsync(object dto, CancellationToken cancellationToken)
         => await HttpClient.PutAsJsonAsync(EntityType.JobOrder, dto, cancellationToken);
 
     /// <summary>
     /// Http POST /entity/JobOrder/{jobOrderId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int jobOrderId, object data, CancellationToken cancellationToken = default)
+    public Task<Result<ChangeResponse, ErrorResponse>> UpdateAsync(int jobOrderId, object data, CancellationToken cancellationToken = default)
         => HttpClient.PostAsJsonAsync(EntityType.JobOrder, jobOrderId, data, cancellationToken);
 }

@@ -17,13 +17,13 @@ public sealed class JobSubmissionEndpoint : QueryEndpointBase<JobSubmissionDto>
     /// <param name="dto">An object whose properties represent the job submission fields to add.</param>
     /// <param name="cancellationToken">A cancellation token to cancel the asynchronous operation.</param>
     /// <returns>A <see cref="Result{ChangeResponse}"/> indicating the outcome of the operation.</returns>
-    public async Task<Result<ChangeResponse>> AddAsync(object dto, CancellationToken cancellationToken)
+    public async Task<Result<ChangeResponse, ErrorResponse>> AddAsync(object dto, CancellationToken cancellationToken)
         => await HttpClient.PutAsJsonAsync(EntityType.JobSubmission, dto, cancellationToken);
 
     /// <summary>
     /// Http POST /entity/JobSubmission/{jobSubmissionId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int jobSubmissionId, object data, CancellationToken cancellationToken)
+    public Task<Result<ChangeResponse, ErrorResponse>> UpdateAsync(int jobSubmissionId, object data, CancellationToken cancellationToken)
         => HttpClient.PostAsJsonAsync(EntityType.JobSubmission, jobSubmissionId, data, cancellationToken);
 }

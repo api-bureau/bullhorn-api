@@ -16,7 +16,7 @@ public sealed class ClientCorporationEndpoint : QueryEndpointBase<ClientCorporat
     /// <param name="dto">The client corporation payload to create.</param>
     /// <param name="cancellationToken">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the create request.</returns>
-    public Task<Result<ChangeResponse>> AddAsync(ClientCorporationDto dto, CancellationToken cancellationToken)
+    public Task<Result<ChangeResponse, ErrorResponse>> AddAsync(ClientCorporationDto dto, CancellationToken cancellationToken)
         => HttpClient.PutAsJsonAsync(EntityType.ClientCorporation, dto, cancellationToken);
 
     /// <summary>
@@ -26,6 +26,6 @@ public sealed class ClientCorporationEndpoint : QueryEndpointBase<ClientCorporat
     /// <param name="data">The fields and values to update.</param>
     /// <param name="cancellationToken">The cancellation token used to cancel the request.</param>
     /// <returns>The Bullhorn change response for the update request.</returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int clientCorporationId, object data, CancellationToken cancellationToken)
+    public Task<Result<ChangeResponse, ErrorResponse>> UpdateAsync(int clientCorporationId, object data, CancellationToken cancellationToken)
         => HttpClient.PostAsJsonAsync(EntityType.ClientCorporation, clientCorporationId, data, cancellationToken);
 }

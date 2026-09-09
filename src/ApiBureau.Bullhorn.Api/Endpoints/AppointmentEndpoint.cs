@@ -7,13 +7,13 @@ public sealed class AppointmentEndpoint : QueryEndpointBase<AppointmentDto>
     internal AppointmentEndpoint(BullhornHttpClient httpClient, string requestUrl)
         : base(httpClient, requestUrl, EntityDefaultFields) { }
 
-    public Task<Result<ChangeResponse>> AddAsync(NewAppointmentDto appointment, CancellationToken cancellationToken)
+    public Task<Result<ChangeResponse, ErrorResponse>> AddAsync(NewAppointmentDto appointment, CancellationToken cancellationToken)
         => HttpClient.PutAsJsonAsync(EntityType.Appointment, appointment, cancellationToken);
 
     /// <summary>
     /// Http POST /entity/Appointment/{appointmentId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int appointmentId, object data)
+    public Task<Result<ChangeResponse, ErrorResponse>> UpdateAsync(int appointmentId, object data)
         => HttpClient.PostAsJsonAsync(EntityType.Appointment, appointmentId, data);
 }

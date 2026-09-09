@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace ApiBureau.Bullhorn.Api.Http;
 
-public class QueryResponse : ErrorResponse
+public class QueryResponse
 {
     public int Total { get; set; }
     public int Start { get; set; }

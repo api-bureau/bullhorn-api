@@ -20,7 +20,7 @@ public sealed class CandidateEndpoint : SearchEndpointBase<CandidateDto>
     /// <param name="dto">The candidate data to add. All properties are serialised and sent to the API.</param>
     /// <param name="cancellationToken">A cancellation token to cancel the asynchronous operation.</param>
     /// <returns>A <see cref="Result{ChangeResponse}"/> indicating the outcome of the operation.</returns>
-    public async Task<Result<ChangeResponse>> AddAsync(CandidateDto dto, CancellationToken cancellationToken)
+    public async Task<Result<ChangeResponse, ErrorResponse>> AddAsync(CandidateDto dto, CancellationToken cancellationToken)
         => await HttpClient.PutAsJsonAsync(EntityType.Candidate, dto, cancellationToken);
 
     /// <summary>
@@ -33,7 +33,7 @@ public sealed class CandidateEndpoint : SearchEndpointBase<CandidateDto>
     /// <param name="dto">An object whose properties represent the candidate fields to add.</param>
     /// <param name="cancellationToken">A cancellation token to cancel the asynchronous operation.</param>
     /// <returns>A <see cref="Result{ChangeResponse}"/> indicating the outcome of the operation.</returns>
-    public async Task<Result<ChangeResponse>> AddAsync(object dto, CancellationToken cancellationToken)
+    public async Task<Result<ChangeResponse, ErrorResponse>> AddAsync(object dto, CancellationToken cancellationToken)
         => await HttpClient.PutAsJsonAsync(EntityType.Candidate, dto, cancellationToken);
 
     public async Task<int> GetFileCountAsync(int id, CancellationToken cancellationToken)
@@ -67,6 +67,6 @@ public sealed class CandidateEndpoint : SearchEndpointBase<CandidateDto>
     /// Http POST /entity/Candidate/{candidateId}
     /// </summary>
     /// <returns></returns>
-    public Task<Result<ChangeResponse>> UpdateAsync(int candidateId, object data, CancellationToken cancellationToken)
+    public Task<Result<ChangeResponse, ErrorResponse>> UpdateAsync(int candidateId, object data, CancellationToken cancellationToken)
         => HttpClient.PostAsJsonAsync(EntityType.Candidate, candidateId, data, cancellationToken);
 }

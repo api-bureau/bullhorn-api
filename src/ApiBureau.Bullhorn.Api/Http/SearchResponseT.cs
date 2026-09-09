@@ -1,6 +1,6 @@
 namespace ApiBureau.Bullhorn.Api.Http;
 
-public class SearchResponse<T> : ErrorResponse
+public class SearchResponse<T>
 {
     public int Total { get; set; }
     public int Start { get; set; }

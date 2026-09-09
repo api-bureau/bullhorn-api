@@ -110,8 +110,11 @@ internal sealed class ApiSession
 
         using var response = await _client.GetAsync(loginUrl, cancellationToken);
 
-        // temp variable to log the response in case of failure
-        //var temp = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await BullhornResponseReader.ReadErrorAsync(response, cancellationToken);
+            ThrowInvalidOperation("Login failed", error.Message);
+        }
 
         var loginResponse = await response.DeserializeAsync<LoginResponse>(_logger);
         EnsureLoginResponse(loginResponse);
@@ -179,11 +182,6 @@ internal sealed class ApiSession
         if (loginResponse is null)
         {
             ThrowInvalidOperation("Login failed, LoginResponse is null");
-        }
-
-        if (!loginResponse.Success)
-        {
-            ThrowInvalidOperation("Login failed", $"{loginResponse.ErrorMessageKey}, {loginResponse.ErrorMessage}");
         }
 
         if (!loginResponse.IsValid)
