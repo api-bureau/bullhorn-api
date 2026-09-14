@@ -7,7 +7,7 @@ public class PingResponse
     public DateTime SessionExpiryDate => SessionExpires.ToDateTime();
 
     // 30 seconds added for security
-    public bool Valid => SessionExpiryDate > DateTime.Now.AddSeconds(30);
+    public bool Valid => SessionExpires > DateTimeOffset.UtcNow.AddSeconds(30).ToUnixTimeMilliseconds();
 
     //public SessionDto() => SessionExpires = DateTime.Now.AddYears(-100).Timestamp();
 

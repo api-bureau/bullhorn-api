@@ -120,7 +120,6 @@ internal sealed class ApiSession
         EnsureLoginResponse(loginResponse);
 
         LoginResponse = loginResponse;
-        UpdateBhRestTokenHeader(loginResponse?.BhRestToken ?? throw new InvalidOperationException("Login failed, BhRestToken is null."));
 
         _refreshToken = tokenResponse.RefreshToken;
 
@@ -129,15 +128,9 @@ internal sealed class ApiSession
         ReportProgress(progress, "Login was successful");
     }
 
-    private void UpdateBhRestTokenHeader(string bhRestToken)
-    {
-        _client.DefaultRequestHeaders.Remove("BhRestToken");
-        _client.DefaultRequestHeaders.TryAddWithoutValidation("BhRestToken", bhRestToken);
-    }
-
     internal async Task RefreshTokenAsync(CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrEmpty(_refreshToken);
+        if (string.IsNullOrEmpty(_refreshToken)) throw new InvalidOperationException("No Bullhorn refresh token is available.");
 
         await ExecuteWithRetryAsync(
             async () =>
@@ -219,6 +212,7 @@ internal sealed class ApiSession
                 await action();
                 return;
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception exception) when (tryCount < SessionRetry)
             {
                 var failureMessage = failureMessageFactory?.Invoke(tryCount, exception)

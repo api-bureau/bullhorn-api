@@ -2,6 +2,9 @@ namespace ApiBureau.Bullhorn.Api.Core;
 
 public class BullhornSettings
 {
+    /// <summary>Maximum time to reuse a server-verified REST session before pinging again.</summary>
+    public TimeSpan SessionVerificationInterval { get; set; } = TimeSpan.FromMinutes(1);
+
     /// <summary>
     /// Needed for Authorisation
     /// </summary>
