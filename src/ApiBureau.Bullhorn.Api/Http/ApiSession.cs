@@ -1,255 +1,100 @@
-
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics.CodeAnalysis;
+using System.Net;
+using System.Net.Http.Json;
 
 namespace ApiBureau.Bullhorn.Api.Http;
 
-internal sealed class ApiSession
+// Performs authentication exchanges only. The session manager owns cached credentials.
+internal sealed class ApiSession(HttpClient client, BullhornSettings settings)
 {
-    private readonly HttpClient _client;
-    private readonly ILogger _logger;
-    private readonly BullhornSettings _settings;
-    private const int SessionLength = 240; // max 240;
-    private const int SessionRetry = 5;
-    private const int DelayBetweenRetriesInMs = 200;
-    private const string NoAuthorizationCodeRetrieved = "No authorization code retrieved.";
-    private const string AuthorizationState = "ips";
-    private string? _refreshToken;
-
-    internal LoginResponse? LoginResponse { get; private set; }
-    internal PingResponse Ping { get; set; } = new PingResponse();
-    internal bool IsValid => LoginResponse != null && LoginResponse.IsValid;
-
-    internal ApiSession(HttpClient client, BullhornSettings settings, ILogger logger)
-    {
-        _client = client;
-        _logger = logger;
-        _settings = settings;
-    }
-
-    internal async Task ConnectAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default)
-        => await ExecuteWithRetryAsync(
-            async () =>
-            {
-                var authorisationCode = await GetAuthorizationCodeAsync(progress, cancellationToken);
-                var tokenResponse = await GetTokenResponseAsync(authorisationCode, progress, cancellationToken);
-
-                await LoginAsync(tokenResponse, progress, cancellationToken);
-
-                ReportProgress(progress, "Connection successful");
-            },
-            tryCount => $"Attempt {tryCount}/{SessionRetry}: Trying to connect...",
-            (tryCount, exception) => $"Attempt {tryCount}/{SessionRetry} failed. Reason: {exception.Message}",
-            progress,
-            cancellationToken);
-
-    private async Task<string> GetAuthorizationCodeAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default)
+    internal async Task<TokenResponse> AuthorizeAsync(IProgress<string>? progress, CancellationToken token)
     {
         var request = new AuthorizationCodeRequest
         {
-            Address = _settings.AuthorizeUrl,
-            ClientId = _settings.ClientId,
-            UserName = _settings.UserName,
-            Password = _settings.Password
+            Address = settings.AuthorizeUrl,
+            ClientId = settings.ClientId,
+            UserName = settings.UserName,
+            Password = settings.Password
         };
+        request.AddParameter("state", "ips");
+        var authorization = await client.RequestAuthorizationCodeAsync(request, token);
+        using var response = authorization.HttpResponse
+            ?? throw new HttpRequestException("Bullhorn authorization returned no response.");
+        response.EnsureSuccessStatusCode();
+        var query = response.Headers.Location?.Query ?? response.RequestMessage?.RequestUri?.Query ?? "";
+        var values = QueryHelpers.ParseQuery(query);
+        if (!values.TryGetValue(settings.AuthorizationParameter, out var code) || string.IsNullOrWhiteSpace(code))
+            throw new HttpRequestException("Bullhorn authorization returned no authorization code.");
 
-        request.AddParameter("state", AuthorizationState);
-
-        var response = await _client.RequestAuthorizationCodeAsync(request, cancellationToken);
-
-        if (response.HttpResponse is null)
+        progress?.Report("Bullhorn authorization code received.");
+        var exchange = new AuthorizationCodeTokenRequest
         {
-            ThrowInvalidOperation("No response received", response.ErrorDescription ?? response.Error);
-        }
-
-        var collection = QueryHelpers.ParseQuery(GetQuery(response.HttpResponse));
-
-        collection.TryGetValue(_settings.AuthorizationParameter, out var code);
-
-        if (string.IsNullOrWhiteSpace(code))
-        {
-            ThrowInvalidOperation(NoAuthorizationCodeRetrieved);
-        }
-
-        ReportProgress(progress, "Authorization was successful");
-
-        return code!;
-    }
-
-    private async Task<TokenResponse> GetTokenResponseAsync(string authorisationCode, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(authorisationCode);
-
-        var request = new AuthorizationCodeTokenRequest
-        {
-            Address = _settings.TokenUrl,
-            ClientId = _settings.ClientId,
-            ClientSecret = _settings.Secret,
+            Address = settings.TokenUrl,
+            ClientId = settings.ClientId,
+            ClientSecret = settings.Secret,
             GrantType = "authorization_code"
         };
-
-        request.AddParameter("code", authorisationCode);
-
-        var response = await _client.RequestTokenAsync(request, cancellationToken);
-
-        var validatedResponse = EnsureTokenResponse(response, "Error retrieving token");
-
-        ReportProgress(progress, "Token retrieval was successful");
-
-        return validatedResponse;
+        exchange.AddParameter("code", code.ToString());
+        var tokens = await client.RequestTokenAsync(exchange, token);
+        using var tokenResponse = tokens.HttpResponse;
+        return ValidateTokens(tokens);
     }
 
-    // This API call is failing in some cases, so we retry it a few times through ExecuteWithRetryAsync
-    //{"errorMessage":"Invalid or expired OAuth access token.","errorMessageKey":"errors.authentication.invalidOAuthToken","errorCode":400}
-    private async Task LoginAsync(TokenResponse tokenResponse, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
+    // Null means this grant was rejected and full authorization is required.
+    internal async Task<TokenResponse?> RefreshAsync(string refreshToken, CancellationToken token)
     {
-        ArgumentNullException.ThrowIfNull(tokenResponse);
-
-        ArgumentException.ThrowIfNullOrEmpty(tokenResponse.AccessToken);
-
-        var loginUrl = BuildLoginUrl(tokenResponse.AccessToken);
-
-        using var response = await _client.GetAsync(loginUrl, cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
+        var tokens = await client.RequestRefreshTokenAsync(new RefreshTokenRequest
         {
-            var error = await BullhornResponseReader.ReadErrorAsync(response, cancellationToken);
-
-            ThrowInvalidOperation("Login failed", error.Message);
-        }
-
-        var loginResponse = await response.DeserializeAsync<LoginResponse>(_logger);
-
-        EnsureLoginResponse(loginResponse);
-
-        LoginResponse = loginResponse;
-
-        _refreshToken = tokenResponse.RefreshToken;
-
-        Ping.SetExpiryDate(DateTime.UtcNow.AddMinutes(SessionLength).Timestamp());
-
-        ReportProgress(progress, "Login was successful");
+            Address = settings.TokenUrl,
+            ClientId = settings.ClientId,
+            ClientSecret = settings.Secret,
+            RefreshToken = refreshToken
+        }, token);
+        using var response = tokens.HttpResponse;
+        if (response?.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Unauthorized &&
+            string.Equals(tokens.Error, "invalid_grant", StringComparison.OrdinalIgnoreCase))
+            return null;
+        return ValidateTokens(tokens);
     }
 
-    internal async Task RefreshTokenAsync(CancellationToken cancellationToken)
+    internal async Task<LoginResponse> LoginAsync(string accessToken, CancellationToken token)
     {
-        if (string.IsNullOrEmpty(_refreshToken)) throw new InvalidOperationException("No Bullhorn refresh token is available.");
-
-        await ExecuteWithRetryAsync(
-            async () =>
-            {
-                var tokenResponse = await GetRefreshTokenAsync(cancellationToken);
-                await LoginAsync(tokenResponse, cancellationToken: cancellationToken);
-            },
-            tryCount => $"Refresh session creation attempt {tryCount}/{SessionRetry}",
-            (tryCount, exception) => $"Refresh session creation attempt {tryCount}/{SessionRetry} failed. Reason: {exception.Message}",
-            cancellationToken: cancellationToken);
-    }
-
-    private async Task<TokenResponse> GetRefreshTokenAsync(CancellationToken cancellationToken)
-    {
-        var response = await _client.RequestRefreshTokenAsync(new RefreshTokenRequest
-        {
-            Address = _settings.TokenUrl,
-            ClientId = _settings.ClientId,
-            ClientSecret = _settings.Secret,
-            RefreshToken = _refreshToken!
-        }, cancellationToken);
-
-        return EnsureTokenResponse(response, "Error refreshing token");
-    }
-
-    private static string GetQuery(HttpResponseMessage response) =>
-        response.Headers?.Location?.Query ?? response.RequestMessage?.RequestUri?.Query ?? "";
-
-    private static void ReportProgress(IProgress<string>? progress, string message)
-        => progress?.Report(message);
-
-    private string BuildLoginUrl(string accessToken) =>
-        QueryHelpers.AddQueryString(_settings.LoginUrl, new Dictionary<string, string?>
+        var url = QueryHelpers.AddQueryString(settings.LoginUrl, new Dictionary<string, string?>
         {
             ["version"] = "2.0",
             ["access_token"] = accessToken,
-            ["ttl"] = SessionLength.ToString()
+            ["ttl"] = "240"
         });
 
-    private static void EnsureLoginResponse(LoginResponse? loginResponse)
-    {
-        if (loginResponse is null)
+        // Retry only REST login, with the same access token, after an explicit transient response.
+        // Never repeat a single-use OAuth exchange or retry an ambiguous timeout.
+        for (var attempt = 0; ; attempt++)
         {
-            ThrowInvalidOperation("Login failed, LoginResponse is null");
-        }
-
-        if (!loginResponse.IsValid)
-        {
-            ThrowInvalidOperation("Login failed, invalid BhRestToken.");
+            using var response = await client.GetAsync(url, token);
+            if (attempt == 0 && response.StatusCode is HttpStatusCode.BadGateway
+                or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), token);
+                continue;
+            }
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await BullhornResponseReader.ReadErrorAsync(response, token);
+                throw new HttpRequestException($"Bullhorn REST login failed: {error.Message}", null, response.StatusCode);
+            }
+            var login = await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: token);
+            if (string.IsNullOrWhiteSpace(login?.BhRestToken) || string.IsNullOrWhiteSpace(login.RestUrl))
+                throw new HttpRequestException("Bullhorn REST login returned an invalid session.");
+            return login;
         }
     }
 
-    private static TokenResponse EnsureTokenResponse(TokenResponse? response, string customMessage)
+    private static TokenResponse ValidateTokens(TokenResponse tokens)
     {
-        if (response is null || response.IsError)
-        {
-            ThrowInvalidOperation(customMessage, response?.ErrorDescription ?? response?.Error);
-        }
-
-        return response;
-    }
-
-    private async Task ExecuteWithRetryAsync(
-        Func<Task> action,
-        Func<int, string>? attemptMessageFactory = null,
-        Func<int, Exception, string>? failureMessageFactory = null,
-        IProgress<string>? progress = null,
-        CancellationToken cancellationToken = default)
-    {
-        for (var tryCount = 1; tryCount <= SessionRetry; tryCount++)
-        {
-            try
-            {
-                if (attemptMessageFactory is not null)
-                {
-                    ReportProgress(progress, attemptMessageFactory(tryCount));
-                }
-
-                await action();
-                return;
-            }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception exception) when (tryCount < SessionRetry)
-            {
-                var failureMessage = failureMessageFactory?.Invoke(tryCount, exception)
-                    ?? $"Attempt {tryCount}/{SessionRetry} failed. Reason: {exception.Message}";
-
-                ReportProgress(progress, $"{failureMessage}. Retrying...");
-                _logger.LogError(exception, "{failureMessage}. Retrying...", failureMessage);
-
-                await Task.Delay(DelayBetweenRetriesInMs * tryCount, cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                var failureMessage = failureMessageFactory?.Invoke(tryCount, exception)
-                    ?? $"Attempt {tryCount}/{SessionRetry} failed. Reason: {exception.Message}";
-
-                ReportProgress(progress, $"{failureMessage}. No more retries.");
-                _logger.LogError(exception, "{failureMessage}. No more retries.", failureMessage);
-
-                throw;
-            }
-        }
-    }
-
-    [DoesNotReturn]
-    private static void ThrowInvalidOperation(string customMessage, string? responseMessage = null)
-    {
-        if (string.IsNullOrWhiteSpace(responseMessage))
-        {
-            throw new InvalidOperationException($"An error occurred: {customMessage}");
-        }
-        else
-        {
-            throw new InvalidOperationException($"An error occurred: {responseMessage}, {customMessage}");
-        }
+        if (tokens.IsError || string.IsNullOrWhiteSpace(tokens.AccessToken))
+            throw new HttpRequestException(
+                $"Bullhorn OAuth exchange failed: {tokens.ErrorDescription ?? tokens.Error ?? "Missing access token."}",
+                null, tokens.HttpResponse?.StatusCode);
+        return tokens;
     }
 }

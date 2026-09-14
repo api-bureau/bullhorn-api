@@ -35,6 +35,7 @@ public sealed class ConnectionRecoveryTests
         await client.Advanced.InvalidateSessionForTestingAsync(TestContext.Current.CancellationToken);
         await client.Candidates.GetAddedSinceAsync(DateTime.UtcNow, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(2, server.Authorizations);
+        Assert.Equal(1, server.Refreshes);
         Assert.Equal(2, server.Logins);
     }
 
@@ -193,12 +194,122 @@ public sealed class ConnectionRecoveryTests
         Assert.False(new PingResponse { SessionExpires = DateTimeOffset.UtcNow.AddSeconds(10).ToUnixTimeMilliseconds() }.Valid);
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task RejectedLoginDoesNotRetryOrRestartAuthorization(HttpStatusCode status)
+    {
+        using var server = new Server { LoginStatus = status };
+        var client = server.CreateClient();
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            client.Advanced.ReconnectAsync(cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(1, server.Authorizations);
+        Assert.Equal(1, server.TokenExchanges);
+        Assert.Equal(1, server.Logins);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadGateway)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    public async Task TransientLoginRetriesOnlyLogin(HttpStatusCode status)
+    {
+        using var server = new Server { LoginStatus = status, FailLoginOnce = true };
+        var client = server.CreateClient();
+        await client.Advanced.ReconnectAsync(cancellationToken: TestContext.Current.CancellationToken);
+        Assert.Equal(1, server.Authorizations);
+        Assert.Equal(1, server.TokenExchanges);
+        Assert.Equal(2, server.Logins);
+    }
+
+    [Fact]
+    public async Task PersistentTransientLoginStopsAfterTwoAttempts()
+    {
+        using var server = new Server { LoginStatus = HttpStatusCode.ServiceUnavailable };
+        var client = server.CreateClient();
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            client.Advanced.ReconnectAsync(cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(1, server.TokenExchanges);
+        Assert.Equal(2, server.Logins);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "invalid_client")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "server_error")]
+    public async Task OtherRefreshFailuresDoNotRepeatTheGrantOrFallBack(HttpStatusCode status, string code)
+    {
+        using var server = new Server();
+        var client = server.CreateClient();
+        await client.CheckConnectionAsync();
+        server.RefreshStatus = status;
+        server.RefreshError = code;
+        await client.Advanced.InvalidateSessionForTestingAsync(TestContext.Current.CancellationToken);
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.Candidates.GetAddedSinceAsync(
+            DateTime.UtcNow, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(1, server.Refreshes);
+        Assert.Equal(1, server.Authorizations);
+        Assert.Equal(1, server.Logins);
+    }
+
+    [Fact]
+    public async Task ConsecutiveRecoveriesUseTheLatestRotatedRefreshToken()
+    {
+        using var server = new Server();
+        var client = server.CreateClient();
+        await client.CheckConnectionAsync();
+        for (var i = 0; i < 2; i++)
+        {
+            await client.Advanced.InvalidateSessionForTestingAsync(TestContext.Current.CancellationToken);
+            await client.Candidates.GetAddedSinceAsync(DateTime.UtcNow, cancellationToken: TestContext.Current.CancellationToken);
+        }
+        Assert.Equal(2, server.Refreshes);
+        Assert.Equal(1, server.Authorizations);
+    }
+
+    [Fact]
+    public async Task LoginTimeoutDoesNotReplayAuthorizationOrLogin()
+    {
+        using var server = new Server { TimeoutLogin = true };
+        var client = server.CreateClient();
+        await Assert.ThrowsAsync<TaskCanceledException>(() =>
+            client.Advanced.ReconnectAsync(cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(1, server.TokenExchanges);
+        Assert.Equal(1, server.Logins);
+    }
+
+    [Fact]
+    public async Task RotatedRefreshTokenSurvivesAFailedRestLogin()
+    {
+        using var server = new Server();
+        var client = server.CreateClient();
+        await client.CheckConnectionAsync();
+        await client.Advanced.InvalidateSessionForTestingAsync(TestContext.Current.CancellationToken);
+        server.LoginStatus = HttpStatusCode.BadRequest;
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.Candidates.GetAddedSinceAsync(
+            DateTime.UtcNow, cancellationToken: TestContext.Current.CancellationToken));
+
+        // Wait out the public recovery cooldown without modifying private session state.
+        await Task.Delay(TimeSpan.FromSeconds(5.1), TestContext.Current.CancellationToken);
+        server.LoginStatus = HttpStatusCode.OK;
+        await client.Candidates.GetAddedSinceAsync(DateTime.UtcNow, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.Equal(1, server.Authorizations);
+        Assert.Equal(2, server.Refreshes);
+        Assert.Equal(3, server.TokenExchanges);
+    }
+
     private sealed class Server : HttpMessageHandler
     {
         private HttpClient? _http;
         private int _rejected;
         private readonly TaskCompletionSource _allRejected = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public int Logins;
+        public int TokenExchanges;
+        public HttpStatusCode LoginStatus = HttpStatusCode.OK;
+        public HttpStatusCode RefreshStatus = HttpStatusCode.OK;
+        public string RefreshError = "server_error";
+        public bool FailLoginOnce;
+        public bool TimeoutLogin;
         public int Authorizations;
         public int Refreshes;
         public int Reads;
@@ -244,13 +355,19 @@ public sealed class ConnectionRecoveryTests
                 if (body.Contains("grant_type=refresh_token"))
                 {
                     Interlocked.Increment(ref Refreshes);
-                    if (RejectRefresh) return Json(new { error = "invalid_grant" }, HttpStatusCode.BadRequest);
+                    if (RefreshStatus != HttpStatusCode.OK) return Json(new { error = RefreshError }, RefreshStatus);
+                    if (RejectRefresh || !body.Contains("refresh_token=refresh-" + TokenExchanges))
+                        return Json(new { error = "invalid_grant" }, HttpStatusCode.BadRequest);
                 }
-                return Json(new { access_token = "access", refresh_token = "refresh" });
+                var generation = Interlocked.Increment(ref TokenExchanges);
+                return Json(new { access_token = "access-" + generation, refresh_token = "refresh-" + generation });
             }
             if (path == "/login")
             {
                 var version = Interlocked.Increment(ref Logins);
+                if (TimeoutLogin) throw new TaskCanceledException("Simulated login timeout");
+                if (LoginStatus != HttpStatusCode.OK && (!FailLoginOnce || version == 1))
+                    return Json(new { errorMessage = "Login failed" }, LoginStatus);
                 RejectCurrentSession = false;
                 return Json(new { BhRestToken = "token-" + version, restUrl = "https://example.test/rest/" + version + "/" });
             }

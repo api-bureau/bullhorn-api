@@ -14,7 +14,6 @@ public sealed class BullhornHttpClient
     private readonly HttpClient _client;
     private readonly ILogger<BullhornHttpClient> _logger;
     private readonly BullhornSettings _settings;
-    private readonly ApiSession _session;
     private readonly TimeSpan _defaultTimeout = TimeSpan.FromMinutes(5);
     private readonly BullhornSessionManager _sessions;
     public BullhornHttpClient(HttpClient client, IOptions<BullhornSettings> settings, ILogger<BullhornHttpClient> logger)
@@ -23,8 +22,7 @@ public sealed class BullhornHttpClient
         _client.Timeout = _defaultTimeout;
         _logger = logger;
         _settings = settings.Value;
-        _session = new ApiSession(_client, _settings, logger);
-        _sessions = new BullhornSessionManager(_client, _session, logger, _settings.SessionVerificationInterval);
+        _sessions = new BullhornSessionManager(_client, new ApiSession(_client, _settings), logger, _settings.SessionVerificationInterval);
 
         CheckInitialisation();
     }

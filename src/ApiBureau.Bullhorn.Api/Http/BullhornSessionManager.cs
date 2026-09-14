@@ -12,6 +12,7 @@ internal sealed class BullhornSessionManager
     private readonly TimeSpan _verificationInterval;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private Session? _current;
+    private string? _refreshToken;
     private DateTimeOffset _verifiedAt;
     private DateTimeOffset _retryAfter;
 
@@ -39,7 +40,7 @@ internal sealed class BullhornSessionManager
 
             if (_current is null)
             {
-                await RecoverCoreAsync(false, progress, token);
+                await RecoverCoreAsync(_refreshToken is not null, progress, token);
             }
             else if (verify || DateTimeOffset.UtcNow - _verifiedAt >= _verificationInterval)
             {
@@ -104,24 +105,26 @@ internal sealed class BullhornSessionManager
 
         try
         {
-            if (refresh)
-            {
-                progress?.Report("Refreshing Bullhorn session.");
+            var refreshToken = _refreshToken;
 
-                try { await _session.RefreshTokenAsync(token); }
-                catch (InvalidOperationException)
-                {
-                    // Rejected or unavailable refresh credentials require full authorization.
-                    _logger.LogWarning("Bullhorn refresh rejected; starting full authorization.");
-                    await _session.ConnectAsync(progress, token);
-                }
-            }
-            else
+            // A token exchange may consume the old token even when its response is lost.
+            _refreshToken = null;
+
+            var tokens = refresh && refreshToken is not null
+                ? await _session.RefreshAsync(refreshToken, token)
+                : null;
+
+            if (tokens is null)
             {
-                await _session.ConnectAsync(progress, token);
+                if (refresh) _logger.LogWarning("Bullhorn refresh unavailable or rejected; starting full authorization.");
+
+                tokens = await _session.AuthorizeAsync(progress, token);
             }
 
-            var login = _session.LoginResponse!;
+            // Save the rotated credential before REST login, which can fail independently.
+            _refreshToken = tokens.RefreshToken;
+
+            var login = await _session.LoginAsync(tokens.AccessToken!, token);
             var candidate = new Session(login.BhRestToken!, login.RestUrl!);
 
             if (!await PingAsync(candidate, token))
