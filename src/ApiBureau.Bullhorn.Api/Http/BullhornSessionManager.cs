@@ -11,7 +11,7 @@ internal sealed class BullhornSessionManager
     private readonly ILogger _logger;
     private readonly TimeSpan _verificationInterval;
     private readonly SemaphoreSlim _gate = new(1, 1);
-    private Session? _current;
+    private BullhornSession? _current;
     private string? _refreshToken;
     private DateTimeOffset _verifiedAt;
     private DateTimeOffset _retryAfter;
@@ -28,9 +28,7 @@ internal sealed class BullhornSessionManager
         _verificationInterval = verificationInterval;
     }
 
-    internal sealed record Session(string Token, string RestUrl);
-
-    internal async Task<Session> EnsureAsync(CancellationToken token, bool verify = false, IProgress<string>? progress = null)
+    internal async Task<BullhornSession> EnsureAsync(CancellationToken token, bool verify = false, IProgress<string>? progress = null)
     {
         await _gate.WaitAsync(token);
 
@@ -57,7 +55,7 @@ internal sealed class BullhornSessionManager
         finally { _gate.Release(); }
     }
 
-    internal async Task<Session> RecoverAsync(Session rejected, CancellationToken token)
+    internal async Task<BullhornSession> RecoverAsync(BullhornSession rejected, CancellationToken token)
     {
         await _gate.WaitAsync(token);
         try
@@ -92,7 +90,7 @@ internal sealed class BullhornSessionManager
         {
             // Keep the recent verification time so a real request encounters the bad token.
             if (_current is null) throw new InvalidOperationException("Bullhorn has no session to invalidate.");
-            _current = _current with { Token = "invalid-test-" + Guid.NewGuid().ToString("N") };
+            _current = new BullhornSession("invalid-test-" + Guid.NewGuid().ToString("N"), _current.RestUrl);
             _verifiedAt = DateTimeOffset.UtcNow;
             _logger.LogWarning("Bullhorn cached REST token invalidated for recovery testing.");
         }
@@ -125,7 +123,7 @@ internal sealed class BullhornSessionManager
             _refreshToken = tokens.RefreshToken;
 
             var login = await _session.LoginAsync(tokens.AccessToken!, token);
-            var candidate = new Session(login.BhRestToken!, login.RestUrl!);
+            var candidate = new BullhornSession(login.BhRestToken!, login.RestUrl!);
 
             if (!await PingAsync(candidate, token))
                 throw new HttpRequestException("Bullhorn rejected the newly created session.", null, HttpStatusCode.Unauthorized);
@@ -146,7 +144,7 @@ internal sealed class BullhornSessionManager
         }
     }
 
-    internal async Task RejectAsync(Session rejected, CancellationToken token)
+    internal async Task RejectAsync(BullhornSession rejected, CancellationToken token)
     {
         await _gate.WaitAsync(token);
 
@@ -166,7 +164,7 @@ internal sealed class BullhornSessionManager
             throw new HttpRequestException("Bullhorn connection recovery failed recently. Try again in a few seconds.");
     }
 
-    private async Task<bool> PingAsync(Session session, CancellationToken token)
+    private async Task<bool> PingAsync(BullhornSession session, CancellationToken token)
     {
         using var request = CreateRequest(session, HttpMethod.Get, "ping");
         using var response = await _client.SendAsync(request, token);
@@ -181,7 +179,7 @@ internal sealed class BullhornSessionManager
         return ping.Valid;
     }
 
-    internal static HttpRequestMessage CreateRequest(Session session, HttpMethod method, string path)
+    internal static HttpRequestMessage CreateRequest(BullhornSession session, HttpMethod method, string path)
     {
         var request = new HttpRequestMessage(method, session.RestUrl.TrimEnd('/') + "/" + path.TrimStart('/'));
 

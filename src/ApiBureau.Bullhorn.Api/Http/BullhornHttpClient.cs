@@ -24,11 +24,6 @@ public sealed class BullhornHttpClient
         _settings = settings.Value;
         _sessions = new BullhornSessionManager(_client, new ApiSession(_client, _settings), logger, _settings.SessionVerificationInterval);
 
-        CheckInitialisation();
-    }
-
-    private void CheckInitialisation()
-    {
         if (string.IsNullOrEmpty(_settings.Secret) || string.IsNullOrEmpty(_settings.ClientId) || _settings.TokenUrl == null)
             _logger.LogError("BullhornSettings needs to be added and initialised Configuration.GetSection(nameof(BullhornSettings).");
     }
@@ -75,7 +70,7 @@ public sealed class BullhornHttpClient
 
         using var response = await GetAsync(query, cancellationToken);
 
-        return await ReadPageAsync<QueryResponse<T>>(response, cancellationToken);
+        return await BullhornResponseReader.ReadPageAsync<QueryResponse<T>>(response, cancellationToken);
     }
 
     /// <summary>
@@ -96,7 +91,7 @@ public sealed class BullhornHttpClient
 
         using var response = await GetAsync(query, cancellationToken);
 
-        return await ReadPageAsync<SearchResponse<T>>(response, cancellationToken);
+        return await BullhornResponseReader.ReadPageAsync<SearchResponse<T>>(response, cancellationToken);
     }
 
     internal async Task<HttpResponseMessage> GetAsync(string query, CancellationToken cancellationToken)
@@ -127,16 +122,10 @@ public sealed class BullhornHttpClient
 
     internal async Task<Result<ChangeResponse, ErrorResponse>> PutAsJsonAsync(EntityType type, object content, CancellationToken cancellationToken)
     {
-        using var response = await PutAsJsonAsync($"entity/{type}", content, cancellationToken);
-
-        return await GetChangeResponseAsync(response).ConfigureAwait(false);
-    }
-
-    private async Task<HttpResponseMessage> PutAsJsonAsync(string query, object content, CancellationToken cancellationToken)
-    {
         using var json = JsonContent.Create(content);
+        using var response = await SendWriteAsync(HttpMethod.Put, $"entity/{type}", json, cancellationToken);
 
-        return await SendWriteAsync(HttpMethod.Put, query, json, cancellationToken);
+        return await BullhornResponseReader.ReadResultAsync<ChangeResponse>(response).ConfigureAwait(false);
     }
 
     // Probably this pattern should be used across
@@ -144,7 +133,7 @@ public sealed class BullhornHttpClient
     {
         using var response = await PostAsJsonAsync($"entity/{type}/{entityId}", content, cancellationToken);
 
-        return await GetChangeResponseAsync(response).ConfigureAwait(false);
+        return await BullhornResponseReader.ReadResultAsync<ChangeResponse>(response).ConfigureAwait(false);
     }
 
     internal async Task<HttpResponseMessage> PostAsJsonAsync(string query, object content, CancellationToken cancellationToken = default)
@@ -177,7 +166,7 @@ public sealed class BullhornHttpClient
     {
         using var response = await ApiDeleteAsync($"entity/{type}/{id}?", cancellationToken);
 
-        return await GetChangeResponseAsync(response).ConfigureAwait(false);
+        return await BullhornResponseReader.ReadResultAsync<ChangeResponse>(response).ConfigureAwait(false);
     }
 
     internal async Task<HttpResponseMessage> ApiDeleteAsync(string query, CancellationToken cancellationToken)
@@ -200,25 +189,6 @@ public sealed class BullhornHttpClient
 
     internal void LogWarning(string text) => _logger.LogWarning(text);
 
-    private static async Task<T> ReadPageAsync<T>(HttpResponseMessage response, CancellationToken token)
-    {
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await BullhornResponseReader.ReadErrorAsync(response, token);
-
-            throw new HttpRequestException(error.Message, null, response.StatusCode);
-        }
-
-        using var document = await response.Content.ReadFromJsonAsync<JsonDocument>(ResponseJsonOptions, token);
-
-        if (document is null || document.RootElement.ValueKind != JsonValueKind.Object ||
-            !document.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array)
-            throw new HttpRequestException("Bullhorn returned an invalid page: the data array is missing.");
-
-        return document.RootElement.Deserialize<T>(ResponseJsonOptions)
-            ?? throw new HttpRequestException("Bullhorn returned an empty page.");
-    }
-
     internal void LogError(string message, params object?[] args) => _logger.LogError(message, args);
 
     private async Task<HttpResponseMessage> SendWriteAsync(HttpMethod method, string path, HttpContent? content, CancellationToken token)
@@ -236,7 +206,7 @@ public sealed class BullhornHttpClient
         return response;
     }
 
-    private async Task<HttpResponseMessage> SendAsync(BullhornSessionManager.Session session, HttpMethod method,
+    private async Task<HttpResponseMessage> SendAsync(BullhornSession session, HttpMethod method,
         string path, HttpContent? content, CancellationToken token)
     {
         using var request = BullhornSessionManager.CreateRequest(session, method, path);
@@ -247,8 +217,6 @@ public sealed class BullhornHttpClient
         finally { request.Content = null; } // Content remains owned by the caller.
     }
 
-    private static Task<Result<ChangeResponse, ErrorResponse>> GetChangeResponseAsync(HttpResponseMessage response)
-        => BullhornResponseReader.ReadResultAsync<ChangeResponse>(response);
 }
 // Other query examples
 //search/Note?fields=id,dateAdded,action,commentingPerson&query=dateAdded:[20210101000000 TO *] AND action:'Phone Call'&sort=-dateAdded

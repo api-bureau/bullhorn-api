@@ -6,6 +6,29 @@ namespace ApiBureau.Bullhorn.Api.Http;
 internal static class BullhornResponseReader
 {
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions PageOptions = new(JsonSerializerDefaults.Web)
+    {
+        AllowTrailingCommas = true
+    };
+
+    internal static async Task<T> ReadPageAsync<T>(HttpResponseMessage response, CancellationToken token)
+    {
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await ReadErrorAsync(response, token);
+
+            throw new HttpRequestException(error.Message, null, response.StatusCode);
+        }
+
+        using var document = await response.Content.ReadFromJsonAsync<JsonDocument>(PageOptions, token);
+
+        if (document is null || document.RootElement.ValueKind != JsonValueKind.Object ||
+            !document.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array)
+            throw new HttpRequestException("Bullhorn returned an invalid page: the data array is missing.");
+
+        return document.RootElement.Deserialize<T>(PageOptions)
+            ?? throw new HttpRequestException("Bullhorn returned an empty page.");
+    }
 
     internal static async Task<Result<TSuccess, ErrorResponse>> ReadResultAsync<TSuccess>(HttpResponseMessage response, CancellationToken cancellationToken = default)
     {
