@@ -53,6 +53,7 @@ internal sealed class ApiSession
             UserName = _settings.UserName,
             Password = _settings.Password
         };
+
         request.AddParameter("state", AuthorizationState);
 
         var response = await _client.RequestAuthorizationCodeAsync(request, cancellationToken);
@@ -87,6 +88,7 @@ internal sealed class ApiSession
             ClientSecret = _settings.Secret,
             GrantType = "authorization_code"
         };
+
         request.AddParameter("code", authorisationCode);
 
         var response = await _client.RequestTokenAsync(request, cancellationToken);
@@ -113,10 +115,12 @@ internal sealed class ApiSession
         if (!response.IsSuccessStatusCode)
         {
             var error = await BullhornResponseReader.ReadErrorAsync(response, cancellationToken);
+
             ThrowInvalidOperation("Login failed", error.Message);
         }
 
         var loginResponse = await response.DeserializeAsync<LoginResponse>(_logger);
+
         EnsureLoginResponse(loginResponse);
 
         LoginResponse = loginResponse;

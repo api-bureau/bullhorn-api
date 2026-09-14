@@ -28,8 +28,7 @@ public static class ServiceExtensions
     {
         services.TryAddSingleton(Options.Create(configureSettings));
         services.AddHttpClient<BullhornHttpClient>()
-            .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(20))
-            .AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(3) }));
+            .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(20));
 
         services.AddSingleton<IBullhornClient, BullhornClient>();
     }

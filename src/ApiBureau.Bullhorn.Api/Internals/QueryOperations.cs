@@ -29,23 +29,22 @@ internal sealed class QueryOperations<T> : EntityOperations<T>
         var items = new List<T>();
         var result = await Client.QueryPageAsync<T>(query, BullhornHttpClient.QueryCount, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        items.AddRange(result?.Data ?? []);
+        if (result?.Data is null)
+            throw new HttpRequestException("Bullhorn query response did not contain data.");
 
-        if (result is null)
-        {
-            return items;
-        }
+        items.AddRange(result.Data);
 
         for (var start = result.Count; start < result.Total;)
         {
             var page = await Client.QueryPageAsync<T>(query, BullhornHttpClient.QueryCount, start, cancellationToken).ConfigureAwait(false);
 
-            if (page is null || page.Count == 0)
+            if (page?.Data is null || page.Count <= 0)
             {
-                break;
+                throw new HttpRequestException("Bullhorn query pagination stopped before all results were returned.");
             }
 
             items.AddRange(page.Data ?? []);
+
             start += page.Count;
         }
 
