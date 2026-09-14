@@ -67,20 +67,23 @@ sequenceDiagram
     participant REST as Bullhorn REST
 
     App->>Manager: First request or Advanced.ReconnectAsync()
-    Note over Manager: Acquire session lock; clear current snapshot
-    Manager->>Session: ConnectAsync()
+    Note over Manager: Acquire session lock and clear current snapshot
+    Manager->>Session: AuthorizeAsync()
     Session->>OAuth: GET AuthorizeUrl with configured credentials
     OAuth-->>Session: Authorization code in response URL
     Session->>OAuth: POST TokenUrl, grant_type=authorization_code
     OAuth-->>Session: Access token and refresh token
+    Session-->>Manager: OAuth tokens
+    Manager->>Manager: Save the latest refresh token
+    Manager->>Session: LoginAsync(access token)
     Session->>REST: GET LoginUrl with access_token and ttl=240
     REST-->>Session: BhRestToken and restUrl
-    Session-->>Manager: Login completed; refresh token retained
+    Session-->>Manager: REST login completed
     Manager->>REST: GET restUrl/ping with BhRestToken header
     REST-->>Manager: sessionExpires
     Note over Manager: Require more than 30 seconds remaining
     Manager->>Manager: Publish verified token and URL snapshot
-    Manager-->>App: Connection ready; release lock
+    Manager-->>App: Connection ready and lock released
 ```
 
 The chart shows the successful path. A successful login response alone is not enough: the manager publishes the new session only after ping succeeds. A failed recovery leaves no current snapshot and starts a five-second cooldown.
@@ -95,7 +98,9 @@ flowchart TD
     B --> C{"Recovery cooldown active?"}
     C -->|Yes| X["Throw connection error"]
     C -->|No| D{"Cached session exists?"}
-    D -->|No| L["Full login and verification: chart 1"]
+    D -->|No| O{"Refresh credential retained?"}
+    O -->|No| L["Full login and verification: chart 1"]
+    O -->|Yes| H
     D -->|Yes| E{"Explicit verification requested<br/>or verification interval elapsed?"}
     E -->|No| R["Return cached session snapshot"]
     E -->|Yes| P["Ping Bullhorn using cached token"]
@@ -133,11 +138,11 @@ flowchart TD
     K -->|Yes| F["Propagate failure"]
     K -->|No| R["Clear snapshot; try refresh token grant"]
     P["Ping rejected or expiry too close<br/>from chart 2; lock already held"] --> R
-    R --> T["REST login with refreshed access token"]
-    R -->|"InvalidOperationException"| L["Full authorization and REST login"]
-    T -->|"InvalidOperationException"| L
+    R -->|Success| SAVE["Save rotated refresh token"]
+    R -->|"Missing token or invalid_grant"| L["Full authorization once"]
+    L -->|Success| SAVE
+    SAVE --> T["REST login with access token"]
     T -->|Success| V["Verify new session with ping"]
-    L -->|Success| V
     R -->|"Other terminal failure"| W["No snapshot; five-second cooldown"]
     T -->|"Other terminal failure"| W
     L -->|Failure| W
@@ -153,7 +158,9 @@ flowchart TD
     OUT -->|"Still rejected"| BAD["Clear snapshot if still current<br/>Start five-second cooldown"]
 ```
 
-The refresh path calls `ApiSession.RefreshTokenAsync()`: refresh grant **plus REST login**. Full authorization is the fallback when that path ultimately throws `InvalidOperationException`, including unavailable or rejected refresh credentials. Other failures propagate; they do not automatically select the full-login fallback.
+The manager calls `ApiSession.RefreshAsync()` once when a refresh credential is available. A missing credential or an OAuth `invalid_grant` response (HTTP 400/401) selects full authorization once. Other errors, including `invalid_client`, timeouts and server failures, propagate without restarting authorization. After either grant succeeds, the manager saves the latest refresh token, calls `LoginAsync()` and verifies the resulting REST session.
+
+`ApiSession` only performs authentication exchanges: it has no cached login, ping, validity or refresh-token state. The manager owns the refresh credential and the verified REST snapshot. A consumed refresh credential is cleared before its exchange; a replacement is retained immediately, even if subsequent REST login fails. After the cooldown, a retained replacement can be used for another recovery.
 
 The lock protects session changes, not entire API requests. Concurrent requests can run normally, but only one recovery changes the shared session at a time. A request rejected with an old snapshot reuses a replacement already created by another request.
 
@@ -161,7 +168,8 @@ The lock protects session changes, not entire API requests. Concurrent requests 
 
 | Layer | Current behaviour |
 | --- | --- |
-| Full authorization or refresh/login cycle | Up to **five attempts per cycle**, with waits of 200, 400, 600 and 800 ms. Each attempt repeats that cycle. `OperationCanceledException` exits immediately. |
+| OAuth authorization and token exchange | **One attempt.** Never replay the grant automatically: authorization codes and refresh credentials may already have been consumed. Missing/rejected refresh credentials allow one full-authorization fallback. |
+| REST login | **At most two attempts**, using the same access token. Retry after 500 ms only for HTTP **502, 503 or 504**. Other failures and cancellation propagate immediately. |
 | Original REST read | Replayed **once** after session recovery. Persistent rejection is returned to the caller and invalidates the snapshot if still current. |
 | Original REST write | **Never replayed automatically.** Recovery can repair the session for subsequent calls, but the failed write remains failed. |
 | Failed recovery | Automatic attempts are blocked for **five seconds**. Explicit `ReconnectAsync()` bypasses this cooldown and forces full authorization. |
@@ -185,7 +193,7 @@ sequenceDiagram
     UI->>Manager: Advanced.InvalidateSessionForTestingAsync()
     Note over Manager: Ensure a session exists first
     Manager->>Manager: Replace cached token with invalid-test value
-    Note over Manager: Keep refresh credentials; reset verification time
+    Note over Manager: Keep refresh credentials and reset verification time
     Manager-->>UI: Cached token invalidated
     User->>UI: Test recovery or Recent candidates
     UI->>Manager: Send candidate search through shared client
@@ -207,15 +215,22 @@ For a manual full-login test, invalidate the token and then click **Reconnect Bu
 Look for these log messages:
 
 - `Bullhorn cached REST token invalidated for recovery testing.`
-- `Bullhorn refresh rejected; starting full authorization.` (only when the refresh fallback is used)
+- `Bullhorn refresh unavailable or rejected; starting full authorization.` (only when the refresh fallback is used)
 - `Bullhorn session recovered and verified.` (also emitted after initial login and manual reconnect)
 
 A successful candidate request alone does not identify which request performed recovery; correlate it with the invalidation and recovery logs.
 
+### Why these steps remain
+
+Bullhorn documents the OAuth-to-REST-login sequence and recommends reusing the REST session until it expires. Its OAuth documentation also states that refresh tokens are replaced after use. Those requirements explain the separate exchanges and coordinated credential updates; the retry limits above are this library\'s policy.
+
+- [Getting started with REST](https://bullhorn.github.io/Getting-Started-with-REST/)
+- [Bullhorn OAuth authorization](https://bullhorn.github.io/docs/oauth/)
+
 ### Implementation reference
 
 - [BullhornSessionManager](src/ApiBureau.Bullhorn.Api/Http/BullhornSessionManager.cs): locking, cached verification, recovery, cooldown and invalidation.
-- [ApiSession](src/ApiBureau.Bullhorn.Api/Http/ApiSession.cs): OAuth authorization, refresh grants, REST login and cycle retries.
+- [ApiSession](src/ApiBureau.Bullhorn.Api/Http/ApiSession.cs): Stateless OAuth authorization, refresh grants and REST login.
 - [BullhornHttpClient](src/ApiBureau.Bullhorn.Api/Http/BullhornHttpClient.cs): authenticated requests, single read replay and error propagation.
 - [BullhornAdvancedClient](src/ApiBureau.Bullhorn.Api/BullhornAdvancedClient.cs): public verification, reconnect and testing controls.
 - [Recovery tests](test/ApiBureau.Bullhorn.Api.Tests/README.md): fake-server regression suite and manual testing steps.
