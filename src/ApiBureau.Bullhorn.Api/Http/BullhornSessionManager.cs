@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace ApiBureau.Bullhorn.Api.Http;
 
@@ -192,9 +193,26 @@ internal sealed class BullhornSessionManager
     {
         if (response.StatusCode == HttpStatusCode.Unauthorized) return true;
 
-        if (response.StatusCode is not (HttpStatusCode.BadRequest or HttpStatusCode.Forbidden)) return false;
+        if (response.IsSuccessStatusCode) return false;
 
         var body = await response.Content.ReadAsStringAsync(token);
+
+        // Proxy responses can carry the authentication error under a different HTTP status.
+        try
+        {
+            using var document = JsonDocument.Parse(body);
+
+            if (document.RootElement.ValueKind == JsonValueKind.Object &&
+                document.RootElement.TryGetProperty("errorMessageKey", out var key) &&
+                key.ValueKind == JsonValueKind.String &&
+                key.GetString() == "errors.authentication.invalidRestToken")
+            {
+                return true;
+            }
+        }
+        catch (JsonException) { } // Non-JSON errors still use the existing text fallback.
+
+        if (response.StatusCode is not (HttpStatusCode.BadRequest or HttpStatusCode.Forbidden)) return false;
 
         return body.Contains("Bad BhRestToken", StringComparison.OrdinalIgnoreCase)
             || body.Contains("Invalid BhRestToken", StringComparison.OrdinalIgnoreCase)

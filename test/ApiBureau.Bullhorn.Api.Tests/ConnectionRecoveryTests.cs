@@ -11,6 +11,111 @@ namespace ApiBureau.Bullhorn.Api.Tests;
 
 public sealed class ConnectionRecoveryTests
 {
+    private const string InvalidRestTokenPayload = """{"origin":"proxy","errorCode":401,"errorMessage":"Bad 'BhRestToken' or timed-out.","errorMessageKey":"errors.authentication.invalidRestToken"}""";
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.BadGateway)]
+    public async Task InvalidRestTokenKeyRecoversRegardlessOfFailureStatus(HttpStatusCode status)
+    {
+        using var server = new Server { RejectionStatus = status, RejectionBody = InvalidRestTokenPayload };
+        var client = server.CreateClient();
+        Assert.True(await client.CheckConnectionAsync());
+        await client.Advanced.InvalidateSessionForTestingAsync(TestContext.Current.CancellationToken);
+        Assert.Empty(await client.Candidates.GetAddedSinceAsync(DateTime.UtcNow,
+            cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(1, server.Refreshes);
+        Assert.Equal(2, server.Reads);
+    }
+
+    [Fact]
+    public async Task PersistentInvalidRestTokenKeyStopsAfterOneReplay()
+    {
+        using var server = new Server { ReadStatus = HttpStatusCode.BadGateway, ReadErrorBody = InvalidRestTokenPayload };
+        var client = server.CreateClient();
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.Candidates.GetAddedSinceAsync(DateTime.UtcNow,
+            cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(2, server.Reads);
+        Assert.Equal(1, server.Refreshes);
+        Assert.False(await client.CheckConnectionAsync());
+    }
+
+    [Fact]
+    public async Task InvalidRestTokenKeyRepairsWriteWithoutReplayingIt()
+    {
+        using var server = new Server { RejectionStatus = HttpStatusCode.BadGateway, RejectionBody = InvalidRestTokenPayload };
+        var client = server.CreateClient();
+        await client.CheckConnectionAsync();
+        await client.Advanced.InvalidateSessionForTestingAsync(TestContext.Current.CancellationToken);
+        Assert.True((await client.Appointments.UpdateAsync(1, new { subject = "test" })).IsFailure);
+        Assert.Equal(1, server.Writes);
+        Assert.Equal(1, server.Refreshes);
+    }
+
+    [Theory]
+    [InlineData("not JSON")]
+    [InlineData("[]")]
+    [InlineData("{\"errorMessageKey\":401}")]
+    [InlineData("{\"errorMessageKey\":\"errors.authentication.invalidRestToken.extra\"}")]
+    [InlineData("{\"errorMessage\":\"errors.authentication.invalidRestToken\"}")]
+    public async Task OtherErrorBodiesDoNotTriggerRecovery(string body)
+    {
+        using var server = new Server { ReadStatus = HttpStatusCode.BadGateway, ReadErrorBody = body };
+        var client = server.CreateClient();
+        var error = await Assert.ThrowsAsync<HttpRequestException>(() => client.Candidates.GetAddedSinceAsync(DateTime.UtcNow,
+            cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(HttpStatusCode.BadGateway, error.StatusCode);
+        Assert.Equal(1, server.Reads);
+        Assert.Equal(0, server.Refreshes);
+    }
+
+    [Theory]
+    [InlineData("http://example.test/callback?code=test%3Acode", false)]
+    [InlineData("https://example.test/callback?code=test%3Acode", false)]
+    [InlineData("https://example.test/callback?code=test%3Acode", true)]
+    public async Task AuthorizationAcceptsRedirectOrAlreadyFollowedCallback(string callback, bool followed)
+    {
+        using var server = new Server { AuthorizationCallback = callback, AuthorizationFollowed = followed };
+        var client = server.CreateClient();
+        Assert.True(await client.CheckConnectionAsync());
+        Assert.Equal(1, server.Authorizations);
+        Assert.Equal(1, server.TokenExchanges);
+        Assert.Equal("test:code", server.ExchangedCode);
+        Assert.Equal(1, server.Logins);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("https://example.test/callback")]
+    [InlineData("https://example.test/callback?code=")]
+    [InlineData("https://example.test/callback?error=access_denied&code=ignored")]
+    public async Task InvalidAuthorizationRedirectDoesNotExchangeTokens(string? callback)
+    {
+        using var server = new Server { AuthorizationCallback = callback };
+        var client = server.CreateClient();
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            client.Advanced.ReconnectAsync(cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(1, server.Authorizations);
+        Assert.Equal(0, server.TokenExchanges);
+        Assert.Equal(0, server.Logins);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public async Task AuthorizationHttpErrorIsRejectedEvenWithCode(HttpStatusCode status)
+    {
+        using var server = new Server { AuthorizationStatus = status };
+        var client = server.CreateClient();
+        var error = await Assert.ThrowsAsync<HttpRequestException>(() =>
+            client.Advanced.ReconnectAsync(cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(status, error.StatusCode);
+        Assert.Equal(1, server.Authorizations);
+        Assert.Equal(0, server.TokenExchanges);
+    }
+
     [Fact]
     public async Task InvalidTokenRecoversAndRetriesSearchWithNewRestUrl()
     {
@@ -311,6 +416,10 @@ public sealed class ConnectionRecoveryTests
         public bool FailLoginOnce;
         public bool TimeoutLogin;
         public int Authorizations;
+        public HttpStatusCode AuthorizationStatus = HttpStatusCode.Found;
+        public string? AuthorizationCallback = "https://example.test/callback?code=code";
+        public bool AuthorizationFollowed;
+        public string? ExchangedCode;
         public int Refreshes;
         public int Reads;
         public int Writes;
@@ -322,6 +431,9 @@ public sealed class ConnectionRecoveryTests
         public bool InvalidPage;
         public bool FailSecondPage;
         public HttpStatusCode ReadStatus = HttpStatusCode.OK;
+        public HttpStatusCode RejectionStatus = HttpStatusCode.BadRequest;
+        public string RejectionBody = """{"errorMessage":"Bad BhRestToken"}""";
+        public string? ReadErrorBody;
         public string? LastReadPath;
 
         public BullhornClient CreateClient()
@@ -345,13 +457,21 @@ public sealed class ConnectionRecoveryTests
             if (path == "/authorize")
             {
                 Interlocked.Increment(ref Authorizations);
-                var response = Json(new { });
-                response.Headers.Location = new Uri("https://example.test/callback?code=code");
+                var response = Json(new { }, AuthorizationFollowed ? HttpStatusCode.OK : AuthorizationStatus);
+                if (AuthorizationFollowed)
+                {
+                    request.RequestUri = new Uri(AuthorizationCallback!);
+                    response.RequestMessage = request;
+                }
+                else if (AuthorizationCallback is not null)
+                    response.Headers.Location = new Uri(AuthorizationCallback);
                 return response;
             }
             if (path == "/token")
             {
                 var body = await request.Content!.ReadAsStringAsync(token);
+                if (body.Contains("grant_type=authorization_code"))
+                    ExchangedCode = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(body)["code"].ToString();
                 if (body.Contains("grant_type=refresh_token"))
                 {
                     Interlocked.Increment(ref Refreshes);
@@ -374,13 +494,13 @@ public sealed class ConnectionRecoveryTests
             var rejected = RejectCurrentSession ||
                 request.Headers.GetValues("BhRestToken").Single() != "token-" + Logins;
             if (path.EndsWith("/ping"))
-                return rejected ? Json(new { errorMessage = "Bad BhRestToken" }, HttpStatusCode.BadRequest)
+                return rejected ? Rejection()
                     : Json(new { sessionExpires = DateTimeOffset.UtcNow.AddHours(4).ToUnixTimeMilliseconds() });
             if (request.Method != HttpMethod.Get)
             {
                 Interlocked.Increment(ref Writes);
                 if (TimeoutWrites) throw new TaskCanceledException("Simulated write timeout");
-                return rejected ? Json(new { errorMessage = "Bad BhRestToken" }, HttpStatusCode.BadRequest)
+                return rejected ? Rejection()
                     : Json(new { changedEntityId = 1 });
             }
             var read = Interlocked.Increment(ref Reads);
@@ -389,16 +509,23 @@ public sealed class ConnectionRecoveryTests
             {
                 if (Interlocked.Increment(ref _rejected) >= RejectedRequestCount) _allRejected.TrySetResult();
                 await _allRejected.Task.WaitAsync(TimeSpan.FromSeconds(5), token);
-                return Json(new { errorMessage = "Bad BhRestToken" }, HttpStatusCode.BadRequest);
+                return Rejection();
             }
             if (InvalidPage) return Json(new { errorMessage = "unexpected payload" });
             if (TimeoutReads) throw new TaskCanceledException("Simulated timeout");
             if (ReadStatus != HttpStatusCode.OK || (FailSecondPage && read > 1))
+            {
+                if (ReadErrorBody is not null)
+                    return new HttpResponseMessage(ReadStatus) { Content = new StringContent(ReadErrorBody) };
                 return Json(new { errorMessage = "permission or server failure" },
                     FailSecondPage ? HttpStatusCode.InternalServerError : ReadStatus);
+            }
             if (FailSecondPage) return Json(new { data = new[] { new { id = 1 } }, count = 1, total = 2 });
             return Json(new { data = Array.Empty<object>(), count = 0, total = 0 });
         }
+
+        private HttpResponseMessage Rejection()
+            => new(RejectionStatus) { Content = new StringContent(RejectionBody, Encoding.UTF8, "application/json") };
 
         private static HttpResponseMessage Json(object value, HttpStatusCode status = HttpStatusCode.OK)
             => new(status) { Content = new StringContent(JsonSerializer.Serialize(value), Encoding.UTF8, "application/json") };

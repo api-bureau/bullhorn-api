@@ -25,17 +25,30 @@ internal sealed class ApiSession
             UserName = _settings.UserName,
             Password = _settings.Password
         };
+
         request.AddParameter("state", "ips");
+
         var authorization = await _client.RequestAuthorizationCodeAsync(request, token);
+
         using var response = authorization.HttpResponse
             ?? throw new HttpRequestException("Bullhorn authorization returned no response.");
-        response.EnsureSuccessStatusCode();
-        var query = response.Headers.Location?.Query ?? response.RequestMessage?.RequestUri?.Query ?? "";
+
+        // OAuth returns the code in a 302 Location. Do not follow an HTTP callback:
+        // HttpClient correctly refuses an HTTPS-to-HTTP downgrade.
+        if (response.StatusCode != HttpStatusCode.Found) response.EnsureSuccessStatusCode();
+
+        var query = response.Headers.Location?.Query
+            ?? (response.IsSuccessStatusCode ? response.RequestMessage?.RequestUri?.Query : null) ?? "";
         var values = QueryHelpers.ParseQuery(query);
+
+        if (values.ContainsKey("error"))
+            throw new HttpRequestException("Bullhorn authorization was rejected.");
+
         if (!values.TryGetValue(_settings.AuthorizationParameter, out var code) || string.IsNullOrWhiteSpace(code))
             throw new HttpRequestException("Bullhorn authorization returned no authorization code.");
 
         progress?.Report("Bullhorn authorization code received.");
+
         var exchange = new AuthorizationCodeTokenRequest
         {
             Address = _settings.TokenUrl,
@@ -43,9 +56,13 @@ internal sealed class ApiSession
             ClientSecret = _settings.Secret,
             GrantType = "authorization_code"
         };
+
         exchange.AddParameter("code", code.ToString());
+
         var tokens = await _client.RequestTokenAsync(exchange, token);
+
         using var tokenResponse = tokens.HttpResponse;
+
         return ValidateTokens(tokens);
     }
 
@@ -59,10 +76,15 @@ internal sealed class ApiSession
             ClientSecret = _settings.Secret,
             RefreshToken = refreshToken
         }, token);
+
         using var response = tokens.HttpResponse;
+
         if (response?.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Unauthorized &&
             string.Equals(tokens.Error, "invalid_grant", StringComparison.OrdinalIgnoreCase))
+        {
             return null;
+        }
+
         return ValidateTokens(tokens);
     }
 
@@ -80,20 +102,27 @@ internal sealed class ApiSession
         for (var attempt = 0; ; attempt++)
         {
             using var response = await _client.GetAsync(url, token);
+
             if (attempt == 0 && response.StatusCode is HttpStatusCode.BadGateway
                 or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout)
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(500), token);
                 continue;
             }
+
             if (!response.IsSuccessStatusCode)
             {
                 var error = await BullhornResponseReader.ReadErrorAsync(response, token);
                 throw new HttpRequestException($"Bullhorn REST login failed: {error.Message}", null, response.StatusCode);
             }
+
             var login = await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: token);
+
             if (string.IsNullOrWhiteSpace(login?.BhRestToken) || string.IsNullOrWhiteSpace(login.RestUrl))
+            {
                 throw new HttpRequestException("Bullhorn REST login returned an invalid session.");
+            }
+
             return login;
         }
     }
@@ -101,9 +130,12 @@ internal sealed class ApiSession
     private static TokenResponse ValidateTokens(TokenResponse tokens)
     {
         if (tokens.IsError || string.IsNullOrWhiteSpace(tokens.AccessToken))
+        {
             throw new HttpRequestException(
                 $"Bullhorn OAuth exchange failed: {tokens.ErrorDescription ?? tokens.Error ?? "Missing access token."}",
                 null, tokens.HttpResponse?.StatusCode);
+        }
+
         return tokens;
     }
 }
