@@ -175,11 +175,11 @@ The lock protects session changes, not entire API requests. Concurrent requests 
 | Failed recovery | Automatic attempts are blocked for **five seconds**. Explicit `ReconnectAsync()` bypasses this cooldown and forces full authorization. |
 | HTTP pipeline registered by `AddBullhorn` | Polly's timeout is **20 seconds** per HTTP execution; no blanket transient-error retry policy is registered. The complete login/recovery sequence can take longer. |
 
-Search/query endpoints throw on HTTP errors, malformed pages and detected incomplete pagination instead of returning a misleading empty or partial list. Successful empty results remain valid. Twenty360's service layer converts these exceptions to its existing `Result.Failure` responses. Advanced raw-response methods let the caller inspect the returned HTTP status.
+Search/query endpoints throw on HTTP errors, malformed pages and detected incomplete pagination instead of returning a misleading empty or partial list. Successful empty results remain valid. A consumer service can translate these exceptions into its application-level failure results. Advanced raw-response methods let the caller inspect the returned HTTP status.
 
 ### 4. Manual controls and invalid-token testing
 
-Twenty360 exposes these controls under **Developer Tools > Diagnostics > Bullhorn connection**. System Monitor links to that page for users with the Developer Tools policy.
+Consumer applications can expose the advanced connection controls in a diagnostics UI. The following example shows session invalidation followed by a candidate request that tests recovery.
 
 ```mermaid
 sequenceDiagram
@@ -241,7 +241,7 @@ Bullhorn documents the OAuth-to-REST-login sequence and recommends reusing the R
 
 The converter is attached only to the candidate source property, so the same handling applies to candidate searches, entity reads and inherited candidate DTOs without loosening other string fields. Non-string values and malformed array elements still fail deserialization. Serialization continues to write a scalar string. This is a read-compatibility representation, not a model for writing multi-select source arrays back to a tenant.
 
-The fake-server regression suite covers the `BullhornService.BullhornCheck` path used by the IPSGroup health endpoint. Validation on 4 October 2026: the API/test project built in an isolated output folder and all 62 tests passed, including thirteen new scalar/array/null/absent source, invalid-shape and scalar-write cases. The IPSGroup application and test project also built with this client; all 22 consumer tests passed. No live tenant calls were made. User acceptance of this fix and deployment remain pending.
+The fake-server regression suite covers the `BullhornService.BullhornCheck` path used by consumer health endpoints. Validation on 4 October 2026: the API/test project built in an isolated output folder and all 62 tests passed, including thirteen new scalar/array/null/absent source, invalid-shape and scalar-write cases. A consumer application and test project also built with this client; all 22 consumer tests passed. No live tenant calls were made by the assistant. On 4 October 2026, the maintainer confirmed the shared fix also works with scalar candidate-source responses in another consumer application. Live array-response acceptance and deployment were not explicitly reported. This acceptance update changes documentation only; builds/tests were not rerun.
 
 ## Contributors
 This project adheres following guidelines.

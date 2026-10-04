@@ -19,7 +19,7 @@ The API and test project were built with an isolated `BaseOutputPath` to avoid
 the running consumer's locked DLLs. The executable runner requires its app host;
 do not disable `UseAppHost` for this test project.
 
-In Twenty360, open Developer Tools, then Diagnostics:
+In a consumer application that exposes the advanced connection controls, open its diagnostics UI:
 
 1. Use Verify connection to confirm server health.
 2. Confirm shared-session invalidation and click Invalidate token.
@@ -33,8 +33,8 @@ the test token, so a background request may trigger recovery before the button.
 Other processes (including automation workers) have their own sessions.
 
 Existing list-returning endpoints now throw on HTTP, deserialization and incomplete
-pagination failures. Successful empty pages still return empty lists. Twenty360's
-service layer translates these exceptions into its existing Result failures.
+pagination failures. Successful empty pages still return empty lists. Consumer
+services can translate these exceptions into application-level failure results.
 
 Automatic recovery replays reads once. Writes are never replayed automatically;
 an authentication rejection repairs the session but returns the original failure.
