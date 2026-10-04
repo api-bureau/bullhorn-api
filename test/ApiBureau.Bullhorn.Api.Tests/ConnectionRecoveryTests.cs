@@ -2,7 +2,9 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using ApiBureau.Bullhorn.Api.Core;
+using ApiBureau.Bullhorn.Api.Dtos;
 using ApiBureau.Bullhorn.Api.Http;
+using ApiBureau.Bullhorn.Api.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -403,6 +405,67 @@ public sealed class ConnectionRecoveryTests
         Assert.Equal(3, server.TokenExchanges);
     }
 
+    [Theory]
+    [InlineData("\"Indeed\"", "Indeed")]
+    [InlineData("[\"Indeed\"]", "Indeed")]
+    [InlineData("[\"Indeed\",\"Referral\"]", "Indeed, Referral")]
+    [InlineData("[]", "")]
+    [InlineData("null", null)]
+    [InlineData(null, null)]
+    public async Task HealthCheckAcceptsScalarArrayAndMissingCandidateSources(string? sourceJson, string? expectedSource)
+    {
+        var sourceProperty = sourceJson is null ? "" : $",\"source\":{sourceJson}";
+        using var server = new Server
+        {
+            PagePayload = $$$"""
+                {"total":1,"start":0,"count":1,"data":[{"id":1,"status":"New Lead","isDeleted":false,"firstName":"Test","lastName":"Candidate","email":"candidate@example.test","dateAdded":1791056758850,"dateLastModified":1791056763980{{{sourceProperty}}},"owner":{"id":2,"firstName":"Test","lastName":"Owner"},"_score":1.0}]}
+                """
+        };
+        var service = new BullhornService(server.CreateClient());
+
+        var candidate = Assert.Single(await service.BullhornCheck(14, TestContext.Current.CancellationToken));
+
+        Assert.Equal(expectedSource, candidate.Source);
+        Assert.Equal("Test", candidate.FirstName);
+        Assert.Equal(2, candidate.Owner.Id);
+        Assert.Equal(1, server.Reads);
+        Assert.Equal(0, server.Refreshes);
+    }
+
+    [Theory]
+    [InlineData("17")]
+    [InlineData("true")]
+    [InlineData("{}")]
+    [InlineData("[\"Indeed\",17]")]
+    [InlineData("[\"Indeed\",null]")]
+    [InlineData("[[\"Indeed\"]]")]
+    public async Task HealthCheckStillRejectsInvalidCandidateSourceShapes(string sourceJson)
+    {
+        using var server = new Server
+        {
+            PagePayload = $$$"""{"total":1,"start":0,"count":1,"data":[{"id":1,"source":{{{sourceJson}}}}]}"""
+        };
+        var service = new BullhornService(server.CreateClient());
+
+        await Assert.ThrowsAsync<JsonException>(() => service.BullhornCheck(14, TestContext.Current.CancellationToken));
+
+        Assert.Equal(1, server.Reads);
+        Assert.Equal(0, server.Refreshes);
+    }
+
+    [Fact]
+    public void CandidateSourceSerializationKeepsTheExistingStringContract()
+    {
+        var candidate = new CandidateDto { Source = "Indeed, Referral" };
+        var json = JsonSerializer.Serialize(candidate, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        using var document = JsonDocument.Parse(json);
+
+        var source = document.RootElement.GetProperty("source");
+
+        Assert.Equal(JsonValueKind.String, source.ValueKind);
+        Assert.Equal(candidate.Source, source.GetString());
+    }
+
     private sealed class Server : HttpMessageHandler
     {
         private HttpClient? _http;
@@ -434,6 +497,7 @@ public sealed class ConnectionRecoveryTests
         public HttpStatusCode RejectionStatus = HttpStatusCode.BadRequest;
         public string RejectionBody = """{"errorMessage":"Bad BhRestToken"}""";
         public string? ReadErrorBody;
+        public string? PagePayload;
         public string? LastReadPath;
 
         public BullhornClient CreateClient()
@@ -521,6 +585,8 @@ public sealed class ConnectionRecoveryTests
                     FailSecondPage ? HttpStatusCode.InternalServerError : ReadStatus);
             }
             if (FailSecondPage) return Json(new { data = new[] { new { id = 1 } }, count = 1, total = 2 });
+            if (PagePayload is not null)
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(PagePayload, Encoding.UTF8, "application/json") };
             return Json(new { data = Array.Empty<object>(), count = 0, total = 0 });
         }
 

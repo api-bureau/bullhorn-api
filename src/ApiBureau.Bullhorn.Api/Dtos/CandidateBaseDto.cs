@@ -17,6 +17,8 @@ public class CandidateBaseDto : EntityBaseDto
     public bool IsDeleted { get; set; }
     public string Status { get; set; } = null!;
     public long CustomDate2 { get; set; }
+
+    [JsonConverter(typeof(StringOrStringArrayConverter))]
     public string? Source { get; set; }
     public UserDto Owner { get; set; }
     public AddressDto Address { get; set; }

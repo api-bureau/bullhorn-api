@@ -235,6 +235,14 @@ Bullhorn documents the OAuth-to-REST-login sequence and recommends reusing the R
 - [BullhornAdvancedClient](src/ApiBureau.Bullhorn.Api/BullhornAdvancedClient.cs): public verification, reconnect and testing controls.
 - [Recovery tests](test/ApiBureau.Bullhorn.Api.Tests/README.md): fake-server regression suite and manual testing steps.
 
+## Candidate source JSON compatibility
+
+`CandidateBaseDto.Source` retains its nullable string contract and accepts either a JSON string or an array of strings in API responses. For example, `"Indeed"` and `["Indeed"]` both become `"Indeed"`; `["Indeed", "Referral"]` becomes `"Indeed, Referral"`. Empty arrays become an empty string, while null or absent fields remain null.
+
+The converter is attached only to the candidate source property, so the same handling applies to candidate searches, entity reads and inherited candidate DTOs without loosening other string fields. Non-string values and malformed array elements still fail deserialization. Serialization continues to write a scalar string. This is a read-compatibility representation, not a model for writing multi-select source arrays back to a tenant.
+
+The fake-server regression suite covers the `BullhornService.BullhornCheck` path used by the IPSGroup health endpoint. Validation on 4 October 2026: the API/test project built in an isolated output folder and all 62 tests passed, including thirteen new scalar/array/null/absent source, invalid-shape and scalar-write cases. The IPSGroup application and test project also built with this client; all 22 consumer tests passed. No live tenant calls were made. User acceptance of this fix and deployment remain pending.
+
 ## Contributors
 This project adheres following guidelines.
 - https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md

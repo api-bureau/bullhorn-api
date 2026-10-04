@@ -8,6 +8,16 @@ dotnet run --project test/ApiBureau.Bullhorn.Api.Tests -c Debug
 
 The fake HTTP server exercises authorization, token refresh, REST login, ping,
 search pagination, concurrent recovery, cancellation and mutation failures.
+It also covers candidate source read compatibility through `BullhornService.BullhornCheck`:
+scalar strings, single/multiple string arrays, empty arrays, null/absent values,
+invalid shapes and preservation of scalar serialization. Fixtures use synthetic
+candidate details rather than the reported tenant record.
+
+Validation on 4 October 2026: the xUnit executable runner passed all 62 tests,
+including thirteen new candidate-source cases, with zero failures or skips.
+The API and test project were built with an isolated `BaseOutputPath` to avoid
+the running consumer's locked DLLs. The executable runner requires its app host;
+do not disable `UseAppHost` for this test project.
 
 In Twenty360, open Developer Tools, then Diagnostics:
 
